@@ -8,7 +8,18 @@ module.exports = {
    "./src/**/*.{vue,js,ts,jsx,tsx,mdx}",
  ],
  theme: {
-   extend: {},
+   extend: {
+    colors: {
+      'brand': {
+        'gold-metallic' : '#E2B84F',
+        'cornsilk' : '#FFF7D6',
+        'custom-white' : '#FFFDFB',
+        'honeydew' : '#E7F3DD',
+        'olivine' : '#85B56F',
+        'tea-green' : '#C1E4AD'
+      }
+    }
+   },
  },
  variants: {
    extend: {},

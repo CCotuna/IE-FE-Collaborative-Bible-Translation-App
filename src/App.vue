@@ -1,16 +1,14 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
+import IntroView from './views/IntroView.vue';
 </script>
 
 <template>
   <header>
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-      </nav>
+    <IntroView />
   </header>
 
-  <RouterView />
+  <!-- <RouterView /> -->
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>
