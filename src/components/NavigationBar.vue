@@ -6,7 +6,16 @@ const router = useRouter()
 
 import { computed } from "vue"
 const navbarTitle = computed(() => {
-    return route.path === '/import-text' ? 'Import text' : 'Home'
+    if (route.path === '/')
+        return 'Home'
+    else if (route.path === '/import-text')
+        return 'Import text'
+    else if (route.path === '/import-clasificat')
+        return 'Import clasificat'
+    else if (route.path === '/biblia-import-clasificat')
+        return 'Biblia'
+    else
+        return 'NULL'
 })
 
 const goBack = () => {

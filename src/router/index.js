@@ -11,8 +11,18 @@ const router = createRouter({
     },
     {
       path: "/import-text",
-      name: 'import text',
+      name: 'import-text',
       component: () => import('../components/ImportText.vue')
+    },
+    {
+      path: "/import-clasificat",
+      name: 'import-clasificat',
+      component: () => import('../components/ImportClasificat.vue')
+    },
+    {
+      path: "/biblia-import-clasificat",
+      name: 'biblia',
+      component: () => import('../components/ImportClasificat/Biblia.vue')
     }
     // {
     //   path: '/about',

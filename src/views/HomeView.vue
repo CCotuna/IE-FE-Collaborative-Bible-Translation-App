@@ -22,10 +22,10 @@ const selectOption = (option) => {
       <p class="px-8 text-gray-400 text-md italic">Adaugǎ primul tǎu text, prin una din cele trei metode</p>
       <div class="flex flex-col space-y-6 py-5 border border-green-700 rounded-md">
         <div class="flex flex-col space-y-6 px-10">
-          <button @click="navigateToImportText" class="flex items-center space-x-8 px-8 py-2 text-white bg-brand-olivine rounded-full">
+          <RouterLink :to="{name : 'import-text'}" class="flex items-center space-x-8 px-8 py-2 text-white bg-brand-olivine rounded-full">
             <i class="bi bi-pencil-square text-3xl"></i>
             <span class="text-xl">Import text</span>
-          </button>
+          </RouterLink>
           <button class="flex items-center space-x-8 px-8 py-2 text-white bg-brand-olivine rounded-full">
             <i class="bi bi-file-earmark-arrow-up text-3xl"></i>
             <span class="text-xl">Import fișier</span>
@@ -76,10 +76,10 @@ const selectOption = (option) => {
         </div>
       </div>
 
-      <button class="flex items-center space-x-8 px-5 py-2 text-white bg-brand-olivine rounded-full">
+      <RouterLink :to="{name: 'import-clasificat'}" class="flex items-center space-x-8 px-5 py-2 text-white bg-brand-olivine rounded-full">
         <i class="bi bi-book text-3xl"></i>
         <span class="text-xl">Import clasificat</span>
-      </button>
+      </RouterLink>
     </div>
   </main>
 </template>
