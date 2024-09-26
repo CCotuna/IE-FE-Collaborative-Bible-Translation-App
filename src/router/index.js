@@ -9,6 +9,11 @@ const router = createRouter({
       name: 'home',
       component: HomeView
     },
+    {
+      path: "/import-text",
+      name: 'import text',
+      component: () => import('../components/ImportText.vue')
+    }
     // {
     //   path: '/about',
     //   name: 'about',
@@ -19,5 +24,6 @@ const router = createRouter({
     // }
   ]
 })
+
 
 export default router
