@@ -16,6 +16,8 @@ const navbarTitle = computed(() => {
         return 'Biblia'
     else if (route.path === '/biblioteca')
         return 'Biblioteca mea'
+    else if (route.path === '/menu')
+        return 'Meniu'
     else
         return 'NULL'
 })
@@ -38,7 +40,7 @@ const goBack = () => {
             <i class="bi bi-search"></i>
             <i class="bi bi-bell-fill"></i>
             <i class="bi bi-plus-circle-fill text-brand-olivine"></i>
-            <i class="bi bi-gear"></i>
+            <RouterLink :to="{name:'menu'}"><i class="bi bi-gear"></i></RouterLink>
         </div>
     </div>
 
