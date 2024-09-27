@@ -23,6 +23,11 @@ const router = createRouter({
       path: "/biblia-import-clasificat",
       name: 'biblia',
       component: () => import('../components/ImportClasificat/Biblia.vue')
+    },
+    {
+      path: "/biblioteca",
+      name: 'biblioteca',
+      component: () => import('../views/LibraryView.vue')
     }
     // {
     //   path: '/about',
