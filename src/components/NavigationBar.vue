@@ -39,7 +39,7 @@ const goBack = () => {
             <span class="p-3 text-2xl font-medium">{{ navbarTitle }}</span>
         </div>
         <div v-if="route.path !== '/import-text' && route.path !== '/import-clasificat' " class="flex space-x-3 text-3xl">
-            <i class="bi bi-search"></i>
+            <RouterLink :to="{name:'biblioteca'}"><i class="bi bi-search"></i></RouterLink>
             <RouterLink :to="{name:'notifications'}"><i class="bi bi-bell-fill"></i></RouterLink>
             <i class="bi bi-plus-circle-fill text-brand-olivine"></i>
             <RouterLink :to="{name:'menu'}"><i class="bi bi-gear"></i></RouterLink>
