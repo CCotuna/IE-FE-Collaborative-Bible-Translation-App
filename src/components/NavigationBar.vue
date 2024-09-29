@@ -14,6 +14,12 @@ const navbarTitle = computed(() => {
         return 'Import clasificat'
     else if (route.path === '/biblia-import-clasificat')
         return 'Biblia'
+    else if (route.path === '/imnuri-crestine-import-clasificat')
+        return 'Imnuri crestine'
+    else if (route.path === '/poezii-crestine-import-clasificat')
+        return 'Poezii crestine'
+    else if (route.path === '/comentarii-biblice-import-clasificat')
+        return 'Comentarii biblice'
     else if (route.path === '/biblioteca')
         return 'Biblioteca mea'
     else if (route.path === '/menu')
@@ -41,7 +47,7 @@ const goBack = () => {
         <div v-if="route.path !== '/import-text' && route.path !== '/import-clasificat' " class="flex space-x-3 text-3xl">
             <RouterLink :to="{name:'biblioteca'}"><i class="bi bi-search"></i></RouterLink>
             <RouterLink :to="{name:'notifications'}"><i class="bi bi-bell-fill"></i></RouterLink>
-            <i class="bi bi-plus-circle-fill text-brand-olivine"></i>
+            <RouterLink :to="{name: 'home'}"><i class="bi bi-plus-circle-fill text-brand-olivine"></i></RouterLink>
             <RouterLink :to="{name:'menu'}"><i class="bi bi-gear"></i></RouterLink>
         </div>
     </div>

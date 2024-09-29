@@ -25,6 +25,21 @@ const router = createRouter({
       component: () => import('../components/ImportClasificat/Biblia.vue')
     },
     {
+      path: "/imnuri-crestine-import-clasificat",
+      name: 'imnuri-crestine',
+      component: () => import('../components/ImportClasificat/ImnuriCrestine.vue')
+    },
+    {
+      path: "/poezii-crestine-import-clasificat",
+      name: 'poezii-crestine',
+      component: () => import('../components/ImportClasificat/PoeziiCrestine.vue')
+    },
+    {
+      path: "/comentarii-biblice-import-clasificat",
+      name: 'comentarii-biblice',
+      component: () => import('../components/ImportClasificat/ComentariiBiblice.vue')
+    },
+    {
       path: "/biblioteca",
       name: 'biblioteca',
       component: () => import('../views/LibraryView.vue')
