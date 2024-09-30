@@ -26,6 +26,8 @@ const navbarTitle = computed(() => {
         return 'Meniu'
     else if (route.path === '/notifications')
         return 'Notificari'
+    else if (route.path === '/text-biblic-design')
+        return 'Pagina test'
     else
         return 'NULL'
 })
