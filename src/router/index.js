@@ -53,6 +53,11 @@ const router = createRouter({
       path: "/notifications",
       name: 'notifications',
       component: () => import('../views/NotificationsView.vue')
+    },
+    {
+      path: "/text-biblic-design",
+      name: 'text-biblic-design',
+      component: () => import('../views/BibleText.vue')
     }
     // {
     //   path: '/about',
