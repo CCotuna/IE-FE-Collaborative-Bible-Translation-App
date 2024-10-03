@@ -11,10 +11,7 @@ const newObject2 = {
 }
 </script>
 <template>
-    <TemplateTranslatedText  :text="newObject"/>
-    <div class="mt-12">
         <TemplateTranslatedText :text="newObject2" />
-    </div>
 
     <div class="mt-16 p-3 relative">
         <p class="text-xl"><span class="text-sm text-gray-500">5 </span>paşii mei stau neclintiţi* pe cărările Tale şi
@@ -32,6 +29,8 @@ const newObject2 = {
             <i class="bi bi-bell-fill text-gray-400 text-base"></i>
         </div>
     </div>
+    <TemplateTranslatedText  :text="newObject"/>
+
     <div class="mt-16 p-3">
         <p class="text-xl">
             <span class="text-sm text-gray-500">7</span>
