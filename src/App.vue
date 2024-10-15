@@ -2,22 +2,24 @@
 import { ref, onMounted } from 'vue';
 import IntroView from './views/IntroView.vue';
 import { RouterView } from 'vue-router';
-import NavigationBar from './components/NavigationBar.vue';
+import NavigationBar from './components/Navigation/NavigationBar.vue';
 
 const showIntro = ref(true);
 
-// onMounted(() => {
-//   setTimeout(() => {
-//     showIntro.value = false;
-//   }, 2000);
-// });
+onMounted(() => {
+  setTimeout(() => {
+    showIntro.value = false;
+  }, 2000);
+});
 </script>
 
 <template>
   <div>
-    <NavigationBar />
-    <!-- <IntroView v-if="showIntro" /> -->
-    <RouterView />
+    <IntroView v-if="showIntro" />
+    <div v-else>
+      <NavigationBar />
+      <RouterView />
+    </div>
   </div>
 </template>
 

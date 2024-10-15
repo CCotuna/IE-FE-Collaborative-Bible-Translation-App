@@ -7,7 +7,7 @@ const router = useRouter()
 import { computed } from "vue"
 const navbarTitle = computed(() => {
     if (route.path === '/')
-        return 'Home'
+        return 'Biblioteca mea'
     else if (route.path === '/import-text')
         return 'Import text'
     else if (route.path === '/import-clasificat')
@@ -49,10 +49,10 @@ const goBack = () => {
         <div v-if="route.path !== '/import-text' && route.path !== '/import-clasificat' && route.path !== '/text-biblic-design' " class="flex space-x-3 text-3xl">
             <RouterLink :to="{name:'biblioteca'}"><i class="bi bi-search"></i></RouterLink>
             <RouterLink :to="{name:'notifications'}"><i class="bi bi-bell-fill"></i></RouterLink>
-            <RouterLink :to="{name: 'home'}"><i class="bi bi-plus-circle-fill text-brand-olivine"></i></RouterLink>
+            <RouterLink :to="{name: 'import-text'}"><i class="bi bi-plus-circle-fill text-brand-olivine"></i></RouterLink>
             <RouterLink :to="{name:'menu'}"><i class="bi bi-gear"></i></RouterLink>
         </div>
-        <RouterLink :to="{name:'text-biblic-design'}"><i class="bi bi-file-earmark-text text-3xl"></i></RouterLink>
+        <!-- <RouterLink :to="{name:'text-biblic-design'}"><i class="bi bi-file-earmark-text text-3xl"></i></RouterLink> -->
     </div>
 
 </template>

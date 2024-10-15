@@ -12,7 +12,7 @@ const router = createRouter({
     {
       path: "/import-text",
       name: 'import-text',
-      component: () => import('../components/ImportText.vue')
+      component: () => import('../views/ImportTextView.vue')
     },
     {
       path: "/import-clasificat",
