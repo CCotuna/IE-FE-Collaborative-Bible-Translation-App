@@ -18,6 +18,12 @@ const navbarTitle = computed(() => {
         return projectStore.projects.length === 0 ? 'Import text' : 'Biblioteca mea';
     }
 
+    if (route.params.id) {
+    const projectId = parseInt(route.params.id);
+    const project = projectStore.projects.find(p => p.id === projectId);
+    return project ? project.name : 'Proiectul nu a fost găsit';
+  }
+
     switch (path) {
         case '/base-import':
             return 'Import text';
@@ -27,6 +33,10 @@ const navbarTitle = computed(() => {
             return 'Notificări';
         case '/menu':
             return 'Meniu';
+        case '/sign-in':
+            return 'Autentificare';
+        case '/sign-up':
+            return 'Înregistrare';
         default:
             return '';
     }

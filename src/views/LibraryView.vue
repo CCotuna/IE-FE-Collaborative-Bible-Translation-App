@@ -1,21 +1,30 @@
 <script setup>
 import { useProjectStore } from '@/store/project';
 import { formatDistanceToNow } from 'date-fns';
+import { useRouter } from 'vue-router';
 
 const projectStore = useProjectStore();
+const router = useRouter();
 
 const timeSinceUpdate = (date) => formatDistanceToNow(new Date(date), { addSuffix: true });
 
+const navigateToProject = (id) => {
+    router.push({ name: 'project', params: { id } });
+};
 </script>
 
 <template>
     <div>
         <div v-for="project in projectStore.projects" :key="project.id"
             class="relative border border-brand-olivine rounded-lg mx-3 mt-4 p-3 space-y-3">
+            
             <i v-if="project.has_updates"
                 class="bi bi-bell-fill bg-white text-brand-gold-metallic rounded-full p-2 flex items-center justify-center w-12 h-12 text-2xl absolute -top-4 -left-4"></i>
+
             <div class="flex justify-between items-center">
-                <p class="text-xl">{{ project.name }}</p>
+                <p class="text-xl cursor-pointer" @click="navigateToProject(project.id)">
+                    {{ project.name }}
+                </p>
                 <p v-if="project.type" class="bg-brand-honeydew p-2 px-5 rounded-lg">
                     {{ project.type }}
                 </p>

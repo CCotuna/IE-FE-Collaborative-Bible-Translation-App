@@ -18,7 +18,7 @@ export const useProjectStore = defineStore("project", {
                     description: "Description of Project 2",
                     has_updates: false,
                     type: null,
-                    last_update: "2021-01-01"
+                    last_update: "2024-10-10"
                 },
                 {
                     id: 3,

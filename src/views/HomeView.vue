@@ -1,5 +1,5 @@
 <script setup>
-import ImportText from '@/views/ImportTextView.vue';
+import ImportTextView from '@/views/ImportTextView.vue';
 import Library from '@/views/LibraryView.vue';
 import { useProjectStore} from '@/store/project'
 
@@ -12,7 +12,7 @@ const projectStore = useProjectStore();
 </script>
 <template>
     <div v-if="projectStore.projects.length == 0">
-        <ImportText />
+        <ImportTextView />
     </div>
     <div v-else>
         <Library />
