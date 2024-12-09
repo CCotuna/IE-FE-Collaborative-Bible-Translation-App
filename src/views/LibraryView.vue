@@ -5,6 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 const projectStore = useProjectStore();
 
 const timeSinceUpdate = (date) => formatDistanceToNow(new Date(date), { addSuffix: true });
+
 </script>
 
 <template>

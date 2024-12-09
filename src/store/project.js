@@ -27,6 +27,14 @@ export const useProjectStore = defineStore("project", {
                     has_updates: true,
                     type: "Imnuri crestine",
                     last_update: "2021-01-01"
+                },
+                {
+                    id: 4,
+                    name: "Traducere 2023 - BTF  ",
+                    description: "Description of Project 3",
+                    has_updates: false,
+                    type: "Biblia",
+                    last_update: "2021-01-01"
                 }
             ]
         }

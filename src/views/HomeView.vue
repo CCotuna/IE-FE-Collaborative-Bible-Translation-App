@@ -1,6 +1,6 @@
 <script setup>
-import ImportText from '@/components/layout/ImportText.vue';
-import Library from '@/components/layout/Library.vue';
+import ImportText from '@/views/ImportTextView.vue';
+import Library from '@/views/LibraryView.vue';
 import { useProjectStore} from '@/store/project'
 
 const projectStore = useProjectStore();
