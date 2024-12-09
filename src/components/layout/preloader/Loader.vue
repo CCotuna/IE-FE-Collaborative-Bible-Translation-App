@@ -1,3 +1,3 @@
 <script setup></script>
-<template>Hehe</template>
+<template>Loading...</template>
 <style scoped></style>

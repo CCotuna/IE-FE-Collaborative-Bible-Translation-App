@@ -1,3 +1,3 @@
 <script setup></script>
-<template>Imnuri crestine</template>
+<template>Profile</template>
 <style scoped></style>

@@ -1,3 +1,3 @@
 <script setup></script>
-<template>Comentarii biblice</template>
+<template>Sign in</template>
 <style scoped></style>

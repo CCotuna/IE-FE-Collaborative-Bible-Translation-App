@@ -1,3 +1,3 @@
 <script setup></script>
-<template>Hehe</template>
+<template>Help</template>
 <style scoped></style>

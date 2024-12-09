@@ -1,3 +1,3 @@
 <script setup></script>
-<template>Hehe</template>
+<template>Sign Up</template>
 <style scoped></style>

@@ -1,3 +1,3 @@
 <script setup></script>
-<template>Poezii crestine</template>
+<template>About</template>
 <style scoped></style>

@@ -1,3 +1,3 @@
 <script setup></script>
-<template>Hehe</template>
+<template>Modal</template>
 <style scoped></style>

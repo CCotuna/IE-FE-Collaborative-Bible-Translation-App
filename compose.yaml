@@ -3,7 +3,7 @@ services:
     build: .docker
     stdin_open: true
     tty: true
-    container_name: app.Collaborative-Bible-Translation-App
+    container_name: app.FETranslationApp
     environment:
       NODE_ENV: development
       CHOKIDAR_USEPOLLING: true

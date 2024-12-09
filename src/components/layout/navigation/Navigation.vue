@@ -1,3 +1,3 @@
 <script setup></script>
-<template>Hehe</template>
+<template>Navigation Bar</template>
 <style scoped></style>
