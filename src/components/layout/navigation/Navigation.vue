@@ -50,7 +50,7 @@ const showMainIcons = computed(() => {
             <span class="p-3 text-2xl font-medium">{{ navbarTitle }}</span>
         </div>
         <div v-if="showMainIcons" class="flex space-x-3 text-3xl">
-            <RouterLink ><i class="bi bi-search"></i></RouterLink>
+            <span ><i class="bi bi-search"></i></span>
             <RouterLink :to="{ name: 'notifications' }"><i class="bi bi-bell-fill"></i></RouterLink>
             <RouterLink :to="{ name: 'base-import' }"><i class="bi bi-plus-circle-fill text-brand-olivine"></i></RouterLink>
             <RouterLink :to="{ name: 'menu' }"><i class="bi bi-gear"></i></RouterLink>
