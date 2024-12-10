@@ -11,6 +11,8 @@ const goBack = () => {
     router.go(-1);
 };
 
+console.log(route.name)
+
 const navbarTitle = computed(() => {
     const path = route.path;
 
@@ -78,9 +80,12 @@ const showMainIcons = computed(() => {
             <RouterLink :to="{ name: 'base-import' }"><i class="bi bi-plus-circle-fill text-brand-olivine"></i></RouterLink>
             <RouterLink :to="{ name: 'menu' }"><i class="bi bi-gear"></i></RouterLink>
         </div>
-        <RouterLink v-if="route.path === '/text-biblic-design'" :to="{ name: 'text-biblic-design' }">
+        <!-- <RouterLink v-if="route.path === '/text-biblic-design'" :to="{ name: 'text-biblic-design' }">
             <i class="bi bi-file-earmark-text text-3xl"></i>
-        </RouterLink>
+        </RouterLink> -->
+        <span v-if="route.name === 'project'">
+            Hehe
+        </span>
     </div>
 </template>
 

@@ -48,14 +48,14 @@ const deleteProject = (id) => {
                 </div>
                 <div class="flex space-x-2 items-center text-3xl text-brand-olivine">
                     <i
-                        class="bi bi-share-fill bg-white shadow-md rounded-full p-2 flex items-center justify-center w-11 h-11"></i>
+                        class="bi bi-share-fill bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
                     <i
-                        class="bi bi-people bg-white shadow-md rounded-full p-2 flex items-center justify-center w-11 h-11"></i>
+                        class="bi bi-people bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
                     <i
-                        class="bi bi-puzzle bg-white shadow-md rounded-full p-2 flex items-center justify-center w-11 h-11"></i>
+                        class="bi bi-puzzle bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
                     <div @click="deleteProject(project.id)" class="cursor-pointer">
                         <i
-                            class="bi bi-trash3 bg-white shadow-md rounded-full p-2 flex items-center justify-center w-11 h-11"></i>
+                            class="bi bi-trash3 bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
                     </div>
                 </div>
             </div>
