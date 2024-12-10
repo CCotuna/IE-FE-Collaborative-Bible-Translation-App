@@ -71,8 +71,8 @@ const books = [
 <template>
     <div class="mx-5">
         <span class="font-bold">Alege cartea</span>
-        <div class="grid grid-cols-6 sm:grid-cols-6 md:grid-cols-5 lg:grid-cols-7 gap-4 mt-4">
-            <div v-for="book in books" :key="book.name" class="border-2 border-brand-olivine rounded-md p-2 text-center">
+        <div class="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-7 gap-4 mt-4">
+            <div v-for="book in books" :key="book.name" class="border-2 border-brand-olivine rounded-md p-2 px-0 text-center">
                 {{ book.name }}
             </div>
         </div>
