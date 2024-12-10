@@ -1,5 +1,7 @@
 <script setup>
-const books = [
+import { ref } from 'vue';
+
+const books = ref([
     { name: 'Gen', is_imported: false },
     { name: 'Exod', is_imported: false },
     { name: 'Lev', is_imported: false },
@@ -66,18 +68,24 @@ const books = [
     { name: '3John', is_imported: false },
     { name: 'Jude', is_imported: false },
     { name: 'Rev', is_imported: false },
-]
+]);
+
+function toggleImportStatus(book) {
+    book.is_imported = !book.is_imported;
+}
 </script>
+
 <template>
     <div class="mx-5">
         <span class="font-bold">Alege cartea</span>
         <div class="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-7 gap-4 mt-4">
-            <div v-for="book in books" :key="book.name" class="border-2 border-brand-olivine rounded-md p-2 px-0 text-center">
+            <div v-for="book in books" :key="book.name" @click="toggleImportStatus(book)" :class="['border-2',
+                book.is_imported ? 'bg-brand-olivine text-white' : 'bg-white text-black border-brand-olivine',
+                'rounded-md p-2 px-0 text-center cursor-pointer']">
                 {{ book.name }}
             </div>
         </div>
     </div>
 </template>
-
 
 <style scoped></style>
