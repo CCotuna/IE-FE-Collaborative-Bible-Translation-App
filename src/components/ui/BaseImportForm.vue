@@ -45,7 +45,7 @@ const submitForm = () => {
       description: descriptionContent,
       has_updates: false,
       type: null,
-      last_update: new Date().toISOString(),
+      last_update: null,
     };
 
     projectStore.addProject(newProject);

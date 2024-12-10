@@ -1,12 +1,11 @@
 <script setup>
 import { useProjectStore } from '@/store/project';
-import { formatDistanceToNow } from 'date-fns';
+import { timeSinceCreated } from '@/utils/time_since_created';
 import { useRouter } from 'vue-router';
 
 const projectStore = useProjectStore();
 const router = useRouter();
 
-const timeSinceUpdate = (date) => formatDistanceToNow(new Date(date), { addSuffix: true });
 
 const navigateToProject = (id) => {
     router.push({ name: 'project', params: { id } });
@@ -32,23 +31,24 @@ const navigateToProject = (id) => {
 
             <div class="flex justify-between items-end">
                 <div class="flex space-x-2 items-center">
+
                     <div
                         class="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden border border-brand-olivine rounded-full">
                         <span class="font-medium text-brand-olivine">
                             {{ project.name.substring(0, 2).toUpperCase() }}
                         </span>
                     </div>
-                    <span>{{ timeSinceUpdate(project.last_update) }}</span>
+                    <span>{{ timeSinceCreated(project.last_update) }}</span>
                 </div>
-                <div class="flex space-x-2 items-center text-2xl text-brand-olivine">
+                <div class="flex space-x-2 items-center text-3xl text-brand-olivine">
                     <i
-                        class="bi bi-share-fill bg-white shadow-md rounded-full p-2 flex items-center justify-center w-10 h-10"></i>
+                        class="bi bi-share-fill bg-white shadow-md rounded-full p-2 flex items-center justify-center w-11 h-11"></i>
                     <i
-                        class="bi bi-people bg-white shadow-md rounded-full p-2 flex items-center justify-center w-10 h-10"></i>
+                        class="bi bi-people bg-white shadow-md rounded-full p-2 flex items-center justify-center w-11 h-11"></i>
                     <i
-                        class="bi bi-puzzle bg-white shadow-md rounded-full p-2 flex items-center justify-center w-10 h-10"></i>
+                        class="bi bi-puzzle bg-white shadow-md rounded-full p-2 flex items-center justify-center w-11 h-11"></i>
                     <i
-                        class="bi bi-trash3 bg-white shadow-md rounded-full p-2 flex items-center justify-center w-10 h-10"></i>
+                        class="bi bi-trash3 bg-white shadow-md rounded-full p-2 flex items-center justify-center w-11 h-11"></i>
                 </div>
             </div>
         </div>
