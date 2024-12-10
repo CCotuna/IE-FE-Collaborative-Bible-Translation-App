@@ -21,10 +21,10 @@ const navbarTitle = computed(() => {
     }
 
     if (route.params.id) {
-    const projectId = parseInt(route.params.id);
-    const project = projectStore.projects.find(p => p.id === projectId);
-    return project ? project.name : 'Proiectul nu a fost găsit';
-  }
+        const projectId = parseInt(route.params.id);
+        const project = projectStore.projects.find(p => p.id === projectId);
+        return project ? project.name : 'Proiectul nu a fost găsit';
+    }
 
     switch (path) {
         case '/base-import':
@@ -68,24 +68,28 @@ const showMainIcons = computed(() => {
 
 <template>
     <div class="p-3 w-full flex justify-between items-center border-b">
-        <div>
+        <div class="flex items-center space-x-2">
             <button v-if="showGoBack" @click="goBack" class="text-lg text-gray-500 hover:text-gray-800">
                 <i class="bi bi-chevron-left text-brand-olivine"></i>
             </button>
-            <span class="p-3 text-2xl font-medium">{{ navbarTitle }}</span>
+            <span :class="{
+                'w-64 ps-0': route.name === 'project',
+            }" class="p-3 text-2xl font-medium truncate">
+                {{ navbarTitle }}
+            </span>
         </div>
         <div v-if="showMainIcons" class="flex space-x-3 text-3xl">
-            <span ><i class="bi bi-search"></i></span>
+            <span><i class="bi bi-search"></i></span>
             <RouterLink :to="{ name: 'notifications' }"><i class="bi bi-bell-fill"></i></RouterLink>
-            <RouterLink :to="{ name: 'base-import' }"><i class="bi bi-plus-circle-fill text-brand-olivine"></i></RouterLink>
+            <RouterLink :to="{ name: 'base-import' }"><i class="bi bi-plus-circle-fill text-brand-olivine"></i>
+            </RouterLink>
             <RouterLink :to="{ name: 'menu' }"><i class="bi bi-gear"></i></RouterLink>
         </div>
-        <!-- <RouterLink v-if="route.path === '/text-biblic-design'" :to="{ name: 'text-biblic-design' }">
-            <i class="bi bi-file-earmark-text text-3xl"></i>
-        </RouterLink> -->
-        <span v-if="route.name === 'project'">
-            Hehe
-        </span>
+        <div v-if="route.name === 'project'" class="flex space-x-3 text-3xl">
+            <span><i class="bi bi-search"></i></span>
+            <span><i class="bi bi-people"></i></span>
+            <RouterLink :to="{ name: 'menu' }"><i class="bi bi-gear"></i></RouterLink>
+        </div>
     </div>
 </template>
 
