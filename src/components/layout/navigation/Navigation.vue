@@ -53,7 +53,10 @@ const navbarTitle = computed(() => {
 });
 
 const showGoBack = computed(() => {
-    return !['/', '/library', '/base-import'].includes(route.path);
+    if (['/', '/library'].includes(route.path)) {
+        return false;
+    }
+    return route.path === '/base-import' && projectStore.projects.length > 0;
 });
 
 const showMainIcons = computed(() => {
