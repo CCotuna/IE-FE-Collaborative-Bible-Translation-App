@@ -56,7 +56,7 @@ const showGoBack = computed(() => {
     if (['/', '/library'].includes(route.path)) {
         return false;
     }
-    return route.path === '/base-import' && projectStore.projects.length > 0;
+    return route.path === '/base-import' ? projectStore.projects.length > 0 : true;
 });
 
 const showMainIcons = computed(() => {
