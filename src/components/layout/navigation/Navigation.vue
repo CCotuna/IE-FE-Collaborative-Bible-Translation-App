@@ -11,8 +11,6 @@ const goBack = () => {
     router.go(-1);
 };
 
-console.log(route.name)
-
 const navbarTitle = computed(() => {
     const path = route.path;
 
@@ -73,7 +71,7 @@ const showMainIcons = computed(() => {
                 <i class="bi bi-chevron-left text-brand-olivine"></i>
             </button>
             <span :class="{
-                'w-64 ps-0': route.name === 'project',
+                'w-64 md:w-full ps-0': route.name === 'project',
             }" class="p-3 text-2xl font-medium truncate">
                 {{ navbarTitle }}
             </span>

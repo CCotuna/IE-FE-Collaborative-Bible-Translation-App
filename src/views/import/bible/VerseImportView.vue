@@ -1,13 +1,13 @@
 <script setup>
 import { ref } from 'vue';
 
-const selectedChapter = ref(null);
+const selectedVerse = ref(null);
 
-const toggleVerse = (chapter) => {
-    if (selectedChapter.value === chapter) {
-        selectedChapter.value = null;
+const toggleVerse = (verse) => {
+    if (selectedVerse.value === verse) {
+        selectedVerse.value = null;
     } else {
-        selectedChapter.value = chapter;
+        selectedVerse.value = verse;
     }
 };
 </script>
@@ -23,7 +23,7 @@ const toggleVerse = (chapter) => {
 
             <div v-for="i in 40" :key="i" :class="[
                 'border-2 text-black p-2 px-0 text-center cursor-pointer rounded-md',
-                selectedChapter === i ? 'bg-brand-olivine text-white' : 'border-brand-olivine text-black'
+                selectedVerse === i ? 'bg-brand-olivine text-white' : 'border-brand-olivine text-black'
             ]" @click="toggleVerse(i)">
                 {{ i }}
             </div>
