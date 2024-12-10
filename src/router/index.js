@@ -15,6 +15,11 @@ const router = createRouter({
       component: () => import('../views/ImportTextView.vue')
     },
     {
+      path: '/base-import/new-project',
+      name: 'new-project',
+      component: () => import('../views/import/BaseImportView.vue')
+    },
+    {
       path: '/classified-import',
       name: 'classified-import',
       component: () => import('../views/ClassifiedImportView.vue')
@@ -45,7 +50,7 @@ const router = createRouter({
       component: () => import('../views/SignUpView.vue')
     },
     {
-      path: '/projects/:id',  
+      path: '/:id',
       name: 'project',
       component: () => import('@/components/layout/Project.vue'),
       props: true,

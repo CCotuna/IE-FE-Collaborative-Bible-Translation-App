@@ -27,6 +27,8 @@ const navbarTitle = computed(() => {
     switch (path) {
         case '/base-import':
             return 'Import text';
+        case '/base-import/new-project':
+            return 'Import text';
         case '/classified-import':
             return 'Import clasificat';
         case '/notifications':

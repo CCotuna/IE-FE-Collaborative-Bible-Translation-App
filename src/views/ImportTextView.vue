@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import ImportOptions from "@/components/ImportOptions.vue";
+import ImportOptions from "@/components/ui/ImportOptions.vue";
 
 import { useProjectStore } from "@/store/project";
 const projectStore = useProjectStore();
@@ -12,7 +12,7 @@ const isChecked = ref(false);
       <p v-if="projectStore.projects.length == 0" class="px-8 text-gray-400 text-md italic">Adaugǎ primul tǎu text, prin una din cele trei metode</p>
       <div class="flex flex-col space-y-6 py-5 border border-green-700 rounded-md">
         <div class="flex flex-col space-y-6 px-10">
-          <RouterLink :to="{name : 'base-import'}" class="flex items-center space-x-8 px-8 py-2 text-white bg-brand-olivine rounded-full">
+          <RouterLink :to="{name : 'new-project'}" class="flex items-center space-x-8 px-8 py-2 text-white bg-brand-olivine rounded-full">
             <i class="bi bi-pencil-square text-3xl"></i>
             <span class="text-xl">Import text</span>
           </RouterLink>

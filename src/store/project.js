@@ -38,5 +38,11 @@ export const useProjectStore = defineStore("project", {
                 }
             ]
         }
-    }
+    },
+    actions: {
+        addProject(newProject) {
+          newProject.id = this.projects.length + 1;
+          this.projects.push(newProject);
+        }
+      }
 })
