@@ -40,15 +40,15 @@ const navigateToProject = (id) => {
                     </div>
                     <span>{{ timeSinceUpdate(project.last_update) }}</span>
                 </div>
-                <div class="flex space-x-2 items-center text-3xl text-brand-olivine">
+                <div class="flex space-x-2 items-center text-2xl text-brand-olivine">
                     <i
-                        class="bi bi-share-fill bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
+                        class="bi bi-share-fill bg-white shadow-md rounded-full p-2 flex items-center justify-center w-10 h-10"></i>
                     <i
-                        class="bi bi-people bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
+                        class="bi bi-people bg-white shadow-md rounded-full p-2 flex items-center justify-center w-10 h-10"></i>
                     <i
-                        class="bi bi-puzzle bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
+                        class="bi bi-puzzle bg-white shadow-md rounded-full p-2 flex items-center justify-center w-10 h-10"></i>
                     <i
-                        class="bi bi-trash3 bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
+                        class="bi bi-trash3 bg-white shadow-md rounded-full p-2 flex items-center justify-center w-10 h-10"></i>
                 </div>
             </div>
         </div>
