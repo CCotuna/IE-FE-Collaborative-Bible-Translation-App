@@ -22,7 +22,27 @@ const router = createRouter({
     {
       path: '/classified-import',
       name: 'classified-import',
-      component: () => import('../views/ClassifiedImportView.vue')
+      component: () => import('../views/import/ClassifiedImportView.vue')
+    },
+    {
+      path: '/classified-import/bible',
+      name: 'classified-import-bible',
+      component: () => import('../views/import/bible/BibleImportView.vue')
+    },
+    {
+      path: '/classified-import/bible/book',
+      name: 'classified-import-bible-book',
+      component: () => import('../views/import/bible/BookImportView.vue')
+    },
+    {
+      path: '/classified-import/bible/book/chapter',
+      name: 'classified-import-bible-book-chapter',
+      component: () => import('../views/import/bible/ChapterImportView.vue')
+    },
+    {
+      path: '/classified-import/bible/book/chapter/verse',
+      name: 'classified-import-bible-book-chapter-verse',
+      component: () => import('../views/import/bible/VerseImportView.vue')
     },
     {
       path: '/notifications',

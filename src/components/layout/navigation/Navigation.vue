@@ -31,6 +31,14 @@ const navbarTitle = computed(() => {
             return 'Import text';
         case '/classified-import':
             return 'Import clasificat';
+        case '/classified-import/bible':
+            return 'Biblia';
+        case '/classified-import/bible/book':
+            return 'Biblia Partial'
+        case '/classified-import/bible/book/chapter':
+            return 'Psalmi';
+        case '/classified-import/bible/book/chapter/verse':
+            return 'Psalmi 17';
         case '/notifications':
             return 'Notificări';
         case '/menu':
