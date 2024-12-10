@@ -25,7 +25,7 @@ const toggleContent = (index) => {
     <div v-if="project">
         <h1 class="text-xl font-bold text-center">{{ project.name }}</h1>
 
-        <div class="flex flex-col space-y-16">
+        <div class="flex flex-col space-y-12">
             <div v-for="(description, index) in project.descriptions" :key="index">
                <div class="relative">
                 <p class="text-xl bg-brand-honeydew p-3">
