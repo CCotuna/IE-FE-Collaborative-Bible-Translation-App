@@ -7,13 +7,42 @@ const projectStore = useProjectStore();
 const router = useRouter();
 
 const title = ref('');
-const description = ref('');
+const isBoldActive = ref(false);
+const isItalicActive = ref(false);
+const isUnderlineActive = ref(false);
+
+const toggleFormat = (command) => {
+  document.execCommand(command);
+
+  if (command === 'bold') {
+    isBoldActive.value = true;
+    setTimeout(() => {
+      isBoldActive.value = false;
+    }, 500);
+  }
+
+  if (command === 'italic') {
+    isItalicActive.value = true;
+    setTimeout(() => {
+      isItalicActive.value = false;
+    }, 500);
+  }
+
+  if (command === 'underline') {
+    isUnderlineActive.value = true;
+    setTimeout(() => {
+      isUnderlineActive.value = false;
+    }, 500);
+  }
+};
 
 const submitForm = () => {
-  if (title.value && description.value) {
+  const descriptionContent = document.getElementById('description-editor').innerHTML;
+
+  if (title.value && descriptionContent.trim()) {
     const newProject = {
       name: title.value,
-      description: description.value,
+      description: descriptionContent,
       has_updates: false,
       type: null,
       last_update: new Date().toISOString(),
@@ -22,34 +51,40 @@ const submitForm = () => {
     projectStore.addProject(newProject);
 
     title.value = '';
-    description.value = '';
 
     router.push('/');
   } else {
-    alert("Please fill out both the title and description fields.");
+    alert('Please fill out both the title and description fields.');
   }
 };
 </script>
 
 <template>
-  <form class="flex flex-col p-8 pt-2 " @submit.prevent="submitForm">
+  <form class="flex flex-col p-8 pt-2" @submit.prevent="submitForm">
     <div class="flex space-x-2 mb-4">
-      <span class="px-2 py-1 text-xl bg-gray-200 rounded-md">
+      <button type="button"
+        :class="['px-2 py-1 text-xl rounded-md', isBoldActive ? 'bg-brand-olivine text-white' : 'bg-gray-200']"
+        @click="toggleFormat('bold')">
         <i class="bi bi-type-bold"></i>
-      </span>
-      <span class="px-2 py-1 text-xl bg-gray-200 rounded-md">
+      </button>
+      <button type="button"
+        :class="['px-2 py-1 text-xl rounded-md', isUnderlineActive ? 'bg-brand-olivine text-white' : 'bg-gray-200']"
+        @click="toggleFormat('underline')">
         <i class="bi bi-type-underline"></i>
-      </span>
-      <span class="px-2 py-1 text-xl bg-gray-200 rounded-md">
+      </button>
+      <button type="button"
+        :class="['px-2 py-1 text-xl rounded-md', isItalicActive ? 'bg-brand-olivine text-white' : 'bg-gray-200']"
+        @click="toggleFormat('italic')">
         <i class="bi bi-type-italic"></i>
-      </span>
+      </button>
     </div>
 
     <input v-model="title" type="text" placeholder="Titlu"
       class="border border-gray-300 p-2 mb-4 rounded-md w-full max-w-xs" />
 
-    <textarea v-model="description" placeholder="Adaugă un text nou..."
-      class="p-2 rounded-md w-full max-w-xs min-h-[30rem] placeholder-gray-400 resize-none"></textarea>
+    <div id="description-editor" contenteditable="true"
+      class="p-2 border border-gray-300 rounded-md w-full max-w-xs min-h-[30rem] placeholder-gray-400 resize-none"
+      placeholder="Adaugă un text nou..."></div>
 
     <button type="submit" class="absolute bottom-4 right-4 bg-brand-olivine text-white px-4 py-2 rounded-full">
       Adaugǎ
@@ -57,4 +92,11 @@ const submitForm = () => {
   </form>
 </template>
 
-<style scoped></style>
+<style scoped>
+[contenteditable]:empty:before {
+  content: attr(placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+  display: block;
+}
+</style>

@@ -11,7 +11,7 @@ const project = projectStore.projects.find(p => p.id === parseInt(route.params.i
 <template>
     <div v-if="project">
         <h1 class="text-xl font-bold">{{ project.name }}</h1>
-        <p>{{ project.description }}</p>
+        <div v-html="project.description"></div>
         <p>{{ project.last_update }} </p>
     </div>
     <div v-else>
