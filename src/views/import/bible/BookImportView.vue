@@ -21,8 +21,8 @@ function toggleImportStatus(book) {
             </div>
         </div>
         <RouterLink :to="{ name: 'classified-import-bible-book-chapter' }"
-            class="absolute bottom-4 right-4 bg-brand-olivine text-white px-4 py-2 rounded-full">
-            Adaugǎ
+            class="fixed bottom-4 right-4 bg-brand-olivine text-white px-4 py-2 rounded-full">
+            Adaugă
         </RouterLink>
     </div>
 </template>

@@ -15,7 +15,7 @@ const toggleChapter = (chapter) => {
 <template>
     <div class="mx-5 mt-5">
         <span class="font-bold">Alege capitolul</span>
-        <div class="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-7 gap-4 mt-4">
+        <div class="grid grid-cols-6 sm:grid-cols-6 md:grid-cols-6 lg:grid-cols-7 gap-4 mt-4">
             <div
                 class="border-2 border-brand-olivine text-black p-2 px-0 w-full text-center cursor-pointer rounded-md col-span-2">
                 Integral
@@ -29,8 +29,8 @@ const toggleChapter = (chapter) => {
             </div>
         </div>
         <RouterLink :to="{ name: 'classified-import-bible-book-chapter-verse' }"
-            class="absolute bottom-4 right-4 bg-brand-olivine text-white px-4 py-2 rounded-full">
-            Adaugǎ
+        class="fixed bottom-4 right-4 bg-brand-olivine text-white px-4 py-2 rounded-full">
+        Adaugǎ
         </RouterLink>
     </div>
 </template>
