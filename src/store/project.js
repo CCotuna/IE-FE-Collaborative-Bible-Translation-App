@@ -11,9 +11,7 @@ const formatDateTime = (date) => {
       hour12: false 
     };
     
-    // Convertim data într-un format standard ISO 8601
     const isoDate = new Date(date).toISOString();
-
     return isoDate;
 }
 
@@ -61,6 +59,9 @@ export const useProjectStore = defineStore("project", {
           newProject.id = this.projects.length + 1;
           newProject.last_update = formatDateTime(new Date());
           this.projects.push(newProject);
+        },
+        deleteProject(projectId) {
+            this.projects = this.projects.filter(project => project.id !== projectId);
         }
     }
 })

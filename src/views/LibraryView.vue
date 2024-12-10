@@ -1,20 +1,26 @@
 <script setup>
+import { computed } from 'vue';
+
 import { useProjectStore } from '@/store/project';
 import { timeSinceCreated } from '@/utils/time_since_created';
 import { useRouter } from 'vue-router';
 
 const projectStore = useProjectStore();
+const projects = computed(() => projectStore.projects);
 const router = useRouter();
-
 
 const navigateToProject = (id) => {
     router.push({ name: 'project', params: { id } });
+};
+
+const deleteProject = (id) => {
+    projectStore.deleteProject(id);
 };
 </script>
 
 <template>
     <div>
-        <div v-for="project in projectStore.projects" :key="project.id"
+        <div v-for="project in projects" :key="project.id"
             class="relative border border-brand-olivine rounded-lg mx-3 mt-4 p-3 space-y-3">
 
             <i v-if="project.has_updates"
@@ -47,8 +53,10 @@ const navigateToProject = (id) => {
                         class="bi bi-people bg-white shadow-md rounded-full p-2 flex items-center justify-center w-11 h-11"></i>
                     <i
                         class="bi bi-puzzle bg-white shadow-md rounded-full p-2 flex items-center justify-center w-11 h-11"></i>
-                    <i
-                        class="bi bi-trash3 bg-white shadow-md rounded-full p-2 flex items-center justify-center w-11 h-11"></i>
+                    <div @click="deleteProject(project.id)" class="cursor-pointer">
+                        <i
+                            class="bi bi-trash3 bg-white shadow-md rounded-full p-2 flex items-center justify-center w-11 h-11"></i>
+                    </div>
                 </div>
             </div>
         </div>

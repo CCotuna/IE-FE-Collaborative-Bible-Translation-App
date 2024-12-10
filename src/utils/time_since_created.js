@@ -1,5 +1,4 @@
 export const timeSinceCreated = (date) => {
-    console.log(date);
     const diffInMs = new Date() - new Date(date);
     const diffInSec = diffInMs / 1000;
     const diffInMin = diffInSec / 60;
