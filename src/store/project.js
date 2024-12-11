@@ -189,11 +189,28 @@ export const useProjectStore = defineStore("project", {
         ],
     }),
     actions: {
-        addProject(newProject) {
-            newProject.id = this.projects.length + 1;
-            newProject.last_update = formatDateTime(new Date());
+        addProject(project) {
+            const descriptions = project.descriptions
+                .split('\n')
+                .filter(line => line.trim() !== '')
+                .map((line) => ({
+                    verseNumber: project.descriptions.length + 1,
+                    content: line.trim(),
+                    annotations: [],
+                }));
+
+            const newProject = {
+                id: this.projects.length + 1,
+                name: project.name,
+                descriptions,
+                has_updates: false,
+                type: project.type || "Custom",
+                last_update: formatDateTime(new Date()),
+            };
+
             this.projects.push(newProject);
         },
+
         deleteProject(projectId) {
             this.projects = this.projects.filter((project) => project.id !== projectId);
         },

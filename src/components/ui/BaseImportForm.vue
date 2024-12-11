@@ -37,26 +37,26 @@ const toggleFormat = (command) => {
 };
 
 const submitForm = () => {
-  const descriptionContent = document.getElementById('description-editor').innerHTML;
+    const descriptionContent = document.getElementById('description-editor').innerText.trim();
 
-  if (title.value && descriptionContent.trim()) {
-    const newProject = {
-      name: title.value,
-      description: descriptionContent,
-      has_updates: false,
-      type: null,
-      last_update: null,
-    };
+    if (title.value && descriptionContent) {
+        const newProject = {
+            name: title.value,
+            descriptions: descriptionContent,
+            type: null, 
+        };
 
-    projectStore.addProject(newProject);
+        projectStore.addProject(newProject);
 
-    title.value = '';
+        title.value = '';
+        document.getElementById('description-editor').innerHTML = '';
 
-    router.push('/');
-  } else {
-    alert('Please fill out both the title and description fields.');
-  }
+        router.push('/');
+    } else {
+        alert('Please fill out both the title and description fields.');
+    }
 };
+
 </script>
 
 <template>
@@ -79,7 +79,7 @@ const submitForm = () => {
       </button>
     </div>
 
-    <input v-model="title" type="text" placeholder="Titlu"
+    <input v-model="title" type="text" placeholder="Titlu" aria-label="Titlu proiect"
       class="border border-gray-300 p-2 mb-4 rounded-md w-full max-w-xs" />
 
     <div id="description-editor" contenteditable="true"
