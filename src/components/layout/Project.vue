@@ -40,8 +40,6 @@ const addAnnotation = (description) => {
 
 <template>
     <div v-if="project">
-        <h1 class="text-xl font-bold text-center">{{ project.name }}</h1>
-
         <div class="flex flex-col space-y-12">
             <div v-for="(description, index) in project.descriptions" :key="index">
                 <div class="relative">
@@ -62,6 +60,8 @@ const addAnnotation = (description) => {
                             }" class="bi ms-4"></i>
                         </button>
                     </div>
+                    <i v-if="!isOpen"
+                        class="bi bi-bell-fill bg-white text-brand-gold-metallic rounded-full p-2 flex items-center justify-center absolute -bottom-10 left-24 w-12 h-12 text-3xl"></i>
 
                     <i class="bi bi-plus-circle-fill bg-white text-brand-olivine rounded-full p-2 flex items-center justify-center absolute -bottom-9 right-4 w-12 h-12 text-4xl cursor-pointer"
                         @click="toggleAddForm(index)">
@@ -73,8 +73,12 @@ const addAnnotation = (description) => {
                         <Annotation :annotation="annotation" />
                     </div>
                 </div>
-                <div v-if="openAddFormIndex === index" class="border-s-8 border-brand-olivine mt-5 -mb-10 pt-10 px-3">
-                    <textarea v-model="newAnnotationText" class="w-full p-2 border border-gray-300 rounded-lg" rows="3"
+                <div v-if="openAddFormIndex === index" :class="{
+                    'border-s-8 border-brand-olivine -mb-10 pt-10 px-3': true,
+                    'mt-5': openAnnotationsIndex !== null,
+                    'mt-2': openAnnotationsIndex === null
+                }">
+                    <textarea v-model="newAnnotationText" class="w-full p-2 border border-gray-300 rounded-lg" rows="5"
                         placeholder="Adaugă textul adnotării"></textarea>
                     <button @click="addAnnotation(description)"
                         class="mt-2 px-4 py-2 bg-brand-olivine text-white rounded-lg hover:bg-brand-olivine-light">

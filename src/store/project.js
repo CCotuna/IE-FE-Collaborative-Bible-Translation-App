@@ -190,7 +190,7 @@ export const useProjectStore = defineStore("project", {
     }),
     actions: {
         addProject(project) {
-            const descriptions = project.descriptions
+            const descriptions = project.bbdescriptions
                 .split('\n')
                 .filter(line => line.trim() !== '')
                 .map((line) => ({
