@@ -37,16 +37,14 @@ const toggleFormat = (command) => {
 };
 
 const submitForm = () => {
-    const descriptionContent = document.getElementById('description-editor').innerText.trim();
+    const content = document.getElementById('description-editor').innerText.trim();
 
-    if (title.value && descriptionContent) {
+    if (title.value && content) {
         const newProject = {
             title: title.value,
-            content: descriptionContent,
+            text: content,
             type: null, 
         };
-
-        console.log(newProject);
 
         projectStore.addProject(newProject);
 

@@ -28,23 +28,21 @@ export const useProjectStore = defineStore("project", {
         },
 
         async addProject(project) {
-            const text = project.content
-                .split('\n')
-                .filter(line => line.trim() !== '')
-                .map((line) => ({
-                    verseNumber: project.content.length + 1,
-                    content: line.trim(),
-                    annotations: [],
-                }));
+            // const text = project.text
+            //     .split('\n')
+            //     .filter(line => line.trim() !== '')
+            //     .map((line) => ({
+            //         verseNumber: project.content.length + 1,
+            //         content: line.trim(),
+            //         annotations: [],
+            //     }));
 
             const newProject = {
                 title: project.title,
-                text,
-                has_updates: false,
+                text: project.text,
                 type: project.type || "Custom",
+                has_updates: false,
             };
-
-            console.log(newProject, "new project");
 
             this.projects.push(newProject);
 
@@ -53,8 +51,6 @@ export const useProjectStore = defineStore("project", {
                     "Content-Type": "application/json",
                 }
             })
-
-            console.log(response.data, "response data si ersponse id", response.data.id);
 
             this.projects[this.projects.length - 1].id = response.data.id;
         },

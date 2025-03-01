@@ -48,7 +48,7 @@ const deleteProject = (id) => {
                             {{ project.title.substring(0, 2).toUpperCase() }}
                         </span>
                     </div>
-                    <span>{{ timeSinceCreated(project.last_update) }}</span>
+                    <span>{{ timeSinceCreated(project.createdAt) }}</span>
                 </div>
                 <div class="flex space-x-2 items-center text-3xl text-brand-olivine">
                     <i
