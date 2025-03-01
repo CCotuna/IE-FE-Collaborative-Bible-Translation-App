@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
+import { useProjectStore } from './project'
+
 export const useUserStore = defineStore('user', {
     state: () => ({
         user: {
@@ -16,6 +18,9 @@ export const useUserStore = defineStore('user', {
                 }
             })
             this.user = response.data
+            
+            const projectStore = useProjectStore()
+            projectStore.fetchProjects()
         },
         async signUp(user) {
             const response = await axios.post('http://localhost:3000/user', user, {

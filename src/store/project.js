@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia';
 import axios from "axios";
 
+import { useUserStore } from './user';
+
 const formatDateTime = (date) => {
     const options = {
         year: 'numeric',
@@ -22,9 +24,24 @@ export const useProjectStore = defineStore("project", {
     }),
     actions: {
         async fetchProjects() {
-            const projects = await axios.get("http://localhost:3000/projects");
-            this.projects = projects.data
-            // console.log("Functioneaza")
+            const userStorage = useUserStore();
+            console.log("User storage:", userStorage.user);
+            const userId = userStorage.user.id;
+
+            if (!userId) {
+                console.log("No active user, not fetching projects.");
+                this.projects = [];
+                return;
+            }
+
+            try {
+                const projects = await axios.get("http://localhost:3000/projects", {
+                    params: { userId }  
+                });
+                this.projects = projects.data;
+            } catch (error) {
+                console.error("Error fetching projects:", error);
+            }
         },
 
         async addProject(project) {
@@ -37,11 +54,15 @@ export const useProjectStore = defineStore("project", {
             //         annotations: [],
             //     }));
 
+            const userStorage = useUserStore();
+            const user = userStorage.user;
+
             const newProject = {
                 title: project.title,
                 text: project.text,
                 type: project.type || "Custom",
                 has_updates: false,
+                userId: user.id
             };
 
             this.projects.push(newProject);

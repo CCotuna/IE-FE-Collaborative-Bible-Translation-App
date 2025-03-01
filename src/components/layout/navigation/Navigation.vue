@@ -78,6 +78,9 @@ const showMainIcons = computed(() => {
                 {{ navbarTitle }}
             </span>
         </div>
+        <div v-if="route.path === '/' && projectStore.projects.length == 0">
+            <RouterLink :to="{ name: 'sign-in'}" class="flex items-center space-x-8 px-8 py-2 text-white bg-brand-olivine rounded-full" >Sign in</RouterLink>
+        </div>
         <div v-if="showMainIcons" class="flex space-x-3 text-3xl">
             <span><i class="bi bi-search"></i></span>
             <RouterLink :to="{ name: 'notifications' }"><i class="bi bi-bell-fill"></i></RouterLink>

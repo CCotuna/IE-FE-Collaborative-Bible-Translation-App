@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useUserStore } from '../../store/user'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const user = ref({
   username: '',
@@ -22,6 +25,7 @@ const handleSubmit = async () => {
   } catch (err) {
     console.error('Error during sign-in:', err)
   }
+  router.push('/')
 }
 </script>
 <template>

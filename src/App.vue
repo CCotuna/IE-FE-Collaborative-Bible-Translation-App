@@ -14,7 +14,7 @@ const user = computed(() => userStore.user)
       <Navigation />
       <RouterView />
       <div>
-          <footer class="bg-brand-olivine text-white text-center py-4">
+          <footer class="bg-brand-olivine text-white text-center py-4 mt-10">
               <p>&copy; 2025 Bible Translate App</p>
               <p v-if="user.username">Welcome, {{ user.username }}!</p>
           </footer>
