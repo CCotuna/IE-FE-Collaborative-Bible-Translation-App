@@ -9,9 +9,13 @@ export const useUserStore = defineStore('user', {
         }
     }),
     actions: {
-        async fetchUser() {
-            const user = await axios.get('http://localhost:3000/user');
-            this.user = user.data
+        async signIn(user) {
+            const response = await axios.post('http://localhost:3000/user/signin', user, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            this.user = response.data
         },
         async signUp(user) {
             const response = await axios.post('http://localhost:3000/user', user, {
@@ -19,7 +23,6 @@ export const useUserStore = defineStore('user', {
                     'Content-Type': 'application/json'
                 }
             })
-            this.user = response.data
         }
     }
 })
