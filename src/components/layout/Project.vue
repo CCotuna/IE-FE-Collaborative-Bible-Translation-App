@@ -36,8 +36,6 @@ const addAnnotation = (description) => {
 };
 </script>
 
-
-
 <template>
     <div v-if="project">
         <div class="flex flex-col space-y-12">

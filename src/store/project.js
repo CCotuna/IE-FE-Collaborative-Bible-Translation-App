@@ -60,7 +60,15 @@ export const useProjectStore = defineStore("project", {
         },
 
         deleteProject(projectId) {
-            this.projects = this.projects.filter((project) => project.id !== projectId);
+            const projectIndex = this.projects.findIndex((project) => project.id === projectId);
+            this.projects.splice(projectIndex, 1);
+
+            axios.delete("http://localhost:3000/projects", {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                data: { projectId }
+            })
         },
     },
 });

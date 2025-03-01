@@ -70,7 +70,7 @@ const router = createRouter({
       component: () => import('../views/SignUpView.vue')
     },
     {
-      path: '/:id',
+      path: '/:slug-:id',
       name: 'project',
       component: () => import('@/components/layout/Project.vue'),
       props: true,

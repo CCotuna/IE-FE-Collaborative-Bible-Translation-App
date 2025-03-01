@@ -10,7 +10,11 @@ const projects = computed(() => projectStore.projects);
 const router = useRouter();
 
 const navigateToProject = (id) => {
-    router.push({ title: 'project', params: { id } });
+    const project = projects.value.find(p => p.id === id);
+    if (project) {
+        const slug = project.title.toLowerCase().replace(/\s+/g, '-')
+        router.push({ name: 'project', params: { id, slug } });
+    }
 };
 
 const deleteProject = (id) => {

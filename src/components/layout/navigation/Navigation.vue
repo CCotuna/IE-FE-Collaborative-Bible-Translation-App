@@ -23,7 +23,7 @@ const navbarTitle = computed(() => {
     if (route.params.id) {
         const projectId = parseInt(route.params.id);
         const project = projectStore.projects.find(p => p.id === projectId);
-        return project ? project.name : 'Proiectul nu a fost găsit';
+        return project ? project.title : 'Proiectul nu a fost găsit';
     }
 
     switch (path) {
