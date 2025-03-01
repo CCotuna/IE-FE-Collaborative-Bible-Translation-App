@@ -10,7 +10,7 @@ const projects = computed(() => projectStore.projects);
 const router = useRouter();
 
 const navigateToProject = (id) => {
-    router.push({ name: 'project', params: { id } });
+    router.push({ title: 'project', params: { id } });
 };
 
 const deleteProject = (id) => {
@@ -28,7 +28,7 @@ const deleteProject = (id) => {
 
             <div class="flex justify-between items-center">
                 <p class="text-xl cursor-pointer" @click="navigateToProject(project.id)">
-                    {{ project.name }}
+                    {{ project.title }}
                 </p>
                 <p v-if="project.type" class="bg-brand-honeydew p-2 px-5 rounded-lg">
                     {{ project.type }}
@@ -41,7 +41,7 @@ const deleteProject = (id) => {
                     <div
                         class="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden border border-brand-olivine rounded-full">
                         <span class="font-medium text-brand-olivine">
-                            {{ project.name.substring(0, 2).toUpperCase() }}
+                            {{ project.title.substring(0, 2).toUpperCase() }}
                         </span>
                     </div>
                     <span>{{ timeSinceCreated(project.last_update) }}</span>

@@ -87,6 +87,16 @@ const addAnnotation = (description) => {
                 </div>
             </div>
         </div>
+        <div class="mt-12 p-3 relative">
+            <p class="text-xl">
+                <span class="text-sm text-gray-500">6 </span>
+                Strig* către Tine, căci m-asculţi, Dumnezeule! Pleacă-Ţi urechea spre mine, ascultă cuvântul meu!
+            </p>
+            <div class="flex items-center absolute -bottom-8 space-x-2">
+                <div class="rounded-full bg-gray-400 text-white text-base px-4">3</div>
+                <i class="bi bi-bell-fill text-gray-400 text-base"></i>
+            </div>
+        </div>
     </div>
     <div v-else>
         <p>Project not found</p>

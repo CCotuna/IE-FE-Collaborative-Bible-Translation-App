@@ -41,10 +41,12 @@ const submitForm = () => {
 
     if (title.value && descriptionContent) {
         const newProject = {
-            name: title.value,
-            descriptions: descriptionContent,
+            title: title.value,
+            content: descriptionContent,
             type: null, 
         };
+
+        console.log(newProject);
 
         projectStore.addProject(newProject);
 

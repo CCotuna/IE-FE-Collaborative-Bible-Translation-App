@@ -11,6 +11,8 @@ const goBack = () => {
     router.go(-1);
 };
 
+projectStore.fetchProjects();
+
 const navbarTitle = computed(() => {
     const path = route.path;
 
