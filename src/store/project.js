@@ -87,5 +87,6 @@ export const useProjectStore = defineStore("project", {
                 data: { projectId }
             })
         },
+        
     },
 });

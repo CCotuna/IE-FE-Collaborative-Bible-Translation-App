@@ -1,38 +1,30 @@
 <script setup>
-import { ref } from 'vue';
+import { useBibleImportStore } from "@/store/bibleProject";
+import { useRouter } from "vue-router";
 
-const selectedChapter = ref(null);
+const store = useBibleImportStore();
+const router = useRouter();
 
-const toggleChapter = (chapter) => {
-    if (selectedChapter.value === chapter) {
-        selectedChapter.value = null;
-    } else {
-        selectedChapter.value = chapter;
-    }
+const nextStep = () => {
+    router.push({ name: "classified-import-bible-book-chapter-verse" });
 };
 </script>
 
 <template>
-    <div class="mx-5 mt-5">
-        <span class="font-bold">Alege capitolul</span>
-        <div class="grid grid-cols-6 sm:grid-cols-6 md:grid-cols-6 lg:grid-cols-7 gap-4 mt-4">
-            <div
-                class="border-2 border-brand-olivine text-black p-2 px-0 w-full text-center cursor-pointer rounded-md col-span-2">
-                Integral
-            </div>
-
-            <div v-for="i in 40" :key="i" :class="[
-                'border-2 text-black p-2 px-0 text-center cursor-pointer rounded-md',
-                selectedChapter === i ? 'bg-brand-olivine text-white' : 'border-brand-olivine text-black'
-            ]" @click="toggleChapter(i)">
-                {{ i }}
+    <div class="p-6">
+        <h2>Alege Capitole</h2>
+        <div v-for="book in store.selectedBooks" :key="book.name">
+            <h3 class="text-brand-olivine font-extrabold text-3xl my-4">{{ book.name }}</h3>
+            <div class="grid grid-cols-12 gap-2">
+                <div v-for="chapter in 50" :key="chapter"
+                    :class="['border p-2 rounded-md cursor-pointer',
+                    book.chapters.some(c => c.number === chapter) ? 'bg-brand-olivine text-white' : 'bg-white']"
+                    @click="store.toggleChapter(book.name, chapter)">
+                    {{ chapter }}
+                </div>
             </div>
         </div>
-        <RouterLink :to="{ name: 'classified-import-bible-book-chapter-verse' }"
-        class="fixed bottom-4 right-4 bg-brand-olivine text-white px-4 py-2 rounded-full">
-        Adaugǎ
-        </RouterLink>
+
+        <button @click="nextStep" class="bg-brand-olivine text-white p-2 rounded-md mt-4">Următorul Pas</button>
     </div>
 </template>
-
-<style scoped></style>

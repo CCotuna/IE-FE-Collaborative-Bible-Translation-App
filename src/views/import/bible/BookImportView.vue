@@ -1,30 +1,32 @@
 <script setup>
-// when going to the next step only 1 book will be selected and the user will be redirected to the chapter selection page
-import { ref } from 'vue';
+import { useBibleImportStore } from "@/store/bibleProject";
+import { books } from "@/constants/bible_books";
+import { useRouter } from "vue-router";
 
-import { books } from '@/constants/bible_books';
-const bible_books = ref(books);
+const store = useBibleImportStore();
+const router = useRouter();
 
-function toggleImportStatus(book) {
-    book.is_imported = !book.is_imported;
-}
+const nextStep = () => {
+    router.push({ name: "classified-import-bible-book-chapter" });
+};
 </script>
 
 <template>
-    <div class="mx-5 mt-5">
-        <span class="font-bold">Alege cartea</span>
-        <div class="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-7 gap-4 mt-4">
-            <div v-for="book in bible_books" :key="book.name" @click="toggleImportStatus(book)" :class="['border-2',
-                book.is_imported ? 'bg-brand-olivine text-white' : 'bg-white text-black border-brand-olivine',
-                'rounded-md p-2 px-0 text-center cursor-pointer']">
+    <div class="p-6">
+        {{ store.title }}
+        {{ store.language }}
+        {{ store.version }}
+        {{ store.selectedBooks }}
+        <h2>Alege Cărțile</h2>
+        <div class="grid grid-cols-5 xl:grid-cols-12 gap-4">
+            <div v-for="book in books" :key="book.name"
+                :class="['border p-2 rounded-md cursor-pointer',
+                store.selectedBooks.some(b => b.name === book.name) ? 'bg-green-500 text-white' : 'bg-white']"
+                @click="store.toggleBook(book.name)">
                 {{ book.name }}
             </div>
         </div>
-        <RouterLink :to="{ name: 'classified-import-bible-book-chapter' }"
-            class="fixed bottom-4 right-4 bg-brand-olivine text-white px-4 py-2 rounded-full">
-            Adaugă
-        </RouterLink>
+
+        <button @click="nextStep" class="bg-green-500 text-white p-2 rounded-md mt-4">Următorul Pas</button>
     </div>
 </template>
-
-<style scoped></style>
