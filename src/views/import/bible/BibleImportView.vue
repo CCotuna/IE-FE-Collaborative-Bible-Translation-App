@@ -14,9 +14,9 @@ const importBible = () => {
 
 <template>
     <div class="mx-6 mt-4 flex flex-col space-y-4 w-full max-w-xs">
-        {{ store.language }}
+        <!-- {{ store.language }}
         {{ store.version }}
-        {{ store.title }}
+        {{ store.title }} -->
         <div class="relative">
             <label class="text-black text-md font-semibold transition-all">
                 Titlu Proiect

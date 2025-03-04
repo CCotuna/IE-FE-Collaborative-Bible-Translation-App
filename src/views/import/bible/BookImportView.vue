@@ -13,10 +13,10 @@ const nextStep = () => {
 
 <template>
     <div class="p-6">
-        {{ store.title }}
+        <!-- {{ store.title }}
         {{ store.language }}
         {{ store.version }}
-        {{ store.selectedBooks }}
+        {{ store.selectedBooks }} -->
         <h2>Alege Cărțile</h2>
         <div class="grid grid-cols-5 xl:grid-cols-12 gap-4">
             <div v-for="book in books" :key="book.name"
