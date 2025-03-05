@@ -2,21 +2,21 @@
 import { RouterView } from 'vue-router';
 import Navigation from './components/layout/navigation/Navigation.vue';
 
-import { useUserStore } from '../src/store/user'
-const userStore = useUserStore()
+// import { useUserStore } from '../src/store/user'
+// const userStore = useUserStore()
 
-import { useBibleImportStore } from './store/bibleProject';
-const bibleStore = useBibleImportStore()
+// import { useBibleImportStore } from './store/bibleProject';
+// const bibleStore = useBibleImportStore()
 
-import { computed } from 'vue'
-const user = computed(() => userStore.user)
+// import { computed } from 'vue'
+// const user = computed(() => userStore.user)
 </script>
 
 <template>
   <div>
       <Navigation />
       <RouterView />
-      <div>
+      <!-- <div>
           <footer class="bg-brand-olivine text-white text-center py-4 mt-10">
               <p>&copy; 2025 Bible Translate App</p>
               <p v-if="user.username">Welcome, {{ user.username }}!</p>
@@ -27,7 +27,7 @@ const user = computed(() => userStore.user)
                     <p v-if="bibleStore.selectedBooks.length" class="text-white">Selected Books: {{ bibleStore.selectedBooks.map(b => b.name).join(', ') }}</p>
               </div>
           </footer>
-      </div>
+      </div> -->
   </div>
 </template>
 

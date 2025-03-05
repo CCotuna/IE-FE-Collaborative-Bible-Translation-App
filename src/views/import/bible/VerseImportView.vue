@@ -22,7 +22,7 @@ const finishImport = () => {
                     <div class="border p-2 rounded-md cursor-pointer bg-brand-olivine text-white">Integral</div>
                     <div v-for="verse in 40" :key="verse"
                         :class="['border p-2 rounded-md cursor-pointer',
-                        chapter.verses.includes(verse) ? 'bg-brand-olivine0 text-white' : 'bg-white']"
+                        chapter.verses.includes(verse) ? 'bg-brand-olivine text-white' : 'bg-white']"
                         @click="store.toggleVerse(book.name, chapter.number, verse)">
                         {{ verse }}
                     </div>
