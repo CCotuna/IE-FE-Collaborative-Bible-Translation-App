@@ -25,14 +25,17 @@ export const useProjectStore = defineStore("project", {
     actions: {
         async fetchProjects() {
             const userStorage = useUserStore();
-            console.log("User storage:", userStorage.user);
+
             const userId = userStorage.user.id;
+            const username = userStorage.user.username;
 
             if (!userId) {
                 console.log("No active user, not fetching projects.");
                 this.projects = [];
                 return;
             }
+
+            console.log(userStorage.user, "user storage")
 
             try {
                 const projects = await axios.get("http://localhost:3000/projects", {

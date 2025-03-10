@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useProjectStore } from '@/store/project';
+// import { isAuthenticated } from '@/utils/auth';
 
 const route = useRoute();
 const router = useRouter();
@@ -77,9 +78,14 @@ const showMainIcons = computed(() => {
             }" class="p-3 text-2xl font-medium truncate">
                 {{ navbarTitle }}
             </span>
+            <!-- <span v-if="isAuthenticated()">
+                Hello
+            </span> -->
         </div>
         <div v-if="route.path === '/' && projectStore.projects.length == 0">
-            <RouterLink :to="{ name: 'sign-in'}" class="flex items-center space-x-8 px-8 py-2 text-white bg-brand-olivine rounded-full" >Sign in</RouterLink>
+            <RouterLink :to="{ name: 'sign-in' }"
+                class="flex items-center space-x-8 px-8 py-2 text-white bg-brand-olivine rounded-full">Sign in
+            </RouterLink>
         </div>
         <div v-if="showMainIcons" class="flex space-x-3 text-3xl">
             <span><i class="bi bi-search"></i></span>

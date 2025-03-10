@@ -20,6 +20,7 @@ const navigateToProject = (id) => {
 const deleteProject = (id) => {
     projectStore.deleteProject(id);
 };
+
 </script>
 
 <template>

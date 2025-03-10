@@ -1,7 +1,21 @@
-<script setup></script>
+<script setup>
+import { isAuthenticated } from '@/utils/auth';
+import { useUserStore } from '@/store/user';
+import { useRouter } from 'vue-router'
+
+const userStore = useUserStore();
+
+const router = useRouter()
+
+const logout = () => {
+    userStore.signOut();
+    router.push('/')
+}
+
+</script>
 <template>
     <div class="p-7 flex flex-col space-y-5">
-        <div class="flex space-x-5">
+        <div v-if="!isAuthenticated()" class="flex space-x-5">
             <RouterLink :to="{ name: 'sign-in' }"
                 class="flex items-center space-x-8 px-4 py-2 text-white bg-brand-olivine rounded-full">
                 <span class="text-xl">Intra in cont</span>
@@ -10,6 +24,9 @@
                 class="flex items-center space-x-8 px-4 py-2 text-brand-olivine bg-brand-honeydew rounded-full">
                 <span class="text-xl">Creaza cont</span>
             </RouterLink>
+        </div>
+        <div v-else>
+            <button @click="logout()" class="px-8 py-2 bg-red-500 text-white rounded-full">Logout</button>
         </div>
 
         <div class="flex flex-col space-y-5 text-xl">
