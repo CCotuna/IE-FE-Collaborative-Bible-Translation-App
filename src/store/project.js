@@ -3,21 +3,6 @@ import axios from "axios";
 
 import { useUserStore } from './user';
 
-const formatDateTime = (date) => {
-    const options = {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-    };
-
-    const isoDate = new Date(date).toISOString();
-    return isoDate;
-};
-
 export const useProjectStore = defineStore("project", {
     state: () => ({
         projects: [],
@@ -30,16 +15,13 @@ export const useProjectStore = defineStore("project", {
             const username = userStorage.user.username;
 
             if (!userId) {
-                console.log("No active user, not fetching projects.");
                 this.projects = [];
                 return;
             }
 
-            console.log(userStorage.user, "user storage")
-
             try {
                 const projects = await axios.get("http://localhost:3000/projects", {
-                    params: { userId }  
+                    params: { userId }
                 });
                 this.projects = projects.data;
             } catch (error) {
@@ -64,19 +46,28 @@ export const useProjectStore = defineStore("project", {
                 title: project.title,
                 text: project.text,
                 type: project.type || "Custom",
-                has_updates: false,
+                hasUpdates: false,
                 userId: user.id
             };
 
-            this.projects.push(newProject);
+            try {
+                const response = await axios.post("http://localhost:3000/projects", newProject, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    }
+                });
 
-            const response  = await axios.post("http://localhost:3000/projects", newProject, {
-                headers: {
-                    "Content-Type": "application/json",
-                }
-            })
+                this.projects.push({
+                    ...newProject,
+                    id: response.data.id,
+                    createdAt: response.data.createdAt,
+                    updatedAt: response.data.updatedAt,
+                });
 
-            this.projects[this.projects.length - 1].id = response.data.id;
+            } catch (error) {
+                console.error("Error adding project:", error);
+            }
+
         },
 
         deleteProject(projectId) {
@@ -90,6 +81,6 @@ export const useProjectStore = defineStore("project", {
                 data: { projectId }
             })
         },
-        
+
     },
 });

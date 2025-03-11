@@ -1,6 +1,7 @@
  <script setup>
   import { ref, computed } from 'vue'
   import { useUserStore } from '../../store/user'
+  import { useRouter } from 'vue-router'
   
   const user = ref({
     username: '',
@@ -8,11 +9,13 @@
   })
   
   const userStore = useUserStore()
+  const router = useRouter()
   const error = computed(() => userStore.error)
   
   const handleSubmit = async () => {
     try {
       await userStore.signUp(user.value)
+      router.push('/sign-in')
     } catch (err) {
       console.error('Error during sign-up:', err)
     }

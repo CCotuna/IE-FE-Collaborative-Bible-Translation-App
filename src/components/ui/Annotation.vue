@@ -17,7 +17,7 @@ defineProps(['annotation']);
 </script>
 <template>
     <div class="relative mt-12">
-        <p class="p-3">{{ annotation.content }}</p>
+        <p class="p-3">Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aperiam ducimus nulla odit aliquid, aspernatur laboriosam eveniet libero veritatis in, voluptate nostrum voluptatibus, atque sint neque sit obcaecati incidunt possimus quos!</p>
 
         <div class="absolute -bottom-9 left-2 flex items-center">
             <div class="bg-white rounded-full w-12 h-12 flex items-center justify-center">

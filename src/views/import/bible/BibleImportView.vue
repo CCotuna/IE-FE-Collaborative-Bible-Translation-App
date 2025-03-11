@@ -1,3 +1,5 @@
+<!-- Step 1 - Alegere titlu, limba, versiune si import integral/partial -->
+
 <script setup>
 import { ref } from "vue";
 
@@ -10,6 +12,8 @@ const versions = ref(["1.0", "1.1", "2.0"]);
 const importBible = () => {
     alert('Successfully imported Bible');
 }
+
+import BibleTestView from "./BibleTestView.vue";
 </script>
 
 <template>

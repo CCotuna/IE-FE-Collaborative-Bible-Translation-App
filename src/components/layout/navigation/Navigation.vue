@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useProjectStore } from '@/store/project';
-// import { isAuthenticated } from '@/utils/auth';
+import { isAuthenticated } from '@/utils/auth';
 
 const route = useRoute();
 const router = useRouter();
@@ -18,7 +18,7 @@ const navbarTitle = computed(() => {
     const path = route.path;
 
     if (path === '/') {
-        return projectStore.projects.length === 0 ? 'Import text' : 'Biblioteca mea';
+        return projectStore.projects.length === 0 && !isAuthenticated() ? 'Import text' : 'Biblioteca mea';
     }
 
     if (route.params.id) {
@@ -63,7 +63,7 @@ const showGoBack = computed(() => {
 });
 
 const showMainIcons = computed(() => {
-    return route.path === '/' && projectStore.projects.length > 0;
+    return route.path === '/' && isAuthenticated();
 });
 </script>
 
@@ -82,9 +82,13 @@ const showMainIcons = computed(() => {
                 Hello
             </span> -->
         </div>
-        <div v-if="route.path === '/' && projectStore.projects.length == 0">
+        <div v-if="route.path === '/' && projectStore.projects.length == 0 && !isAuthenticated()" class="flex space-x-5">
             <RouterLink :to="{ name: 'sign-in' }"
                 class="flex items-center space-x-8 px-8 py-2 text-white bg-brand-olivine rounded-full">Sign in
+            </RouterLink>
+            <RouterLink :to="{ name: 'sign-up' }"
+                class="flex items-center space-x-8 px-8 py-2 text-brand-olivine bg-brand-honeydew rounded-full">Sign
+                up
             </RouterLink>
         </div>
         <div v-if="showMainIcons" class="flex space-x-3 text-3xl">

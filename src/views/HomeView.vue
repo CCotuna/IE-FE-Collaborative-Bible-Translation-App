@@ -9,11 +9,8 @@ const projectStore = useProjectStore();
 import { isAuthenticated } from '@/utils/auth';
 const isLoggedIn = computed(() => isAuthenticated());
 
-console.log(projectStore.projects.length);
-
 // import { useRoute } from 'vue-router';
 // const route = useRoute();
-// console.log(route.path);
 
 </script>
 <template>

@@ -12,6 +12,14 @@ export const useUserStore = defineStore('user', {
     }),
     actions: {
         async signIn(user) {
+            if (user.username === 'testMobile') {
+                // Mock user for testing on Vercel
+                this.user = { id: 'testId', username: 'testMobile', password: 'test' }
+                localStorage.setItem('userId', 'testId')
+                localStorage.setItem('username', 'testMobile')
+                return
+            }
+
             const response = await axios.post('http://localhost:3000/user/signin', user, {
                 headers: {
                     'Content-Type': 'application/json'

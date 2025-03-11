@@ -25,10 +25,12 @@ const deleteProject = (id) => {
 
 <template>
     <div>
+        <!-- {{ projects }} -->
         <div v-for="project in projects" :key="project.id"
             class="relative border border-brand-olivine rounded-lg mx-3 mt-4 p-3 space-y-3">
 
-            <i v-if="project.has_updates"
+            <!-- v-if="project.hasUpdates" -->
+            <i 
                 class="bi bi-bell-fill bg-white text-brand-gold-metallic rounded-full p-2 flex items-center justify-center w-12 h-12 text-2xl absolute -top-4 -left-4"></i>
 
             <div class="flex justify-between items-center">
@@ -65,6 +67,7 @@ const deleteProject = (id) => {
                 </div>
             </div>
         </div>
+        <div v-if="projectStore.projects.length === 0">You don't have any projects yet</div>
     </div>
 </template>
 
