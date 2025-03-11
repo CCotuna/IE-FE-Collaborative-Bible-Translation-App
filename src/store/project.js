@@ -42,6 +42,22 @@ export const useProjectStore = defineStore("project", {
             const userStorage = useUserStore();
             const user = userStorage.user;
 
+            if (user.username === "testMobile") {
+                const newProject = {
+                    id: `mock-${Date.now()}`,
+                    title: project.title,
+                    text: project.text,
+                    type: project.type || "Custom",
+                    hasUpdates: false,
+                    userId: "testMobile",
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                };
+
+                this.projects.push(newProject);
+                return;
+            }
+
             const newProject = {
                 title: project.title,
                 text: project.text,
@@ -73,6 +89,11 @@ export const useProjectStore = defineStore("project", {
         deleteProject(projectId) {
             const projectIndex = this.projects.findIndex((project) => project.id === projectId);
             this.projects.splice(projectIndex, 1);
+
+            if (user.username === "testMobile") {
+                this.projects = this.projects.filter(project => project.id !== projectId);
+                return;
+            }
 
             axios.delete("http://localhost:3000/projects", {
                 headers: {

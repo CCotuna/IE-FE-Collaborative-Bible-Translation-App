@@ -84,10 +84,10 @@ const showMainIcons = computed(() => {
         </div>
         <div v-if="route.path === '/' && projectStore.projects.length == 0 && !isAuthenticated()" class="flex space-x-5">
             <RouterLink :to="{ name: 'sign-in' }"
-                class="flex items-center space-x-8 px-8 py-2 text-white bg-brand-olivine rounded-full">Sign in
+                class="flex items-center space-x-8 px-3 md:px-8 py-2 text-white bg-brand-olivine rounded-full">Sign in
             </RouterLink>
             <RouterLink :to="{ name: 'sign-up' }"
-                class="flex items-center space-x-8 px-8 py-2 text-brand-olivine bg-brand-honeydew rounded-full">Sign
+                class="flex items-center space-x-8 px-3 md:px-8 py-2 text-brand-olivine bg-brand-honeydew rounded-full">Sign
                 up
             </RouterLink>
         </div>
