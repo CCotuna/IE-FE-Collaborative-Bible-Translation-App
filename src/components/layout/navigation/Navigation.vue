@@ -46,6 +46,8 @@ const navbarTitle = computed(() => {
             return 'Notificări';
         case '/menu':
             return 'Meniu';
+        case '/projects/search':
+            return 'Căutare proiecte';
         case '/sign-in':
             return 'Autentificare';
         case '/sign-up':
@@ -92,7 +94,7 @@ const showMainIcons = computed(() => {
             </RouterLink>
         </div>
         <div v-if="showMainIcons" class="flex space-x-3 text-3xl">
-            <span><i class="bi bi-search"></i></span>
+            <RouterLink :to="{ name: 'projects-search'}"><i class="bi bi-search"></i></RouterLink>
             <RouterLink :to="{ name: 'notifications' }"><i class="bi bi-bell-fill"></i></RouterLink>
             <RouterLink :to="{ name: 'base-import' }"><i class="bi bi-plus-circle-fill text-brand-olivine"></i>
             </RouterLink>
