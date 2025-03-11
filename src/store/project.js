@@ -44,7 +44,7 @@ export const useProjectStore = defineStore("project", {
 
             if (user.username === "testMobile") {
                 const newProject = {
-                    id: `mock-${Date.now()}`,
+                    id: this.projects.length + 1,
                     title: project.title,
                     text: project.text,
                     type: project.type || "Custom",
