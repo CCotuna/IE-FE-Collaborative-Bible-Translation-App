@@ -30,12 +30,12 @@ const logout = () => {
         </div>
 
         <div class="flex flex-col space-y-5 text-xl">
-            <div class="flex space-x-4 items-center">
+            <RouterLink :to="{ name: 'my-account'}" class="flex space-x-4 items-center">
                 <i class="bi bi-person-circle text-3xl text-brand-olivine"></i>
                 <span>
                     Contul meu
                 </span>
-            </div>
+            </RouterLink>
             <div class="flex flex-col space-y-2">
                 <div class="flex space-x-4 items-center">
                     <i class="bi bi-gear text-3xl text-brand-olivine"></i>

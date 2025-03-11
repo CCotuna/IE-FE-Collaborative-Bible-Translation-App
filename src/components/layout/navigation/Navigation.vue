@@ -46,6 +46,8 @@ const navbarTitle = computed(() => {
             return 'Notificări';
         case '/menu':
             return 'Meniu';
+        case '/menu/my-account':
+            return 'Contul meu'
         case '/projects/search':
             return 'Căutare proiecte';
         case '/sign-in':

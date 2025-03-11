@@ -55,6 +55,11 @@ const router = createRouter({
       component: () => import('../views/MenuView.vue')
     },
     {
+      path: '/menu/my-account',
+      name: 'my-account',
+      component: () => import('../views/ProfileView.vue')
+    },
+    {
       path: '/text-biblic-design',
       name: 'text-biblic-design',
       component: () => import('../views/HomeView.vue')
