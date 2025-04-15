@@ -100,6 +100,12 @@ const router = createRouter({
       name: 'project',
       component: () => import('@/components/layout/Project.vue'),
       props: true,
+    },
+    {
+      path: '/:id/collaborators',
+      name: 'collaborators-view',
+      component: () => import('@/views/CollaboratorsView.vue'),
+      props: true,
     }
   ],
 });

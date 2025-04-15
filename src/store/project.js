@@ -82,7 +82,7 @@ export const useProjectStore = defineStore("project", {
                 const response = await axios.post("http://localhost:3000/comments", {
                     fragmentId,
                     content,
-                    status, 
+                    status,
                     userId: userStorage.user.id,
                     userEmail: userStorage.user.email,
                 }, {
@@ -93,14 +93,14 @@ export const useProjectStore = defineStore("project", {
 
                 const newComment = response.data;
                 console.log("Comment added:", newComment);
-        
+
                 for (const project of this.projects) {
                     const fragment = project.fragments?.find(f => f.id === fragmentId);
                     if (fragment) {
                         if (!fragment.comments) {
                             fragment.comments = [];
                         }
-        
+
                         fragment.comments.push(newComment);
                         break;
                     }
@@ -109,7 +109,29 @@ export const useProjectStore = defineStore("project", {
             } catch (error) {
                 console.error("Error adding comment:", error);
             }
-        }
+        },
+
+        async addCollaborator(email, projectId) {
+            try {
+                const response = await axios.post("http://localhost:3000/projects/add-collaborator", {
+                    email,
+                    projectId
+                });
+
+                const project = this.projects.find(p => p.id === projectId);
+                if (project) {
+                    if (!project.collaborators) {
+                        project.collaborators = [];
+                    }
+                    project.collaborators.push({ email });
+                }
+
+                this.fetchProjects();
+            } catch (error) {
+                console.error("Error adding collaborator:", error);
+                throw new Error("Failed to add collaborator.");
+            }
+        },
 
     },
 });

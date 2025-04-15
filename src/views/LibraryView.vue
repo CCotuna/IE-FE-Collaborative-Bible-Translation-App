@@ -16,6 +16,10 @@ const navigateToProject = (id) => {
     }
 };
 
+const navigateToCollaborators = (id) => {
+    router.push({ name: 'collaborators-view', params: { id } });
+};
+
 const isModalOpen = ref(false);
 const selectedProjectId = ref(null);
 
@@ -81,8 +85,10 @@ const confirmDelete = () => {
                 <div class="flex space-x-2 items-center text-3xl text-brand-olivine">
                     <i
                         class="bi bi-share-fill bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
-                    <i
-                        class="bi bi-people bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
+                    <div class="cursor-pointer" @click="navigateToCollaborators(project.id)">
+                        <i
+                            class="bi bi-people bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
+                    </div>
                     <i
                         class="bi bi-puzzle bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
                     <div @click="askDeleteConfirmation(project.id)" class="cursor-pointer">
