@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { isAuthenticated } from '@/utils/auth';
 import HomeView from '../views/HomeView.vue';
 
 const router = createRouter({
@@ -60,6 +61,21 @@ const router = createRouter({
       component: () => import('../views/ProfileView.vue')
     },
     {
+      path: '/menu/about',
+      name: 'about',
+      component: () => import('../views/AboutView.vue')
+    },
+    {
+      path: '/menu/settings',
+      name: 'settings',
+      component: () => import('../views/SettingsView.vue')
+    },
+    {
+      path: '/menu/help',
+      name: 'help',
+      component: () => import('../views/HelpView.vue')
+    },
+    {
       path: '/text-biblic-design',
       name: 'text-biblic-design',
       component: () => import('../views/HomeView.vue')
@@ -80,12 +96,24 @@ const router = createRouter({
       component: () => import('../views/SignUpView.vue')
     },
     {
-      path: '/:slug-:id',
+      path: '/:slug~:id',
       name: 'project',
       component: () => import('@/components/layout/Project.vue'),
       props: true,
     }
   ],
+});
+
+router.beforeEach((to, from, next) => {
+  const publicPages = ['/sign-in', '/sign-up'];
+  const authRequired = publicPages.includes(to.path);
+  const loggedIn = isAuthenticated();
+
+  if (authRequired && loggedIn) {
+    return next('/'); 
+  }
+
+  next();
 });
 
 export default router;

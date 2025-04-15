@@ -6,34 +6,33 @@ export const useUserStore = defineStore('user', {
     state: () => ({
         user: {
             id: localStorage.getItem('userId') || '',
-            username: localStorage.getItem('username') || '',
-            password: ''
+            email: localStorage.getItem('email') || '',
         }
     }),
     actions: {
         async signIn(user) {
-            if (user.username === 'testMobile') {
-                // Mock user for testing on Vercel
-                this.user = { id: 'testId', username: 'testMobile', password: 'test' }
-                localStorage.setItem('userId', 'testId')
-                localStorage.setItem('username', 'testMobile')
-                return
+            try {
+                const response = await axios.post('http://localhost:3000/user/signin', user, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                this.user = response.data
+
+                localStorage.setItem('userId', this.user.id)
+                localStorage.setItem('email', this.user.email)
+
+                const projectStore = useProjectStore()
+                projectStore.fetchProjects()
+
+                this.error = null // curăță eroarea dacă totul e ok
+            } catch (err) {
+                this.error = err.response?.data?.message || 'Failed to sign in'
+                console.error('SignIn error:', this.error)
             }
-
-            const response = await axios.post('http://localhost:3000/user/signin', user, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            this.user = response.data
-
-            localStorage.setItem('userId', this.user.id)
-            localStorage.setItem('username', this.user.username)
-
-            const projectStore = useProjectStore()
-            projectStore.fetchProjects()
         },
         async signUp(user) {
+            console.log("user in pinia store", user)
             await axios.post('http://localhost:3000/user', user, {
                 headers: {
                     'Content-Type': 'application/json'
@@ -41,12 +40,12 @@ export const useUserStore = defineStore('user', {
             })
         },
         signOut() {
-            this.user = { id: '', username: '', password: '' }
+            this.user = { id: '', email: '' }
 
             const projectStore = useProjectStore()
             projectStore.projects = [];
-            
-            localStorage.removeItem('username')
+
+            localStorage.removeItem('email')
             localStorage.removeItem('userId')
         }
     }

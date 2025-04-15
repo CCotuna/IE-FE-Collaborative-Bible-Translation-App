@@ -37,30 +37,30 @@ const logout = () => {
                 </span>
             </RouterLink>
             <div class="flex flex-col space-y-2">
-                <div class="flex space-x-4 items-center">
+                <RouterLink :to="{name : 'settings'}" class="flex space-x-4 items-center">
                     <i class="bi bi-gear text-3xl text-brand-olivine"></i>
                     <span>
                         Setari
                     </span>
-                </div>
+                </RouterLink>
                 <div class="flex space-x-4 items-center">
                     <i class="bi bi-share-fill text-3xl text-brand-olivine"></i>
                     <span>
                         Trimite
                     </span>
                 </div>
-                <div class="flex space-x-4 items-center">
+                <RouterLink :to="{name: 'about'}" class="flex space-x-4 items-center">
                     <i class="bi bi-info-circle text-3xl text-brand-olivine"></i>
                     <span>
                         Despre
                     </span>
-                </div>
-                <div class="flex space-x-4 items-center">
+                </RouterLink>
+                <RouterLink :to="{name: 'help'}" class="flex space-x-4 items-center">
                     <i class="bi bi-question-circle text-3xl text-brand-olivine"></i>
                     <span>
                         Ajutor
                     </span>
-                </div>
+                </RouterLink>
             </div>
         </div>
     </div>

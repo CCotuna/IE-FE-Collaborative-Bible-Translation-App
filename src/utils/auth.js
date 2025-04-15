@@ -1,3 +1,3 @@
 export function isAuthenticated() {
-    return !!localStorage.getItem('username')
+    return !!localStorage.getItem('email')
 }

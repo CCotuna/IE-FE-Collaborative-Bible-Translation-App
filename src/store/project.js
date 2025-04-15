@@ -12,7 +12,6 @@ export const useProjectStore = defineStore("project", {
             const userStorage = useUserStore();
 
             const userId = userStorage.user.id;
-            const username = userStorage.user.username;
 
             if (!userId) {
                 this.projects = [];
@@ -23,6 +22,7 @@ export const useProjectStore = defineStore("project", {
                 const projects = await axios.get("http://localhost:3000/projects", {
                     params: { userId }
                 });
+
                 this.projects = projects.data;
             } catch (error) {
                 console.error("Error fetching projects:", error);
@@ -42,26 +42,10 @@ export const useProjectStore = defineStore("project", {
             const userStorage = useUserStore();
             const user = userStorage.user;
 
-            if (user.username === "testMobile") {
-                const newProject = {
-                    id: this.projects.length + 1,
-                    title: project.title,
-                    text: project.text,
-                    type: project.type || "Custom",
-                    hasUpdates: false,
-                    userId: "testMobile",
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                };
-
-                this.projects.push(newProject);
-                return;
-            }
-
             const newProject = {
                 title: project.title,
                 text: project.text,
-                type: project.type || "Custom",
+                type: project.type,
                 hasUpdates: false,
                 userId: user.id
             };
@@ -89,11 +73,6 @@ export const useProjectStore = defineStore("project", {
         deleteProject(projectId) {
             const projectIndex = this.projects.findIndex((project) => project.id === projectId);
             this.projects.splice(projectIndex, 1);
-
-            if (user.username === "testMobile") {
-                this.projects = this.projects.filter(project => project.id !== projectId);
-                return;
-            }
 
             axios.delete("http://localhost:3000/projects", {
                 headers: {

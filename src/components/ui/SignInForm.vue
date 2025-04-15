@@ -6,12 +6,11 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const user = ref({
-  username: '',
+  email: '',
   password: ''
 })
 
 const userStore = useUserStore()
-
 const error = computed(() => userStore.error)
 
 const handleSubmit = async () => {
@@ -21,11 +20,11 @@ const handleSubmit = async () => {
       console.error(userStore.error)
     } else {
       console.log('User logged in successfully:', userStore.user)
+      router.push('/')
     }
   } catch (err) {
     console.error('Error during sign-in:', err)
   }
-  router.push('/')
 }
 </script>
 <template>
@@ -34,12 +33,12 @@ const handleSubmit = async () => {
         <h2 class="text-2xl font-semibold text-center mb-6">Sign In</h2>
         <form @submit.prevent="handleSubmit">
           <div class="mb-4">
-            <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
             <input 
-              type="text" 
-              id="username" 
-              v-model="user.username" 
-              placeholder="Enter your username" 
+              type="email" 
+              id="email" 
+              v-model="user.email" 
+              placeholder="Enter your email" 
               required
               class="mt-2 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-olivine"
             />

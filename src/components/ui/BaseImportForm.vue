@@ -7,6 +7,7 @@ const projectStore = useProjectStore();
 const router = useRouter();
 
 const title = ref('');
+const projectType = ref('Custom')
 const isBoldActive = ref(false);
 const isItalicActive = ref(false);
 const isUnderlineActive = ref(false);
@@ -37,24 +38,24 @@ const toggleFormat = (command) => {
 };
 
 const submitForm = () => {
-    const content = document.getElementById('description-editor').innerText.trim();
+  const content = document.getElementById('description-editor').innerText.trim();
 
-    if (title.value && content) {
-        const newProject = {
-            title: title.value,
-            text: content,
-            type: null, 
-        };
+  if (title.value && content) {
+    const newProject = {
+      title: title.value,
+      text: content,
+      type: projectType.value,
+    };
 
-        projectStore.addProject(newProject);
+    projectStore.addProject(newProject);
 
-        title.value = '';
-        document.getElementById('description-editor').innerHTML = '';
+    title.value = '';
+    document.getElementById('description-editor').innerHTML = '';
 
-        router.push('/');
-    } else {
-        alert('Please fill out both the title and description fields.');
-    }
+    router.push('/');
+  } else {
+    alert('Please fill out both the title and description fields.');
+  }
 };
 
 </script>
@@ -81,6 +82,13 @@ const submitForm = () => {
 
     <input v-model="title" type="text" placeholder="Titlu" aria-label="Titlu proiect"
       class="border border-gray-300 p-2 mb-4 rounded-md w-full max-w-xs" />
+
+    <select v-model="projectType" class="border border-gray-300 p-2 mb-4 rounded-md w-full max-w-xs">
+      <option value="Custom">Personalizat</option>
+      <option value="Translation">Traducere</option>
+      <option value="Commentary">Comentariu</option>
+      <option value="Notes">Notițe</option>
+    </select>
 
     <div id="description-editor" contenteditable="true"
       class="p-2 border border-gray-300 rounded-md w-full max-w-xs min-h-[30rem] placeholder-gray-400 resize-none"
