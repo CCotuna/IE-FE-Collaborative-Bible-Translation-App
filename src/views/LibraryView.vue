@@ -1,6 +1,5 @@
 <script setup>
-import { computed } from 'vue';
-
+import { ref, computed } from 'vue';
 import { useProjectStore } from '@/store/project';
 import { timeSinceCreated } from '@/utils/timeSinceCreated';
 import { useRouter } from 'vue-router';
@@ -17,20 +16,47 @@ const navigateToProject = (id) => {
     }
 };
 
-const deleteProject = (id) => {
-    projectStore.deleteProject(id);
+const isModalOpen = ref(false);
+const selectedProjectId = ref(null);
+
+const showToast = ref(false);
+const toastMessage = ref('');
+
+const triggerToast = (message) => {
+    toastMessage.value = message;
+    showToast.value = true;
+    setTimeout(() => {
+        showToast.value = false;
+        toastMessage.value = '';
+    }, 3000);
+};
+
+const askDeleteConfirmation = (id) => {
+    selectedProjectId.value = id;
+    isModalOpen.value = true;
+};
+
+const closeModal = () => {
+    isModalOpen.value = false;
+    selectedProjectId.value = null;
+};
+
+const confirmDelete = () => {
+    if (selectedProjectId.value !== null) {
+        projectStore.deleteProject(selectedProjectId.value);
+        triggerToast("Proiectul a fost șters cu succes.");
+        closeModal();
+    }
 };
 
 </script>
 
 <template>
-    <div>
-        <!-- {{ projects }} -->
+    <div v-if="projects.length > 0">
         <div v-for="project in projects" :key="project.id"
             class="relative border border-brand-olivine rounded-lg mx-3 mt-4 p-3 space-y-3">
 
-            <!-- v-if="project.hasUpdates" -->
-            <i 
+            <i
                 class="bi bi-bell-fill bg-white text-brand-gold-metallic rounded-full p-2 flex items-center justify-center w-12 h-12 text-2xl absolute -top-4 -left-4"></i>
 
             <div class="flex justify-between items-center">
@@ -44,7 +70,6 @@ const deleteProject = (id) => {
 
             <div class="flex justify-between items-end">
                 <div class="flex space-x-2 items-center">
-
                     <div
                         class="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden border border-brand-olivine rounded-full">
                         <span class="font-medium text-brand-olivine">
@@ -60,15 +85,39 @@ const deleteProject = (id) => {
                         class="bi bi-people bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
                     <i
                         class="bi bi-puzzle bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
-                    <div @click="deleteProject(project.id)" class="cursor-pointer">
+                    <div @click="askDeleteConfirmation(project.id)" class="cursor-pointer">
                         <i
                             class="bi bi-trash3 bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
                     </div>
                 </div>
             </div>
         </div>
-        <div v-if="projectStore.projects.length === 0">You don't have any projects yet</div>
-    </div>
-</template>
 
-<style scoped></style>
+        <!-- MODAL -->
+        <div v-if="isModalOpen" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div class="bg-white rounded-lg p-8 shadow-lg text-center max-w-md w-full">
+                <h2 class="text-lg mb-4">Ești sigur că dorești <strong class="text-red-500">să ștergi</strong> acest
+                    proiect?Această acțiune este
+                    permanentă.</h2>
+                <div class="flex justify-around mt-4">
+                    <button @click="confirmDelete"
+                        class="bg-brand-olivine text-white text-lg px-8 py-2 rounded-full">Confirm</button>
+                    <button @click="closeModal"
+                        class="bg-brand-honeydew text-brand-olivine text-lg px-8 py-2 rounded-full">Renunț</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div v-else>
+        <img src="@/assets/emptyState/EmptyStateProjects.svg" alt="No projects" class="mx-auto mt-10 w-96 h-auto">
+        <p class="text-center text-2xl font-bold text-brand-olivine">No projects yet</p>
+        <p class="text-center text-lg text-black">Create a new project to get started</p>
+    </div>
+
+    <div v-if="showToast"
+        class="fixed bottom-4 left-4 bg-brand-olivine text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300">
+        {{ toastMessage }}
+    </div>
+
+</template>

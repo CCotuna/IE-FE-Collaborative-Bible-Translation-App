@@ -2,15 +2,23 @@
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useProjectStore } from '@/store/project';
+import { useUserStore } from '@/store/user';
 import { isAuthenticated } from '@/utils/auth';
 
 const route = useRoute();
 const router = useRouter();
+
 const projectStore = useProjectStore();
+const userStore = useUserStore();
 
 const goBack = () => {
     router.go(-1);
 };
+
+const logout = () => {
+    userStore.signOut();
+    router.push('/')
+}
 
 projectStore.fetchProjects();
 
@@ -112,6 +120,9 @@ const showMainIcons = computed(() => {
             <span><i class="bi bi-search"></i></span>
             <span><i class="bi bi-people"></i></span>
             <RouterLink :to="{ name: 'menu' }"><i class="bi bi-gear"></i></RouterLink>
+        </div>
+        <div v-if="route.name === 'menu'">
+            <button @click="logout()" class="px-8 py-2 bg-red-500 text-white rounded-full">Deconectare</button>
         </div>
     </div>
 </template>

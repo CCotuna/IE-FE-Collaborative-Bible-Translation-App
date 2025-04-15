@@ -30,15 +30,6 @@ export const useProjectStore = defineStore("project", {
         },
 
         async addProject(project) {
-            // const text = project.text
-            //     .split('\n')
-            //     .filter(line => line.trim() !== '')
-            //     .map((line) => ({
-            //         verseNumber: project.content.length + 1,
-            //         content: line.trim(),
-            //         annotations: [],
-            //     }));
-
             const userStorage = useUserStore();
             const user = userStorage.user;
 
@@ -64,6 +55,8 @@ export const useProjectStore = defineStore("project", {
                     updatedAt: response.data.updatedAt,
                 });
 
+                this.fetchProjects();
+
             } catch (error) {
                 console.error("Error adding project:", error);
             }
@@ -81,6 +74,42 @@ export const useProjectStore = defineStore("project", {
                 data: { projectId }
             })
         },
+
+        async addComment({ fragmentId, content, status }) {
+            const userStorage = useUserStore();
+
+            try {
+                const response = await axios.post("http://localhost:3000/comments", {
+                    fragmentId,
+                    content,
+                    status, 
+                    userId: userStorage.user.id,
+                    userEmail: userStorage.user.email,
+                }, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    }
+                });
+
+                const newComment = response.data;
+                console.log("Comment added:", newComment);
+        
+                for (const project of this.projects) {
+                    const fragment = project.fragments?.find(f => f.id === fragmentId);
+                    if (fragment) {
+                        if (!fragment.comments) {
+                            fragment.comments = [];
+                        }
+        
+                        fragment.comments.push(newComment);
+                        break;
+                    }
+                }
+
+            } catch (error) {
+                console.error("Error adding comment:", error);
+            }
+        }
 
     },
 });

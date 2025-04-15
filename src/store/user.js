@@ -10,6 +10,9 @@ export const useUserStore = defineStore('user', {
         }
     }),
     actions: {
+        async checkAuth() {
+            return !!localStorage.getItem('email')
+        },
         async signIn(user) {
             try {
                 const response = await axios.post('http://localhost:3000/user/signin', user, {
@@ -32,7 +35,6 @@ export const useUserStore = defineStore('user', {
             }
         },
         async signUp(user) {
-            console.log("user in pinia store", user)
             await axios.post('http://localhost:3000/user', user, {
                 headers: {
                     'Content-Type': 'application/json'
