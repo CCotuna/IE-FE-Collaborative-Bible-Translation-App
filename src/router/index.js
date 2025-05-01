@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { isAuthenticated } from '@/utils/auth';
+import { useUserStore } from '@/store/user';
 import HomeView from '../views/HomeView.vue';
 
 const router = createRouter({
@@ -110,13 +110,26 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to, from, next) => {
-  const publicPages = ['/sign-in', '/sign-up'];
-  const authRequired = publicPages.includes(to.path);
-  const loggedIn = isAuthenticated();
+router.beforeEach(async (to, from, next) => {
+  const userStore = useUserStore();
 
-  if (authRequired && loggedIn) {
-    return next('/'); 
+  const publicPages = ['/sign-in', '/sign-up'];
+  const authNotRequired = publicPages.includes(to.path);
+
+  if (!userStore.user) {
+    try {
+      await userStore.checkAuth();
+    } catch (err) {
+      console.error('Error checking auth:', err);
+    }
+  }
+
+  // if (!authNotRequired && !userStore.user) {
+  //   return next('/sign-in');
+  // }
+
+  if (authNotRequired && userStore.user) {
+    return next('/');
   }
 
   next();

@@ -3,7 +3,6 @@ import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useProjectStore } from '@/store/project';
 import { useUserStore } from '@/store/user';
-import { isAuthenticated } from '@/utils/auth';
 
 const route = useRoute();
 const router = useRouter();
@@ -26,7 +25,7 @@ const navbarTitle = computed(() => {
     const path = route.path;
 
     if (path === '/') {
-        return projectStore.projects.length === 0 && !isAuthenticated() ? 'Import text' : 'Biblioteca mea';
+        return projectStore.projects.length === 0 && !userStore.isAuthenticated() ? 'Import text' : 'Biblioteca mea';
     }
 
     if (route.params.id) {
@@ -81,8 +80,10 @@ const showGoBack = computed(() => {
 });
 
 const showMainIcons = computed(() => {
-    return route.path === '/' && isAuthenticated();
+    return route.path === '/' && userStore.isAuthenticated();
 });
+
+console.log('check if user authenticated', userStore.isAuthenticated());
 </script>
 
 <template>
@@ -96,11 +97,15 @@ const showMainIcons = computed(() => {
             }" class="p-3 text-2xl font-medium truncate">
                 {{ navbarTitle }}
             </span>
-            <!-- <span v-if="isAuthenticated()">
+            <!-- <span v-if="userStore.isAuthenticated()">
                 Hello
             </span> -->
+            <span v-if="userStore.isAuthenticated()" class="text-sm text-gray-500">
+                {{ userStore.user.email }}
+            </span>
+            <span v-else>Hehe</span>
         </div>
-        <div v-if="route.path === '/' && projectStore.projects.length == 0 && !isAuthenticated()" class="flex space-x-5">
+        <div v-if="route.path === '/' && projectStore.projects.length == 0 && !userStore.isAuthenticated()" class="flex space-x-5">
             <RouterLink :to="{ name: 'sign-in' }"
                 class="flex items-center space-x-8 px-3 md:px-8 py-2 text-white bg-brand-olivine rounded-full">Sign in
             </RouterLink>

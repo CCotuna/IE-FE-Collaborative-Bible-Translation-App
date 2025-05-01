@@ -11,6 +11,7 @@ export const useProjectStore = defineStore("project", {
         async fetchProjects() {
             const userStorage = useUserStore();
 
+            console.log("User storage:", userStorage.user);
             const userId = userStorage.user.id;
 
             if (!userId) {
