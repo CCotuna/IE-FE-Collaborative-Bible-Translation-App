@@ -18,24 +18,7 @@
                 </div>
             </div>
         </div>
-        <!--  -->
-        <div class="bg-brand-cornsilk flex flex-col space-y-5 p-6">
-            <div class="flex flex-col text-xl">
-                <span>Traducere 2024 - DC 1931 </span>
-                <span>Luca 1:17</span>
-            </div>
-            <div class="flex flex-col space-y-2">
-                <span>Duis ultrices accumsan lorem, non ultricies dolor dapibus sit amet. Praesent dignissim finibus
-                    tempus. </span>
-                <div class="flex space-x-2 items-center">
-                    <div
-                        class="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden border border-brand-olivine bg-brand-custom-white rounded-full">
-                        <span class="font-medium text-brand-olivine">DC</span>
-                    </div>
-                    <span class="text-gray-400">Acum 6 h</span>
-                </div>
-            </div>
-        </div>
+
         <!--  -->
         <div class="flex flex-col space-y-5 p-6">
             <div class="flex flex-col text-xl">

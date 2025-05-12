@@ -18,6 +18,10 @@ export const useUserStore = defineStore('user', {
                     id: res.data.id,
                     email: res.data.email
                 };
+
+                const projectStore = useProjectStore()
+                projectStore.fetchProjects()
+
                 console.log('User data:', this.user);
             } catch (error) {
                 console.error('Session check failed', error);

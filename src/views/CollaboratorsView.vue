@@ -42,6 +42,7 @@ const sendInvitation = async () => {
 
 <template>
     <div v-if="project" class="p-6">
+        {{ project }}
         <h3 class="text-xl font-semibold text-brand-olivine mb-4">Collaborators:</h3>
         <div class="pl-6 space-y-2 flex flex-col">
             <span v-for="(collaborator, index) in project.collaborators" :key="index" class="text-lg text-black">

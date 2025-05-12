@@ -95,17 +95,17 @@ export const useProjectStore = defineStore("project", {
                 const newComment = response.data;
                 console.log("Comment added:", newComment);
 
-                for (const project of this.projects) {
-                    const fragment = project.fragments?.find(f => f.id === fragmentId);
-                    if (fragment) {
-                        if (!fragment.comments) {
-                            fragment.comments = [];
-                        }
+                // for (const project of this.projects) {
+                //     const fragment = project.fragments?.find(f => f.id === fragmentId);
+                //     if (fragment) {
+                //         if (!fragment.comments) {
+                //             fragment.comments = [];
+                //         }
 
-                        fragment.comments.push(newComment);
-                        break;
-                    }
-                }
+                //         fragment.comments.push(newComment);
+                //         break;
+                //     }
+                // }
 
             } catch (error) {
                 console.error("Error adding comment:", error);
