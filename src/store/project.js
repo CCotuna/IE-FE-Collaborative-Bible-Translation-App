@@ -114,6 +114,7 @@ export const useProjectStore = defineStore("project", {
 
         async addCollaborator(email, projectId) {
             try {
+                console.log("Adding collaborator in PROJECT STORE:", email, projectId);
                 const response = await axios.post("http://localhost:3000/projects/add-collaborator", {
                     email,
                     projectId

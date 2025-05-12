@@ -1,43 +1,47 @@
-<script setup></script>
-<template>
-    <div class="flex flex-col space-y-5 mt-5">
-        <div class="bg-brand-cornsilk flex flex-col space-y-5 p-6">
-            <div class="flex flex-col text-xl">
-                <span>Traducere 2023 - BTF </span>
-                <span>Luca 5:1-3</span>
-            </div>
-            <div class="flex flex-col space-y-2">
-                <span>Sed et velit sem. In sem mauris, tempus convallis cursus eu, consectetur in enim. Duis id urna id
-                    lacus consectetur imperdiet ac sed eros.</span>
-                <div class="flex space-x-2 items-center">
-                    <div
-                        class="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden border border-brand-olivine bg-brand-custom-white rounded-full">
-                        <span class="font-medium text-brand-olivine">AD</span>
-                    </div>
-                    <span class="text-gray-400">Acum 20 minute</span>
-                </div>
-            </div>
-        </div>
+<script setup>
+import { onMounted, computed } from 'vue'
+import { useNotificationStore } from '@/store/notification'
 
-        <!--  -->
-        <div class="flex flex-col space-y-5 p-6">
-            <div class="flex flex-col text-xl">
-                <span>Traducere 2024 - DC 1931 </span>
-                <span>Luca 1:17</span>
-            </div>
-            <div class="flex flex-col space-y-2">
-                <span class=" break-words">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec malesuada vel
-                    ipsum ac molestie. Phasellus luctus porttitor magna, eget scelerisque magna pulvinar sit amet.
-                    Integer ac ullamcorper elit, vitae porta nisi. Fusce risus libero, maximus eget...</span>
-                <div class="flex space-x-2 items-center">
-                    <div
-                        class="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden border border-brand-olivine bg-brand-custom-white rounded-full">
-                        <span class="font-medium text-brand-olivine">DC</span>
-                    </div>
-                    <span class="text-gray-400">Acum 1 sapt</span>
+const notificationStore = useNotificationStore()
+const notifications = computed(() => notificationStore.notifications)
+
+const respondToInvitation = async (userId, projectId) => {
+    try {
+        await notificationStore.respondToInvitation(userId, projectId)
+        notificationStore.fetchNotifications()
+    } catch (error) {
+        console.error('Error responding to invitation:', error)
+    }
+}
+
+onMounted(() => {
+    notificationStore.listenForNotifications(); 
+    notificationStore.fetchNotifications(); 
+})
+</script>
+
+<template>
+    <div>
+        <!-- {{ notifications }} -->
+        <ul>
+            <li v-for="notification in notifications" :key="notification.id">
+                <div v-if="notification.type === 'invitation'">
+                    <p><strong>{{ notification.fromUserEmail }}</strong></p>
+                    <p>{{ notification.type }}</p>
+                    <p>{{ notification.status }}</p>
+                    <p>{{ notification }}</p>
+
+                    <button @click="respondToInvitation(notification.toUserId, notification.projectId)"
+                        class="bg-green-500 text-white px-4 py-2 rounded">
+                        Accept
+                    </button>
+                    <button @click="respondToInvitation(notification.id, false)"
+                        class="bg-red-500 text-white px-4 py-2 rounded">
+                        Decline
+                    </button>
                 </div>
-            </div>
-        </div>
+            </li>
+        </ul>
     </div>
 </template>
-<style scoped></style>
+

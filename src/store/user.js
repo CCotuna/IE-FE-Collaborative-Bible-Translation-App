@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useProjectStore } from './project'
+import socket from '@/plugins/socket'
 
 export const useUserStore = defineStore('user', {
     state: () => ({
@@ -22,6 +23,9 @@ export const useUserStore = defineStore('user', {
                 const projectStore = useProjectStore()
                 projectStore.fetchProjects()
 
+                socket.emit("registerUser", this.user.id);
+
+
                 console.log('User data:', this.user);
             } catch (error) {
                 console.error('Session check failed', error);
@@ -30,6 +34,28 @@ export const useUserStore = defineStore('user', {
         },
         isAuthenticated() {
             return !!this.user;
+        },
+        async getUserByEmail(email) {
+            try {
+                const response = await axios.get('http://localhost:3000/user/getUserByEmail', {
+                    params: { email },
+                    withCredentials: true
+                });
+                return response.data.id;
+            } catch (error) {
+                console.error('Error finding user by email:', error);
+            }
+        },
+        async getUserById(id) {
+            try {
+                const response = await axios.get('http://localhost:3000/user/getUserById', {
+                    params: { id },
+                    withCredentials: true
+                });
+                return response.data;
+            } catch (error) {
+                console.error('Error finding user by ID:', error);
+            }
         },
         async signIn(user) {
             try {
@@ -43,6 +69,8 @@ export const useUserStore = defineStore('user', {
 
                 const projectStore = useProjectStore()
                 projectStore.fetchProjects()
+
+                socket.emit("registerUser", this.user.id);
 
                 this.error = null
             } catch (err) {
@@ -61,8 +89,12 @@ export const useUserStore = defineStore('user', {
                     email: response.data.user.email
                 }
 
+                socket.emit("registerUser", this.user.id);
+
                 const projectStore = useProjectStore()
                 projectStore.fetchProjects()
+
+                this.error = null
             } catch (err) {
                 this.error = err.response?.data?.message || 'Failed to sign up'
                 console.error('SignUp error:', this.error)

@@ -4,30 +4,27 @@ import { useProjectStore } from '@/store/project';
 import { useUserStore } from '@/store/user';
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 
+
 import socket from '@/plugins/socket';
 
 onMounted(() => {
-    const projectId = parseInt(route.params.id);
-    socket.emit('joinProjectRoom', projectId);
+  const projectId = parseInt(route.params.id)
+  socket.emit('joinProjectRoom', projectId)
 
-    socket.on('newComment', (newComment) => {
-        const fragment = project.value?.fragments?.find(f => f.id === newComment.fragmentId);
-        if (fragment) {
-            if (!fragment.comments) fragment.comments = [];
-
-            // Verificăm dacă comentariul există deja pe baza ID-ului
-            const alreadyExists = fragment.comments.some(c => c.id === newComment.id);
-            if (!alreadyExists) {
-                fragment.comments.push(newComment);
-            }
-        }
-    });
+  socket.on('newComment', (newComment) => {
+    const fragment = project.value?.fragments?.find(f => f.id === newComment.fragmentId)
+    if (fragment) {
+      if (!fragment.comments) fragment.comments = []
+      const alreadyExists = fragment.comments.some(c => c.id === newComment.id)
+      if (!alreadyExists) fragment.comments.push(newComment)
+    }
+  })
 })
 
 onBeforeUnmount(() => {
-    const projectId = parseInt(route.params.id);
-    socket.emit('leaveProjectRoom', projectId);
-    socket.off('newComment');
+  const projectId = parseInt(route.params.id)
+  socket.emit('leaveProjectRoom', projectId)
+  socket.off('newComment')
 })
 
 const route = useRoute();
@@ -84,6 +81,7 @@ const visibleComments = (fragment) => {
 </script>
 
 <template>
+    {{ project }}
     <div v-if="project">
         <div class="p-3">
             <ul class="space-y-6">

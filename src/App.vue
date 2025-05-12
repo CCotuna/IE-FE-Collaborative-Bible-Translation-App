@@ -3,11 +3,15 @@ import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import Navigation from './components/layout/navigation/Navigation.vue'
 import { useUserStore } from '@/store/user'
+import { useNotificationStore } from './store/notification'
 
 const userStore = useUserStore()
+const notificationStore = useNotificationStore()
 
 onMounted(() => {
     userStore.checkAuth()
+    notificationStore.fetchNotifications();
+    notificationStore.listenForNotifications();
 })
 </script>
 

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import { useProjectStore } from "@/store/project"; 
+import { useNotificationStore } from "@/store/notification";
 import { useUserStore } from "@/store/user"; 
 import { useRoute } from "vue-router"; 
 
@@ -13,10 +14,21 @@ const projectId = route.params.id;
 
 const userStore = useUserStore();
 const projectStore = useProjectStore();
+const notificationStore = useNotificationStore();
 
 const project = computed(() => {
     const id = parseInt(projectId); 
     return projectStore.projects.find((p) => p.id === id);
+});
+
+const isOwner = computed(() => {
+  if (!project.value || !userStore.user) return false;
+
+  const currentUser = project.value.collaborators.find(
+    (collab) => collab.email === userStore.user.email
+  );
+
+  return currentUser?.UserAccess?.role === "owner";
 });
 
 const sendInvitation = async () => {
@@ -25,19 +37,28 @@ const sendInvitation = async () => {
         return;
     }
 
-    console.log("Sending invitation to:", emailInput.value);
-
     try {
-        await projectStore.addCollaborator(emailInput.value, projectId); 
-        successMessage.value = "Invitation sent successfully!";
+        const notification = {
+            email: emailInput.value,
+            projectId: parseInt(projectId),
+            senderId: userStore.user.id,
+            senderEmail: userStore.user.email,
+            type: "invitation",
+            status: "pending",
+        };
+
+        await notificationStore.sendNotification(notification);
+
+        successMessage.value = "Invitation notification sent!";
         errorMessage.value = null;
         emailInput.value = "";
     } catch (error) {
-        console.log("Error sending invitation:", error);
+        console.error("Error sending invitation:", error);
         errorMessage.value = "There was an error sending the invitation.";
         successMessage.value = null;
     }
 };
+
 </script>
 
 <template>
@@ -50,9 +71,9 @@ const sendInvitation = async () => {
             </span>
         </div>
 
-        <h2
+        <h2 v-if="isOwner"
             class="text-2xl font-semibold text-brand-gold-metallic mt-6 mb-4">Invite Collaborator</h2>
-        <div class="flex items-center space-x-4 mb-4">
+        <div v-if="isOwner" class="flex items-center space-x-4 mb-4">
             <input v-model="emailInput" type="email" placeholder="Enter email address"
                 class="p-2 border-2 border-brand-olivine rounded-md w-96" />
             <button @click="sendInvitation"
