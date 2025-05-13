@@ -18,8 +18,10 @@ watch(
   () => notificationStore.notifications,
   (newNotifications) => {
     filteredNotifications.value = newNotifications.filter(
-      (notification) => notification.toUserId === userStore.user.id
-    );
+  (notification) =>
+    notification.toUserId === userStore.user.id &&
+    notification.status === 'pending'
+);
   },
   { immediate: true, deep: true }
 );

@@ -5,8 +5,9 @@ import { timeSinceCreated } from '@/utils/timeSinceCreated';
 import { useRouter } from 'vue-router';
 
 const projectStore = useProjectStore();
-const projects = computed(() => projectStore.projects);
-const router = useRouter();
+const projects = computed(() => {
+  return [...projectStore.projects].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+});const router = useRouter();
 
 const navigateToProject = (id) => {
     const project = projects.value.find(p => p.id === id);

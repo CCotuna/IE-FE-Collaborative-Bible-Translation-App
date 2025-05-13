@@ -41,6 +41,7 @@ const sendInvitation = async () => {
         const notification = {
             email: emailInput.value,
             projectId: parseInt(projectId),
+            projectTitle: project.value.title,
             senderId: userStore.user.id,
             senderEmail: userStore.user.email,
             type: "invitation",

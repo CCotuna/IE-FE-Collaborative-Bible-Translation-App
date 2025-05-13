@@ -3,28 +3,29 @@ import { useRoute } from 'vue-router';
 import { useProjectStore } from '@/store/project';
 import { useUserStore } from '@/store/user';
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { timeSinceCreated } from '@/utils/timeSinceCreated';
 
 
 import socket from '@/plugins/socket';
 
 onMounted(() => {
-  const projectId = parseInt(route.params.id)
-  socket.emit('joinProjectRoom', projectId)
+    const projectId = parseInt(route.params.id)
+    socket.emit('joinProjectRoom', projectId)
 
-  socket.on('newComment', (newComment) => {
-    const fragment = project.value?.fragments?.find(f => f.id === newComment.fragmentId)
-    if (fragment) {
-      if (!fragment.comments) fragment.comments = []
-      const alreadyExists = fragment.comments.some(c => c.id === newComment.id)
-      if (!alreadyExists) fragment.comments.push(newComment)
-    }
-  })
+    socket.on('newComment', (newComment) => {
+        const fragment = project.value?.fragments?.find(f => f.id === newComment.fragmentId)
+        if (fragment) {
+            if (!fragment.comments) fragment.comments = []
+            const alreadyExists = fragment.comments.some(c => c.id === newComment.id)
+            if (!alreadyExists) fragment.comments.push(newComment)
+        }
+    })
 })
 
 onBeforeUnmount(() => {
-  const projectId = parseInt(route.params.id)
-  socket.emit('leaveProjectRoom', projectId)
-  socket.off('newComment')
+    const projectId = parseInt(route.params.id)
+    socket.emit('leaveProjectRoom', projectId)
+    socket.off('newComment')
 })
 
 const route = useRoute();
@@ -81,7 +82,7 @@ const visibleComments = (fragment) => {
 </script>
 
 <template>
-    {{ project }}
+    <!-- {{ project }} -->
     <div v-if="project">
         <div class="p-3">
             <ul class="space-y-6">
@@ -92,7 +93,9 @@ const visibleComments = (fragment) => {
                     </p>
 
                     <div v-if="visibleComments(fragment).length > 0"
-                        class="flex items-center space-x-2 mb-2 cursor-pointer" @click="toggleComments(fragment.id)">
+                        class="flex items-center space-x-2 mb-2 cursor-pointer"
+                        :class="openCommentsForFragmentId === fragment.id ? 'ms-4' : 'ms-0'"
+                        @click="toggleComments(fragment.id)">
                         <div class="rounded-full bg-gray-400 text-white text-sm px-3 py-0.5">
                             {{ visibleComments(fragment).length }}
                         </div>
@@ -100,33 +103,65 @@ const visibleComments = (fragment) => {
                     </div>
 
                     <div v-if="openCommentsForFragmentId === fragment.id && fragment.comments?.length">
-                        <ul class="pl-6 mt-2 border-l-2 border-gray-300 space-y-2">
+                        <ul class="border-s-8 border-brand-olivine -mt-8 -mb-12 pt-2" :class="{
+                            'pb-12': true,
+                            'pb-5': openFormForFragmentId !== index,
+                        }">
                             <li v-for="comment in visibleComments(fragment)" :key="comment.id"
-                                class="text-sm text-gray-700">
-                                <div class="flex flex-col">
+                                class="text-sm text-gray-700 relative mt-3">
+                                <!-- <div class="flex flex-col">
                                     <p class="font-medium">{{ comment.userEmail }}</p>
                                     <p class="font-medium">{{ comment.userId }}</p>
                                     <p class="ml-2 italic">“{{ comment.content }}”</p>
                                     <p class="ml-2 italic">“{{ comment.status }}”</p>
+                                </div> -->
+
+                                <div class="py-3">
+                                    <p :class="{
+                                        'text-base p-4 rounded-md flex flex-col': true,
+                                        'bg-brand-cornsilk': comment.userId === userStore.user.id,
+                                        'bg-white border-b border-t rounded-none': comment.userId !== userStore.user.id
+                                    }">
+                                        <span class="text-sm font-light mb-1">{{ comment.userEmail }}</span>
+                                        <span>{{ comment.content }}</span>
+                                        <!-- {{ annotation.ownerId }} -->
+
+                                    </p>
+                                </div>
+
+                                <div class="absolute -bottom-6 left-2 flex items-center">
+                                    <div class="bg-white rounded-full w-12 h-12 flex items-center justify-center">
+                                        <div
+                                            class="bg-white rounded-full w-10 h-10 flex items-center justify-center border border-brand-olivine">
+                                            <span class="font-medium text-brand-olivine uppercase">
+                                                CA
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-400 text-md p-2 ps-1 pt-3">{{
+                                        timeSinceCreated(comment.createdAt)
+                                        }}</p>
                                 </div>
                             </li>
                         </ul>
                     </div>
 
-
-                    <div v-if="openFormForFragmentId === fragment.id"
-                        class="bg-brand-honeydew p-4 rounded-lg space-y-3 mt-2">
-                        <textarea v-model="commentText" required
-                            class="w-full border border-brand-olivine rounded-md p-2"
-                            placeholder="Scrie comentariul aici..."></textarea>
+                    <div v-if="openFormForFragmentId === fragment.id" :class="{
+                        'border-s-8 border-brand-olivine -mb-2 px-3': true,
+                        'pt-14': (openCommentsForFragmentId === fragment.id ?? 0) > 0,
+                        'pt-4': (openCommentsForFragmentId !== fragment.id ?? 0) === 0
+                    }">
+                        <textarea v-model="commentText" required class="w-full p-2 border border-gray-300 rounded-lg"
+                            rows="4" placeholder="Scrie comentariul aici..."></textarea>
 
                         <select v-model="commentStatus" required
-                            class="w-full border border-brand-olivine rounded-md p-2">
+                            class="border border-gray-300 p-2 mb-4 md:mb-0 md:me-4 rounded-md w-full max-w-xs">
                             <option value="private">Privat</option>
                             <option value="public">Public</option>
                         </select>
 
-                        <button class="bg-brand-olivine text-white px-4 py-2 rounded-full"
+                        <button
+                            class="mt-2 px-4 py-2 bg-brand-olivine text-white rounded-lg hover:bg-brand-olivine-light"
                             @click="addComment(fragment.id)">
                             Creează comentariu
                         </button>

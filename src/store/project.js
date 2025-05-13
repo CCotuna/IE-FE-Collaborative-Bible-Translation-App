@@ -30,6 +30,39 @@ export const useProjectStore = defineStore("project", {
             }
         },
 
+        fetchProjectTitle(projectId) {
+            const project = this.projects.find(p => p.id === projectId);
+            if (project) {
+                return project.title;
+            } else {
+                console.error("Project not found in store");
+                return null;
+            }
+        },
+
+        async fetchProjectById(projectId, userId) {
+            // 1. Caută dacă există deja în store
+            const existing = this.projects.find(p => p.id === projectId);
+            if (existing) return existing;
+
+            // 2. Dacă nu există, îl iau din backend și îl salvez
+            try {
+                const response = await axios.get("http://localhost:3000/projects/getProjectById", {
+                    params: { projectId, userId }
+                });
+
+                if (response.data) {
+                    this.projects.push(response.data);
+                    return response.data;
+                } else {
+                    return null;
+                }
+            } catch (error) {
+                console.error("Error fetching project:", error);
+                return null;
+            }
+        },
+
         async addProject(project) {
             const userStorage = useUserStore();
             const user = userStorage.user;

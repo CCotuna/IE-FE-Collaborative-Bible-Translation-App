@@ -46,6 +46,7 @@ export const useNotificationStore = defineStore('notification', {
                     fromUserEmail: notification.senderEmail,
                     toUserId: receiverId,
                     projectId: notification.projectId,
+                    projectTitle: notification.projectTitle,
                     type: notification.type,
                     status: notification.status
                 });
@@ -57,13 +58,25 @@ export const useNotificationStore = defineStore('notification', {
             }
         },
 
-        async markAsRead(notificationId) {
+        async markAsAccepted(notificationId) {
             try {
-                await axios.patch(`http://localhost:3000/notifications/${notificationId}`, {
-                    status: 'read'
+                await axios.patch(`http://localhost:3000/notifications/accept/${notificationId}`, {
+                    status: 'accepted'
                 });
                 const notification = this.notifications.find(n => n.id === notificationId);
-                if (notification) notification.status = 'read';
+                if (notification) notification.status = 'accepted';
+            } catch (error) {
+                console.error("Error marking notification as read:", error);
+            }
+        },
+
+        async markAsDeclined(notificationId) {
+            try {
+                await axios.patch(`http://localhost:3000/notifications/decline/${notificationId}`, {
+                    status: 'declined'
+                });
+                const notification = this.notifications.find(n => n.id === notificationId);
+                if (notification) notification.status = 'declined';
             } catch (error) {
                 console.error("Error marking notification as read:", error);
             }
@@ -76,36 +89,34 @@ export const useNotificationStore = defineStore('notification', {
             }
         },
 
-        async respondToInvitation(userId, projectId) {
+        async acceptInvitation(notificationId, userId, projectId) {
             const projectStore = useProjectStore();
             const userStore = useUserStore();
 
             const user = await userStore.getUserById(userId);
 
+            console.log("Notification ID:", notificationId);
+
             console.log("User email:", user);
             console.log("Project ID in STORE:", projectId);
             try {
                 await projectStore.addCollaborator(user.email, projectId);
-
+                await this.markAsAccepted(notificationId);
+                this.fetchNotifications();
             } catch (error) {
                 console.error("Error adding collaborator:", error);
                 throw new Error("Failed to add collaborator.");
             }
+        },
 
-
-            // try {
-            //     await axios.post(`http://localhost:3000/notifications/respond`, {
-            //         notificationId,
-            //         accepted
-            //     });
-
-            //     const notif = this.notifications.find(n => n.id === notificationId);
-            //     if (notif) notif.status = accepted ? "accepted" : "declined";
-
-            //     // Poți adăuga colaborator aici dacă acceptă
-            // } catch (error) {
-            //     console.error("Error responding to invitation:", error);
-            // }
+        async declineInvitation(notificationId) {
+            try {
+                await this.markAsDeclined(notificationId);
+                this.fetchNotifications();
+            } catch (error) {
+                console.error("Error declining invitation:", error);
+                throw new Error("Failed to decline invitation.");
+            }
         },
 
         listenForNotifications() {
