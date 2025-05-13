@@ -1,14 +1,25 @@
 <script setup>
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useProjectStore } from '@/store/project';
 import { useUserStore } from '@/store/user';
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { timeSinceCreated } from '@/utils/timeSinceCreated';
 
-
 import socket from '@/plugins/socket';
 
+const route = useRoute();
+const router = useRouter();
+
+const projectStore = useProjectStore();
+const userStore = useUserStore();
+
+const project = computed(() => {
+    const id = parseInt(route.params.id);
+    return projectStore.projects.find(p => p.id === id);
+});
+
 onMounted(() => {
+
     const projectId = parseInt(route.params.id)
     socket.emit('joinProjectRoom', projectId)
 
@@ -20,6 +31,17 @@ onMounted(() => {
             if (!alreadyExists) fragment.comments.push(newComment)
         }
     })
+
+    socket.on('commentStatusUpdated', (updatedComment) => {
+        console.log('Received updated comment:', updatedComment)
+        const fragment = project.value?.fragments?.find(f => f.id === updatedComment.fragmentId)
+        if (fragment) {
+            const commentIndex = fragment.comments.findIndex(c => c.id === updatedComment.id)
+            if (commentIndex !== -1) {
+                fragment.comments[commentIndex] = updatedComment
+            }
+        }
+    })
 })
 
 onBeforeUnmount(() => {
@@ -27,15 +49,6 @@ onBeforeUnmount(() => {
     socket.emit('leaveProjectRoom', projectId)
     socket.off('newComment')
 })
-
-const route = useRoute();
-const projectStore = useProjectStore();
-const userStore = useUserStore();
-
-const project = computed(() => {
-    const id = parseInt(route.params.id);
-    return projectStore.projects.find(p => p.id === id);
-});
 
 const sortedFragments = computed(() => {
     return project.value?.fragments?.slice().sort((a, b) => a.verseNumber - b.verseNumber) || [];
@@ -79,6 +92,30 @@ const visibleComments = (fragment) => {
             comment.status === 'public' || comment.userId === userStore.user.id
     );
 };
+const selectedCommentId = ref(null);
+const isToggleStatusModalOpen = ref(false);
+
+const openCommentStatusModal = (commentId) => {
+    selectedCommentId.value = commentId;
+    isToggleStatusModalOpen.value = true;
+}
+
+const closeCommentStatusModal = () => {
+    isToggleStatusModalOpen.value = false;
+    selectedCommentId.value = null;
+}
+
+const toggleCommentStatus = async () => {
+    if(!selectedCommentId.value) return;
+
+    try {
+        projectStore.toggleCommentStatus(selectedCommentId.value)
+    } catch (error) {
+        console.error('Error toggling comment status:', error);
+    } finally {
+        closeCommentStatusModal();
+    }
+}
 </script>
 
 <template>
@@ -87,7 +124,7 @@ const visibleComments = (fragment) => {
         <div class="p-3">
             <ul class="space-y-6">
                 <li v-for="fragment in sortedFragments" :key="fragment.id">
-                    <p class="text-gray-900 cursor-pointer" @click="toggleForm(fragment.id)">
+                    <p class="text-gray-900 cursor-pointer mb-1" @click="toggleForm(fragment.id)">
                         <span v-if="fragment.verseNumber != null">{{ fragment.verseNumber }}:</span> {{ fragment.content
                         }}
                     </p>
@@ -105,27 +142,19 @@ const visibleComments = (fragment) => {
                     <div v-if="openCommentsForFragmentId === fragment.id && fragment.comments?.length">
                         <ul class="border-s-8 border-brand-olivine -mt-8 -mb-12 pt-2" :class="{
                             'pb-12': true,
-                            'pb-5': openFormForFragmentId !== index,
+                            'pb-5': openFormForFragmentId !== fragment.id,
                         }">
                             <li v-for="comment in visibleComments(fragment)" :key="comment.id"
                                 class="text-sm text-gray-700 relative mt-3">
-                                <!-- <div class="flex flex-col">
-                                    <p class="font-medium">{{ comment.userEmail }}</p>
-                                    <p class="font-medium">{{ comment.userId }}</p>
-                                    <p class="ml-2 italic">“{{ comment.content }}”</p>
-                                    <p class="ml-2 italic">“{{ comment.status }}”</p>
-                                </div> -->
 
                                 <div class="py-3">
                                     <p :class="{
                                         'text-base p-4 rounded-md flex flex-col': true,
                                         'bg-brand-cornsilk': comment.userId === userStore.user.id,
-                                        'bg-white border-b border-t rounded-none': comment.userId !== userStore.user.id
+                                        'bg-white': comment.userId !== userStore.user.id
                                     }">
                                         <span class="text-sm font-light mb-1">{{ comment.userEmail }}</span>
                                         <span>{{ comment.content }}</span>
-                                        <!-- {{ annotation.ownerId }} -->
-
                                     </p>
                                 </div>
 
@@ -138,10 +167,36 @@ const visibleComments = (fragment) => {
                                             </span>
                                         </div>
                                     </div>
-                                    <p class="text-gray-400 text-md p-2 ps-1 pt-3">{{
-                                        timeSinceCreated(comment.createdAt)
-                                        }}</p>
+                                    <p class="text-gray-400 text-md p-2 ps-1 pt-3">
+                                        {{ timeSinceCreated(comment.createdAt) }}
+                                    </p>
                                 </div>
+                                <div v-if="comment.userId === userStore.user.id">
+                                    <div v-if="comment.status === 'private'"
+                                        class="absolute -bottom-5 right-0 bg-white rounded-s-full w-[6.5rem] h-12">
+                                        <i
+                                            class="bi bi-pen bg-white shadow-md cursor-pointer text-brand-gold-metallic rounded-full p-2 flex items-center justify-center absolute bottom-1 right-28 w-10 h-10 text-2xl"></i>
+                                        <button @click="openCommentStatusModal(comment.id)"
+                                            class="absolute bottom-1 right-0 rounded-s-full py-1 w-24 bg-white border-brand-gold-metallic border text-brand-gold-metallic text-xl">
+                                            Privat
+                                        </button>
+                                    </div>
+                                    <div v-else
+                                        class="absolute -bottom-4 right-0 bg-white rounded-s-full w-[6.5rem] h-12">
+                                        <div
+                                            class="bg-white rounded-s-full w-[6.5rem] h-12 flex items-center relative z-10">
+                                            <div
+                                                class="bg-white rounded-full cursor-pointer w-12 h-12 flex items-center justify-center z-10 relative right-6 -bottom-1">
+                                                <i
+                                                    class="bi bi-repeat bg-brand-olivine text-white rounded-full p-2 flex items-center justify-center w-10 h-10 text-2xl"></i>
+                                            </div>
+                                            <button @click="openCommentStatusModal(comment.id)"
+                                                class="absolute bottom-1 right-0 rounded-s-full py-1 w-28 bg-brand-gold-metallic text-white text-xl"><span
+                                                    class="ms-4">Public</span></button>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </li>
                         </ul>
                     </div>
@@ -173,5 +228,18 @@ const visibleComments = (fragment) => {
 
     <div v-else>
         <p>Project not found</p>
+    </div>
+
+      <div v-if="isToggleStatusModalOpen" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-lg p-8 shadow-lg text-center">
+            <h2 class="text-lg mb-4">Ești sigur că dorești<br> să schimbi vizibilitatea acestui text<br> în modul
+                public?</h2>
+            <div class="flex justify-around mt-4">
+                <button @click="toggleCommentStatus"
+                    class="bg-brand-olivine text-white text-lg px-8 py-2 rounded-full">Confirm</button>
+                <button @click="closeCommentStatusModal"
+                    class="bg-brand-honeydew text-brand-olivine text-lg px-8 py-2 rounded-full">Renunț</button>
+            </div>
+        </div>
     </div>
 </template>

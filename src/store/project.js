@@ -41,11 +41,9 @@ export const useProjectStore = defineStore("project", {
         },
 
         async fetchProjectById(projectId, userId) {
-            // 1. Caută dacă există deja în store
             const existing = this.projects.find(p => p.id === projectId);
             if (existing) return existing;
 
-            // 2. Dacă nu există, îl iau din backend și îl salvez
             try {
                 const response = await axios.get("http://localhost:3000/projects/getProjectById", {
                     params: { projectId, userId }
@@ -101,6 +99,7 @@ export const useProjectStore = defineStore("project", {
             const projectIndex = this.projects.findIndex((project) => project.id === projectId);
             this.projects.splice(projectIndex, 1);
 
+            console.log("In PROJECT Store, deleting project with ID:", projectId);
             axios.delete("http://localhost:3000/projects", {
                 headers: {
                     "Content-Type": "application/json",
@@ -142,6 +141,34 @@ export const useProjectStore = defineStore("project", {
 
             } catch (error) {
                 console.error("Error adding comment:", error);
+            }
+        },
+
+        async toggleCommentStatus(commentId) {
+            try {
+                const response = await axios.post("http://localhost:3000/comments/toggle-status", {
+                    commentId
+                }, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    }
+                });
+
+                const updatedComment = response.data;
+                console.log("Comment status toggled:", updatedComment);
+
+                // for (const project of this.projects) {
+                //     for (const fragment of project.fragments) {
+                //         const comment = fragment.comments?.find(c => c.id === commentId);
+                //         if (comment) {
+                //             Object.assign(comment, updatedComment);
+                //             break;
+                //         }
+                //     }
+                // }
+
+            } catch (error) {
+                console.error("Error toggling comment status:", error);
             }
         },
 
