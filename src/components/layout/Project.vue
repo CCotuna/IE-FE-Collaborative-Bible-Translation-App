@@ -42,12 +42,22 @@ onMounted(() => {
             }
         }
     })
+
+    socket.on('commentDeleted', (deletedCommentId) => {
+        console.log('Received deleted comment ID:', deletedCommentId)
+        const fragment = project.value?.fragments?.find(f => f.comments?.some(c => c.id === deletedCommentId))
+        if (fragment) {
+            fragment.comments = fragment.comments.filter(c => c.id !== deletedCommentId)
+        }
+    })
 })
 
 onBeforeUnmount(() => {
     const projectId = parseInt(route.params.id)
     socket.emit('leaveProjectRoom', projectId)
     socket.off('newComment')
+    socket.off('commentStatusUpdated')
+    socket.off('commentDeleted')
 })
 
 const sortedFragments = computed(() => {
@@ -106,7 +116,7 @@ const closeCommentStatusModal = () => {
 }
 
 const toggleCommentStatus = async () => {
-    if(!selectedCommentId.value) return;
+    if (!selectedCommentId.value) return;
 
     try {
         projectStore.toggleCommentStatus(selectedCommentId.value)
@@ -116,6 +126,15 @@ const toggleCommentStatus = async () => {
         closeCommentStatusModal();
     }
 }
+
+const editingCommentId = ref(null);
+const openEditCommentForm = (commentId) => {
+    editingCommentId.value = commentId;
+}
+
+const closeEditCommentForm = () => {
+    editingCommentId.value = null;
+}
 </script>
 
 <template>
@@ -124,20 +143,41 @@ const toggleCommentStatus = async () => {
         <div class="p-3">
             <ul class="space-y-6">
                 <li v-for="fragment in sortedFragments" :key="fragment.id">
-                    <p class="text-gray-900 cursor-pointer mb-1" @click="toggleForm(fragment.id)">
+                    <p class="text-gray-900 cursor-pointer mb-1 text-lg" @click="toggleForm(fragment.id)">
                         <span v-if="fragment.verseNumber != null">{{ fragment.verseNumber }}:</span> {{ fragment.content
                         }}
                     </p>
 
                     <div v-if="visibleComments(fragment).length > 0"
-                        class="flex items-center space-x-2 mb-2 cursor-pointer"
+                        class="flex items-center space-x-2 mb-1 cursor-pointer"
                         :class="openCommentsForFragmentId === fragment.id ? 'ms-4' : 'ms-0'"
                         @click="toggleComments(fragment.id)">
-                        <div class="rounded-full bg-gray-400 text-white text-sm px-3 py-0.5">
-                            {{ visibleComments(fragment).length }}
+                        <div v-if="openCommentsForFragmentId !== fragment.id" class="flex items-center space-x-2">
+                            <span class="rounded-full bg-gray-400 text-white text-sm px-4 -ms-1 py-0.5">
+                                {{ visibleComments(fragment).length }}
+                            </span>
+                            <i class="bi bi-bell-fill text-gray-400 text-lg"></i>
                         </div>
-                        <i class="bi bi-bell-fill text-gray-400 text-sm"></i>
+                        <div v-else>
+                            <button
+                                class="rounded-e-full w-20 -ms-4 flex items-center justify-center bg-brand-olivine text-white text-xl">
+                                <span class="text-xl"> {{ visibleComments(fragment).length }}</span>
+                                <i class="bi bi-chevron-double-down text-xl ms-4"></i>
+                            </button>
+                        </div>
                     </div>
+
+                    <!-- <div v-if="item.annotations?.length ?? 0"
+                        class="absolute -bottom-8 -left-2 bg-white pt-2 rounded-e-full w-[5.9rem]">
+                        <button @click="toggleContent(index)"
+                            class="rounded-e-full py-[0.10rem] w-20 ms-2 flex items-center justify-center bg-brand-olivine text-white text-xl">
+                            <span class="text-2xl">{{item.annotations?.filter(a => !a.isPrivate).length ?? 0}}</span>
+                            <i :class="{
+                                'bi-chevron-double-down': openDescriptionIndex !== index,
+                                'bi-chevron-double-down rotate-180 mb-1': openDescriptionIndex === index
+                            }" class="bi ms-4"></i>
+                        </button>
+                    </div> -->
 
                     <div v-if="openCommentsForFragmentId === fragment.id && fragment.comments?.length">
                         <ul class="border-s-8 border-brand-olivine -mt-8 -mb-12 pt-2" :class="{
@@ -147,41 +187,71 @@ const toggleCommentStatus = async () => {
                             <li v-for="comment in visibleComments(fragment)" :key="comment.id"
                                 class="text-sm text-gray-700 relative mt-3">
 
-                                <div class="py-3">
+                                <div class="py-4">
                                     <p :class="{
                                         'text-base p-4 rounded-md flex flex-col': true,
                                         'bg-brand-cornsilk': comment.userId === userStore.user.id,
                                         'bg-white': comment.userId !== userStore.user.id
                                     }">
-                                        <span class="text-sm font-light mb-1">{{ comment.userEmail }}</span>
+                                        <!-- <span class="text-sm font-light mb-1">{{ comment.userEmail }}</span> -->
                                         <span>{{ comment.content }}</span>
                                     </p>
                                 </div>
 
-                                <div class="absolute -bottom-6 left-2 flex items-center">
+                                <div v-if="editingCommentId === comment.id" class="p-2 pe-0 pt-5">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <div class="flex space-x-5 text-brand-olivine">
+                                            <span @click="closeEditCommentForm()" class="text-2xl cursor-pointer">
+                                                <i class="bi bi-chevron-left"></i>
+                                            </span>
+                                            <div class="flex space-x-2">
+                                                <i class="bi bi-type-bold px-2 text-2xl rounded-md"></i>
+                                                <i class="bi bi-type-underline px-2 text-2xl rounded-md"></i>
+                                                <i class="bi bi-type-italic px-2 text-2xl rounded-md"></i>
+                                            </div>
+                                        </div>
+                                        <span class="text-2xl text-brand-olivine cursor-pointer"
+                                            @click="projectStore.deleteComment(comment.id)">
+                                            <i class="bi bi-trash"></i>
+                                        </span>
+                                    </div>
+                                    <textarea v-model="commentText" required
+                                        class="w-full p-2 border border-gray-300 rounded-lg" rows="4"
+                                        placeholder="Scrie comentariul aici..."></textarea>
+
+                                    <button
+                                        class="mt-2 px-4 py-2 bg-brand-olivine text-white rounded-lg hover:bg-brand-olivine-light"
+                                        @click="addComment(comment.id)">
+                                        Editează comentariul
+                                    </button>
+                                </div>
+
+                                <div class="absolute left-2 flex items-center"
+                                    :class="editingCommentId === comment.id ? 'bottom-48' : '-bottom-6'">
                                     <div class="bg-white rounded-full w-12 h-12 flex items-center justify-center">
                                         <div
-                                            class="bg-white rounded-full w-10 h-10 flex items-center justify-center border border-brand-olivine">
+                                            class="bg-white rounded-full w-8 h-8 flex items-center justify-center border border-brand-olivine">
                                             <span class="font-medium text-brand-olivine uppercase">
                                                 CA
                                             </span>
                                         </div>
                                     </div>
-                                    <p class="text-gray-400 text-md p-2 ps-1 pt-3">
+                                    <p class="text-gray-400 text-md p-2 ps-0 pt-2">
                                         {{ timeSinceCreated(comment.createdAt) }}
                                     </p>
                                 </div>
+
                                 <div v-if="comment.userId === userStore.user.id">
-                                    <div v-if="comment.status === 'private'"
+                                    <div v-if="comment.status === 'private' && editingCommentId !== comment.id"
                                         class="absolute -bottom-5 right-0 bg-white rounded-s-full w-[6.5rem] h-12">
-                                        <i
+                                        <i @click="openEditCommentForm(comment.id)"
                                             class="bi bi-pen bg-white shadow-md cursor-pointer text-brand-gold-metallic rounded-full p-2 flex items-center justify-center absolute bottom-1 right-28 w-10 h-10 text-2xl"></i>
                                         <button @click="openCommentStatusModal(comment.id)"
                                             class="absolute bottom-1 right-0 rounded-s-full py-1 w-24 bg-white border-brand-gold-metallic border text-brand-gold-metallic text-xl">
                                             Privat
                                         </button>
                                     </div>
-                                    <div v-else
+                                    <div v-if="comment.status === 'public' && editingCommentId !== comment.id"
                                         class="absolute -bottom-4 right-0 bg-white rounded-s-full w-[6.5rem] h-12">
                                         <div
                                             class="bg-white rounded-s-full w-[6.5rem] h-12 flex items-center relative z-10">
@@ -230,7 +300,8 @@ const toggleCommentStatus = async () => {
         <p>Project not found</p>
     </div>
 
-      <div v-if="isToggleStatusModalOpen" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div v-if="isToggleStatusModalOpen"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
         <div class="bg-white rounded-lg p-8 shadow-lg text-center">
             <h2 class="text-lg mb-4">Ești sigur că dorești<br> să schimbi vizibilitatea acestui text<br> în modul
                 public?</h2>

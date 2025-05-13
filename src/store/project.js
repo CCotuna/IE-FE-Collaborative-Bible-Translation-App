@@ -127,20 +127,33 @@ export const useProjectStore = defineStore("project", {
                 const newComment = response.data;
                 console.log("Comment added:", newComment);
 
-                // for (const project of this.projects) {
-                //     const fragment = project.fragments?.find(f => f.id === fragmentId);
-                //     if (fragment) {
-                //         if (!fragment.comments) {
-                //             fragment.comments = [];
-                //         }
-
-                //         fragment.comments.push(newComment);
-                //         break;
-                //     }
-                // }
-
             } catch (error) {
                 console.error("Error adding comment:", error);
+            }
+        },
+
+        async deleteComment(commentId) {
+            try {
+                for (const project of this.projects) {
+                    for (const fragment of project.fragments) {
+                        const commentIndex = fragment.comments?.findIndex(c => c.id === commentId);
+                        if (commentIndex !== -1) {
+                            fragment.comments.splice(commentIndex, 1);
+                            break;
+                        }
+                    }
+                }
+                const response = await axios.delete("http://localhost:3000/comments", {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    data: { commentId }
+                });
+
+                console.log("Comment deleted:", response.data);
+
+            } catch (error) {
+                console.error("Error deleting comment:", error);
             }
         },
 
@@ -156,16 +169,6 @@ export const useProjectStore = defineStore("project", {
 
                 const updatedComment = response.data;
                 console.log("Comment status toggled:", updatedComment);
-
-                // for (const project of this.projects) {
-                //     for (const fragment of project.fragments) {
-                //         const comment = fragment.comments?.find(c => c.id === commentId);
-                //         if (comment) {
-                //             Object.assign(comment, updatedComment);
-                //             break;
-                //         }
-                //     }
-                // }
 
             } catch (error) {
                 console.error("Error toggling comment status:", error);

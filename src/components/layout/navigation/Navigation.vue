@@ -149,7 +149,7 @@ console.log('check if user authenticated', userStore.isAuthenticated());
         </div>
         <div v-if="route.name === 'project'" class="flex space-x-3 text-3xl">
             <span><i class="bi bi-search"></i></span>
-            <span><i class="bi bi-people"></i></span>
+            <RouterLink :to="{ name: 'collaborators-view'}"><i class="bi bi-people"></i></RouterLink>
             <RouterLink :to="{ name: 'menu' }"><i class="bi bi-gear"></i></RouterLink>
         </div>
         <div v-if="route.name === 'menu'">
