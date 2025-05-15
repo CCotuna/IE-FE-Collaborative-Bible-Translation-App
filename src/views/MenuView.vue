@@ -8,7 +8,7 @@ const router = useRouter()
 
 </script>
 <template>
-    <div class="p-7 flex flex-col space-y-5">
+    <div class="ps-7 pt-4 flex flex-col space-y-5">
         <div v-if="!userStore.checkAuth()" class="flex space-x-5">
             <RouterLink :to="{ name: 'sign-in' }"
                 class="flex items-center space-x-8 px-4 py-2 text-white bg-brand-olivine rounded-full">

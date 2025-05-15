@@ -1,5 +1,5 @@
-const BookFilemon = {
-    "name": "Filemon",
+const BookFilimon = {
+    "name": "Filimon",
     "abbreviation": "PHM",
     "chapters": [
         {
@@ -110,4 +110,4 @@ const BookFilemon = {
     ]
 };
 
-export default BookFilemon;
+export default BookFilimon;

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { useBibleProjectStore } from './bibleProject';
 import axios from "axios";
 
 import { useUserStore } from './user';
@@ -61,16 +62,26 @@ export const useProjectStore = defineStore("project", {
             }
         },
 
+        testBibleProject() {
+            const bibleProjectStore = useBibleProjectStore();
+            const bibleProject = bibleProjectStore.bibleProject;
+
+            console.log("In PROJECT Store, Bible Project:", bibleProject);
+            return bibleProject;
+        },
+
         async addProject(project) {
             const userStorage = useUserStore();
             const user = userStorage.user;
 
             const newProject = {
                 title: project.title,
-                text: project.text,
                 type: project.type,
                 hasUpdates: false,
-                userId: user.id
+                userId: user.id,
+                ...(project.text != null && { text: project.text }),
+                ...(project.version != null && { version: project.version }),
+                ...(project.selectedBooks != null && { selectedBooks: project.selectedBooks })
             };
 
             try {
