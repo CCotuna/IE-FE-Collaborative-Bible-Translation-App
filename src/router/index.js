@@ -24,6 +24,11 @@ const router = createRouter({
       component: () => import('../views/import/BaseImportView.vue')
     },
     {
+      path: '/pdf-import/new-project',
+      name: 'new-project-pdf',
+      component: () => import('../views/import/docs/PDFImportView.vue')
+    },
+    {
       path: '/classified-import',
       name: 'classified-import',
       component: () => import('../views/import/ClassifiedImportView.vue')

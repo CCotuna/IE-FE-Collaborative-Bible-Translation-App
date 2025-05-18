@@ -18,23 +18,23 @@ const fragments = ref([]);
 const projectId = parseInt(route.params.id)
 const chapterId = parseInt(route.query.chapterId)
 
+const project = projectStore.projects.find(p => p.id === projectId)
+
 onMounted(async () => {
-    const project = projectStore.projects.find(p => p.id === projectId)
+    if (!project) {
+        return
+    }
 
-  if (!project) {
-    return
-  }
+    if (project.type === 'Biblia') {
+        await projectStore.fetchChapterFragments(projectId, chapterId)
+        const result = projectStore.fragments.find(c => c.id === projectId);
+        fragments.value = result ? result.bibleFragments : [];
+    } else {
 
-  if (project.type === 'Biblia') {
-    await projectStore.fetchChapterFragments(projectId, chapterId)
-     const result = projectStore.fragments.find(c => c.id === projectId);
-    fragments.value = result ? result.bibleFragments : [];
-  } else {
-
-    await projectStore.fetchProjectFragments(projectId)
-     const result = projectStore.fragments.find(c => c.id === projectId);
-    fragments.value = result ? result.fragments : [];
-  }
+        await projectStore.fetchProjectFragments(projectId)
+        const result = projectStore.fragments.find(c => c.id === projectId);
+        fragments.value = result ? result.fragments : [];
+    }
 
     socket.emit('joinProjectRoom', projectId)
 
@@ -67,7 +67,15 @@ onBeforeUnmount(() => {
 })
 
 const sortedFragments = computed(() => {
-    return fragments.value?.slice().sort((a, b) => a.verseNumber - b.verseNumber) || [];
+  if (!fragments.value) return [];
+
+  return fragments.value.slice().sort((a, b) => {
+    if (project.value?.type === 'Biblia') {
+      return a.verseNumber - b.verseNumber;
+    } else {
+      return a.id - b.id;
+    }
+  });
 });
 
 const openFormForFragmentId = ref(null);
@@ -153,9 +161,9 @@ const closeEditCommentForm = () => {
                 <ul class="space-y-6">
                     <li v-for="fragment in sortedFragments" :key="fragment.id">
                         <p class="text-gray-900 cursor-pointer mb-1 text-lg" @click="toggleForm(fragment.id)">
-                            <span v-if="fragment.verseNumber != null">{{ fragment.verseNumber }}.</span> {{
-                                fragment.content
-                            }}
+                            <span>{{ fragment.id }}.</span>
+                            <span v-if="fragment.verseNumber != null">{{ fragment.verseNumber }}.</span>
+                            <span v-html="fragment.content"></span>
                         </p>
 
                         <div v-if="visibleComments(fragment).length > 0"
@@ -175,7 +183,7 @@ const closeEditCommentForm = () => {
                                     <i class="bi bi-chevron-double-down text-xl ms-4"></i>
                                 </button>
                             </div>
-                        </div> 
+                        </div>
 
                         <!-- <div v-if="item.annotations?.length ?? 0"
                         class="absolute -bottom-8 -left-2 bg-white pt-2 rounded-e-full w-[5.9rem]">
@@ -189,7 +197,7 @@ const closeEditCommentForm = () => {
                         </button>
                     </div> -->
 
-                         <div v-if="openCommentsForFragmentId === fragment.id && fragment.comments?.length">
+                        <div v-if="openCommentsForFragmentId === fragment.id && fragment.comments?.length">
                             <ul class="border-s-8 border-brand-olivine -mt-8 -mb-12 pt-2" :class="{
                                 'pb-12': true,
                                 'pb-5 mb-4': openFormForFragmentId !== fragment.id,

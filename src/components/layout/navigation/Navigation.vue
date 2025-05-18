@@ -56,6 +56,8 @@ const navbarTitle = computed(() => {
             return 'Import text';
         case '/base-import/new-project':
             return 'Import text';
+        case '/pdf-import/new-project':
+            return 'Extract PDF';
         case '/classified-import':
             return 'Import clasificat';
         case '/classified-import/bible':
