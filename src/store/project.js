@@ -258,6 +258,26 @@ export const useProjectStore = defineStore("project", {
             }
         },
 
+        async deleteBibleChapter(chapterId) {
+            const chapterContainer = this.chapters.find(c => c.id === this.selectedProjectId);
+            if (chapterContainer) {
+                chapterContainer.bibleChapters = chapterContainer.bibleChapters.filter(ch => ch.id !== chapterId);
+            }
+
+            try {
+                await axios.delete("http://localhost:3000/projects/biblechapters", {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    data: { chapterId }
+                });
+                return true;
+            } catch (error) {
+                console.error("Error deleting Bible Chapter:", error);
+                return false;
+            }
+        },
+
         async toggleCommentStatus(commentId) {
             try {
                 await axios.post("http://localhost:3000/comments/toggle-status", {
