@@ -19,10 +19,22 @@ const projectId = parseInt(route.params.id)
 const chapterId = parseInt(route.query.chapterId)
 
 onMounted(async () => {
+    const project = projectStore.projects.find(p => p.id === projectId)
+
+  if (!project) {
+    return
+  }
+
+  if (project.type === 'Biblia') {
     await projectStore.fetchChapterFragments(projectId, chapterId)
-    const result = projectStore.fragments.find(c => c.id === projectId);
+     const result = projectStore.fragments.find(c => c.id === projectId);
     fragments.value = result ? result.bibleFragments : [];
-    console.log(fragments.value, ", resultttt")
+  } else {
+
+    await projectStore.fetchProjectFragments(projectId)
+     const result = projectStore.fragments.find(c => c.id === projectId);
+    fragments.value = result ? result.fragments : [];
+  }
 
     socket.emit('joinProjectRoom', projectId)
 

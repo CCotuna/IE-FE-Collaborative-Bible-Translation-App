@@ -99,6 +99,12 @@ const router = createRouter({
       component: () => import('../views/SignUpView.vue')
     },
     {
+      path: '/:slug~:id',
+      name: 'project-default',
+      component: () => import('../components/ProjectFragments.vue'),
+      props: true,
+    },
+    {
       path: '/:slug~:id/select-book',
       name: 'project-books',
       component: () => import('../components/ProjectBooks.vue'),

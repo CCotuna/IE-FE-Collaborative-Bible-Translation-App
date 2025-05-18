@@ -16,7 +16,11 @@ const navigateToProject = (id) => {
     const project = projects.value.find(p => p.id === id);
     if (project) {
         const slug = project.title.toLowerCase().replace(/\s+/g, '-')
-        router.push({ name: 'project-books', params: { id, slug } });
+        if(project.type === 'Biblia') {
+            router.push({ name: 'project-books', params: { id, slug } });
+        } else {
+            router.push({ name: 'project-default', params: { id, slug } });
+        }
     }
 };
 

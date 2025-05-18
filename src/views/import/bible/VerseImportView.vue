@@ -1,6 +1,9 @@
 <script setup>
 import { useBibleProjectStore } from '@/store/bibleProject';
 import { useProjectStore } from '@/store/project';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const bibleProjectStore = useBibleProjectStore();
 const projectStore = useProjectStore();
@@ -23,6 +26,8 @@ const getTotalVerses = (book, chapterNumber) => {
 
 const addBibleProject = async () => {
     await projectStore.addProject(bibleProjectStore.bibleProject);
+    router.push({name: 'home'});
+
 }
 </script>
 

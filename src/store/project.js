@@ -68,7 +68,6 @@ export const useProjectStore = defineStore("project", {
         async fetchProjectBibleBooks(projectId) {
             try {
                 const response = await axios.get(`http://localhost:3000/projects/biblebooks/${projectId}/books`);
-                console.log("Fetched Bible Books:", response.data);
 
                 const existing = this.books.find(b => b.id === projectId);
                 if (existing) {
@@ -88,7 +87,6 @@ export const useProjectStore = defineStore("project", {
         async fetchProjectBookChapters(projectId, bookId) {
             try {
                 const response = await axios.get(`http://localhost:3000/projects/biblebooks/${bookId}/chapters`);
-                console.log("Fetched Bible Chapters:", response.data);
 
                 const existing = this.chapters.find(c => c.id === projectId);
                 if (existing) {
@@ -105,10 +103,28 @@ export const useProjectStore = defineStore("project", {
             }
         },
 
+        async fetchProjectFragments(projectId, userId) {
+            try {
+            const response = await axios.get(`http://localhost:3000/projects/${projectId}/fragments`);
+
+            const existing = this.fragments.find(f => f.id === projectId);
+            if (existing) {
+                existing.fragments = response.data;
+            } else {
+                this.fragments.push({
+                id: projectId,
+                fragments: response.data,
+                });
+            }
+
+            } catch (error) {
+            console.error(`Error fetching Fragments for project ${projectId}:`, error);
+            }
+        },
+
         async fetchChapterFragments(projectId, chapterId) {
             try {
                 const response = await axios.get(`http://localhost:3000/projects/biblechapters/${chapterId}/fragments`);
-                console.log("Fetched Bible Fragments:", response.data);
 
                 const existing = this.fragments.find(f => f.id === projectId);
                 if (existing) {
@@ -222,15 +238,13 @@ export const useProjectStore = defineStore("project", {
 
         async toggleCommentStatus(commentId) {
             try {
-                const response = await axios.post("http://localhost:3000/comments/toggle-status", {
+                await axios.post("http://localhost:3000/comments/toggle-status", {
                     commentId
                 }, {
                     headers: {
                         "Content-Type": "application/json",
                     }
                 });
-
-                const updatedComment = response.data;
             } catch (error) {
                 console.error("Error toggling comment status:", error);
             }
@@ -238,7 +252,7 @@ export const useProjectStore = defineStore("project", {
 
         async addCollaborator(email, projectId) {
             try {
-                const response = await axios.post("http://localhost:3000/projects/add-collaborator", {
+                await axios.post("http://localhost:3000/projects/add-collaborator", {
                     email,
                     projectId
                 });
