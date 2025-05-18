@@ -1,18 +1,26 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useProjectStore } from '@/store/project';
+import { useUserStore } from '@/store/user';
 import { timeSinceCreated } from '@/utils/timeSinceCreated';
 import { useRouter } from 'vue-router';
 
+const userStore = useUserStore();
+
 const projectStore = useProjectStore();
-const projects = computed(() => projectStore.projects);
-const router = useRouter();
+const projects = computed(() => {
+    return [...projectStore.projects].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+}); const router = useRouter();
 
 const navigateToProject = (id) => {
     const project = projects.value.find(p => p.id === id);
     if (project) {
         const slug = project.title.toLowerCase().replace(/\s+/g, '-')
-        router.push({ name: 'project', params: { id, slug } });
+        if (project.type === 'Biblia') {
+            router.push({ name: 'project-books', params: { id, slug } });
+        } else {
+            router.push({ name: 'project-default', params: { id, slug } });
+        }
     }
 };
 
@@ -22,21 +30,30 @@ const navigateToCollaborators = (id) => {
 
 const isModalOpen = ref(false);
 const selectedProjectId = ref(null);
+const selectedOwnerId = ref(null);
 
 const showToast = ref(false);
 const toastMessage = ref('');
+const toastType = ref('success');
 
-const triggerToast = (message) => {
+const triggerToast = (message, isNegative) => {
     toastMessage.value = message;
     showToast.value = true;
+    if (isNegative) {
+        toastType.value = 'error';
+    } else {
+        toastType.value = 'success';
+    }
     setTimeout(() => {
         showToast.value = false;
         toastMessage.value = '';
+        toastType.value = '';
     }, 3000);
 };
 
-const askDeleteConfirmation = (id) => {
+const askDeleteConfirmation = (id, ownerId) => {
     selectedProjectId.value = id;
+    selectedOwnerId.value = ownerId;
     isModalOpen.value = true;
 };
 
@@ -47,9 +64,15 @@ const closeModal = () => {
 
 const confirmDelete = () => {
     if (selectedProjectId.value !== null) {
-        projectStore.deleteProject(selectedProjectId.value);
-        triggerToast("Proiectul a fost șters cu succes.");
-        closeModal();
+        if (selectedOwnerId.value === userStore.user.id) {
+            projectStore.deleteProject(selectedProjectId.value);
+            triggerToast("Proiectul a fost șters cu succes.", false);
+            closeModal();
+        } else {
+            triggerToast("Nu ai permisiunea de a șterge acest proiect.", true);
+            closeModal();
+        }
+
     }
 };
 
@@ -58,10 +81,9 @@ const confirmDelete = () => {
 <template>
     <div v-if="projects.length > 0">
         <div v-for="project in projects" :key="project.id"
-            class="relative border border-brand-olivine rounded-lg mx-3 mt-4 p-3 space-y-3">
-
+            class="relative border border-brand-olivine rounded-lg mx-5 mt-4 p-3 space-y-3">
             <i
-                class="bi bi-bell-fill bg-white text-brand-gold-metallic rounded-full p-2 flex items-center justify-center w-12 h-12 text-2xl absolute -top-4 -left-4"></i>
+                class="bi bi-bell-fill bg-white text-brand-gold-metallic rounded-full p-2 flex items-center justify-center w-12 h-12 text-3xl absolute -top-4 -left-4"></i>
 
             <div class="flex justify-between items-center">
                 <p class="text-xl cursor-pointer" @click="navigateToProject(project.id)">
@@ -91,7 +113,7 @@ const confirmDelete = () => {
                     </div>
                     <i
                         class="bi bi-puzzle bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
-                    <div @click="askDeleteConfirmation(project.id)" class="cursor-pointer">
+                    <div @click="askDeleteConfirmation(project.id, project.userId)" class="cursor-pointer">
                         <i
                             class="bi bi-trash3 bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
                     </div>
@@ -122,7 +144,10 @@ const confirmDelete = () => {
     </div>
 
     <div v-if="showToast"
-        class="fixed bottom-4 left-4 bg-brand-olivine text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300">
+        class="fixed bottom-4 left-4 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300" :class="{
+            'bg-red-600': toastType === 'error',
+            'bg-brand-olivine': toastType === 'success'
+        }">
         {{ toastMessage }}
     </div>
 

@@ -1,25 +1,31 @@
 <script setup>
-import { RouterView } from 'vue-router';
-import Navigation from './components/layout/navigation/Navigation.vue';
+import { onMounted } from 'vue'
+import { RouterView } from 'vue-router'
+import Navigation from './components/layout/navigation/Navigation.vue'
+import { useUserStore } from '@/store/user'
+import { useNotificationStore } from './store/notification'
 
-// import { useUserStore } from '../src/store/user'
-// const userStore = useUserStore()
+const userStore = useUserStore()
+const notificationStore = useNotificationStore()
 
-// import { computed } from 'vue'
-// const user = computed(() => userStore.user)
+onMounted(() => {
+    userStore.checkAuth()
+    notificationStore.fetchNotifications();
+    notificationStore.listenForNotifications();
+})
 </script>
 
 <template>
-  <div>
-      <Navigation />
-      <RouterView />
-      <!-- <div>
-          <footer class="bg-brand-olivine text-white text-center py-4 mt-10">
+    <div>
+        <Navigation />
+        <RouterView />
+        <!-- <div>
+          <footer class="bg-brand-olivine text-white text-center py-2 mt-10">
               <p>&copy; 2025 Bible Translate App</p>
-              <p v-if="user.username">Welcome, {{ user.username }}!</p>
+              <p v-if="userStore.user.email">Welcome, {{ userStore.user.email }}!</p>
           </footer>
       </div> -->
-  </div>
+    </div>
 </template>
 
 <style scoped></style>

@@ -1,5 +1,5 @@
-const BookSefania = {
-    "name": "Sefania",
+const BookȚefania = {
+    "name": "Țefania",
     "abbreviation": "ZEP",
     "chapters": [
         {
@@ -232,4 +232,4 @@ const BookSefania = {
     ]
 };
 
-export default BookSefania;
+export default BookȚefania;

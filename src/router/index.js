@@ -1,6 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { isAuthenticated } from '@/utils/auth';
+import { useUserStore } from '@/store/user';
 import HomeView from '../views/HomeView.vue';
+
+const bookId = null;
+const chapterId = null;
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -19,6 +22,11 @@ const router = createRouter({
       path: '/base-import/new-project',
       name: 'new-project',
       component: () => import('../views/import/BaseImportView.vue')
+    },
+    {
+      path: '/pdf-import/new-project',
+      name: 'new-project-pdf',
+      component: () => import('../views/import/docs/PDFImportView.vue')
     },
     {
       path: '/classified-import',
@@ -97,9 +105,29 @@ const router = createRouter({
     },
     {
       path: '/:slug~:id',
-      name: 'project',
-      component: () => import('@/components/layout/Project.vue'),
+      name: 'project-default',
+      component: () => import('../components/ProjectFragments.vue'),
       props: true,
+    },
+    {
+      path: '/:slug~:id/select-book',
+      name: 'project-books',
+      component: () => import('../components/ProjectBooks.vue'),
+      props: true,
+    },
+    {
+      path: '/:slug~:id/:bookTitle/select-chapter',
+      name: 'project-chapters',
+      component: () => import('../components/ProjectChapters.vue'),
+      props: true,
+      query: { bookId }
+    },
+    {
+      path: '/:slug~:id/fragments',
+      name: 'project-fragments',
+      component: () => import('../components/ProjectFragments.vue'),
+      props: true,
+      query: { chapterId }
     },
     {
       path: '/:id/collaborators',
@@ -110,13 +138,26 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to, from, next) => {
-  const publicPages = ['/sign-in', '/sign-up'];
-  const authRequired = publicPages.includes(to.path);
-  const loggedIn = isAuthenticated();
+router.beforeEach(async (to, from, next) => {
+  const userStore = useUserStore();
 
-  if (authRequired && loggedIn) {
-    return next('/'); 
+  const publicPages = ['/sign-in', '/sign-up'];
+  const authNotRequired = publicPages.includes(to.path);
+
+  if (!userStore.user) {
+    try {
+      await userStore.checkAuth();
+    } catch (err) {
+      console.error('Error checking auth:', err);
+    }
+  }
+
+  // if (!authNotRequired && !userStore.user) {
+  //   return next('/sign-in');
+  // }
+
+  if (authNotRequired && userStore.user) {
+    return next('/');
   }
 
   next();

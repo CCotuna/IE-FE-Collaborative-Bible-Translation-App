@@ -1,15 +1,31 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useProjectStore } from '@/store/project';
 import { useUserStore } from '@/store/user';
-import { isAuthenticated } from '@/utils/auth';
+import { useNotificationStore } from '@/store/notification';
 
 const route = useRoute();
 const router = useRouter();
 
 const projectStore = useProjectStore();
 const userStore = useUserStore();
+const notificationStore = useNotificationStore();
+
+const filteredNotifications = ref([]);
+
+watch(
+  () => notificationStore.notifications,
+  (newNotifications) => {
+    filteredNotifications.value = newNotifications.filter(
+  (notification) =>
+    notification.toUserId === userStore.user.id &&
+    notification.status === 'pending'
+);
+  },
+  { immediate: true, deep: true }
+);
+
 
 const goBack = () => {
     router.go(-1);
@@ -26,7 +42,7 @@ const navbarTitle = computed(() => {
     const path = route.path;
 
     if (path === '/') {
-        return projectStore.projects.length === 0 && !isAuthenticated() ? 'Import text' : 'Biblioteca mea';
+        return projectStore.projects.length === 0 && !userStore.isAuthenticated() ? 'Import text' : 'Biblioteca mea';
     }
 
     if (route.params.id) {
@@ -40,6 +56,8 @@ const navbarTitle = computed(() => {
             return 'Import text';
         case '/base-import/new-project':
             return 'Import text';
+        case '/pdf-import/new-project':
+            return 'Extract PDF';
         case '/classified-import':
             return 'Import clasificat';
         case '/classified-import/bible':
@@ -81,8 +99,9 @@ const showGoBack = computed(() => {
 });
 
 const showMainIcons = computed(() => {
-    return route.path === '/' && isAuthenticated();
+    return route.path === '/' && userStore.isAuthenticated();
 });
+
 </script>
 
 <template>
@@ -96,29 +115,42 @@ const showMainIcons = computed(() => {
             }" class="p-3 text-2xl font-medium truncate">
                 {{ navbarTitle }}
             </span>
-            <!-- <span v-if="isAuthenticated()">
+            <!-- <span v-if="userStore.isAuthenticated()">
                 Hello
             </span> -->
+            <!-- <span v-if="userStore.isAuthenticated()" class="text-sm text-gray-500">
+                {{ userStore.user.email }}
+            </span>
+            <span v-else>Hehe</span> -->
         </div>
-        <div v-if="route.path === '/' && projectStore.projects.length == 0 && !isAuthenticated()" class="flex space-x-5">
+        <div v-if="route.path === '/' && projectStore.projects.length == 0 && !userStore.isAuthenticated()"
+            class="flex space-x-5">
             <RouterLink :to="{ name: 'sign-in' }"
                 class="flex items-center space-x-8 px-3 md:px-8 py-2 text-white bg-brand-olivine rounded-full">Sign in
             </RouterLink>
             <RouterLink :to="{ name: 'sign-up' }"
-                class="flex items-center space-x-8 px-3 md:px-8 py-2 text-brand-olivine bg-brand-honeydew rounded-full">Sign
+                class="flex items-center space-x-8 px-3 md:px-8 py-2 text-brand-olivine bg-brand-honeydew rounded-full">
+                Sign
                 up
             </RouterLink>
         </div>
         <div v-if="showMainIcons" class="flex space-x-3 text-3xl">
-            <RouterLink :to="{ name: 'projects-search'}"><i class="bi bi-search"></i></RouterLink>
-            <RouterLink :to="{ name: 'notifications' }"><i class="bi bi-bell-fill"></i></RouterLink>
+            <RouterLink :to="{ name: 'projects-search' }"><i class="bi bi-search"></i></RouterLink>
+            <RouterLink :to="{ name: 'notifications' }" class="relative"
+                :class="{ 'text-yellow-500': filteredNotifications.length > 0 }">
+                <i class="bi bi-bell-fill"></i>
+                <span v-if="filteredNotifications.length > 0"
+                    class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {{ filteredNotifications.length }}
+                </span>
+            </RouterLink>
             <RouterLink :to="{ name: 'base-import' }"><i class="bi bi-plus-circle-fill text-brand-olivine"></i>
             </RouterLink>
             <RouterLink :to="{ name: 'menu' }"><i class="bi bi-gear"></i></RouterLink>
         </div>
         <div v-if="route.name === 'project'" class="flex space-x-3 text-3xl">
             <span><i class="bi bi-search"></i></span>
-            <span><i class="bi bi-people"></i></span>
+            <RouterLink :to="{ name: 'collaborators-view'}"><i class="bi bi-people"></i></RouterLink>
             <RouterLink :to="{ name: 'menu' }"><i class="bi bi-gear"></i></RouterLink>
         </div>
         <div v-if="route.name === 'menu'">

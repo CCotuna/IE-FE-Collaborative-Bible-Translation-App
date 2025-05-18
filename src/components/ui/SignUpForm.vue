@@ -37,8 +37,7 @@ const handleSubmit = async () => {
     if (userStore.error) {
       console.error(userStore.error)
     } else {
-      console.log('User logged in successfully:', userStore.user)
-      router.push('/')
+      router.push("/")
     }
   } catch (err) {
     console.error('Error during sign-in:', err)
