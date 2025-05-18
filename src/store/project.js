@@ -3,16 +3,19 @@ import { useBibleProjectStore } from './bibleProject';
 import axios from "axios";
 
 import { useUserStore } from './user';
+import { books } from '@/constants/bibleBooks';
 
 export const useProjectStore = defineStore("project", {
     state: () => ({
         projects: [],
+        books: [],
+        chapters: [],
+        fragments: [],
     }),
     actions: {
         async fetchProjects() {
             const userStorage = useUserStore();
 
-            console.log("User storage:", userStorage.user);
             const userId = userStorage.user.id;
 
             if (!userId) {
@@ -62,12 +65,64 @@ export const useProjectStore = defineStore("project", {
             }
         },
 
-        testBibleProject() {
-            const bibleProjectStore = useBibleProjectStore();
-            const bibleProject = bibleProjectStore.bibleProject;
+        async fetchProjectBibleBooks(projectId) {
+            try {
+                const response = await axios.get(`http://localhost:3000/projects/biblebooks/${projectId}/books`);
+                console.log("Fetched Bible Books:", response.data);
 
-            console.log("In PROJECT Store, Bible Project:", bibleProject);
-            return bibleProject;
+                const existing = this.books.find(b => b.id === projectId);
+                if (existing) {
+                    existing.bibleBooks = response.data;
+                } else {
+                    this.books.push({
+                        id: projectId,
+                        bibleBooks: response.data,
+                    });
+                }
+
+            } catch (error) {
+                console.error(`Error fetching Bible Books for project ${projectId}:`, error);
+            }
+        },
+
+        async fetchProjectBookChapters(projectId, bookId) {
+            try {
+                const response = await axios.get(`http://localhost:3000/projects/biblebooks/${bookId}/chapters`);
+                console.log("Fetched Bible Chapters:", response.data);
+
+                const existing = this.chapters.find(c => c.id === projectId);
+                if (existing) {
+                    existing.bibleChapters = response.data;
+                } else {
+                    this.chapters.push({
+                        id: projectId,
+                        bibleChapters: response.data,
+                    });
+                }
+
+            } catch (error) {
+                console.error(`Error fetching Bible Chapters for project ${projectId}:`, error);
+            }
+        },
+
+        async fetchChapterFragments(projectId, chapterId) {
+            try {
+                const response = await axios.get(`http://localhost:3000/projects/biblechapters/${chapterId}/fragments`);
+                console.log("Fetched Bible Fragments:", response.data);
+
+                const existing = this.fragments.find(f => f.id === projectId);
+                if (existing) {
+                    existing.bibleFragments = response.data;
+                } else {
+                    this.fragments.push({
+                        id: projectId,
+                        bibleFragments: response.data,
+                    });
+                }
+
+            } catch (error) {
+                console.error(`Error fetching Bible Fragments for project ${projectId}:`, error);
+            }
         },
 
         async addProject(project) {
@@ -110,7 +165,6 @@ export const useProjectStore = defineStore("project", {
             const projectIndex = this.projects.findIndex((project) => project.id === projectId);
             this.projects.splice(projectIndex, 1);
 
-            console.log("In PROJECT Store, deleting project with ID:", projectId);
             axios.delete("http://localhost:3000/projects", {
                 headers: {
                     "Content-Type": "application/json",
@@ -123,7 +177,7 @@ export const useProjectStore = defineStore("project", {
             const userStorage = useUserStore();
 
             try {
-                const response = await axios.post("http://localhost:3000/comments", {
+                await axios.post("http://localhost:3000/comments", {
                     fragmentId,
                     content,
                     status,
@@ -134,10 +188,6 @@ export const useProjectStore = defineStore("project", {
                         "Content-Type": "application/json",
                     }
                 });
-
-                const newComment = response.data;
-                console.log("Comment added:", newComment);
-
             } catch (error) {
                 console.error("Error adding comment:", error);
             }
@@ -145,23 +195,25 @@ export const useProjectStore = defineStore("project", {
 
         async deleteComment(commentId) {
             try {
-                for (const project of this.projects) {
-                    for (const fragment of project.fragments) {
-                        const commentIndex = fragment.comments?.findIndex(c => c.id === commentId);
-                        if (commentIndex !== -1) {
-                            fragment.comments.splice(commentIndex, 1);
+                for (const fragmentGroup of this.fragments) {
+                    const fragment = fragmentGroup.bibleFragments.find(f => f.comments?.some(c => c.id === commentId));
+                    if (fragment) {
+                        const index = fragment.comments.findIndex(c => c.id === commentId);
+                        if (index !== -1) {
+                            fragment.comments.splice(index, 1);
                             break;
                         }
                     }
                 }
-                const response = await axios.delete("http://localhost:3000/comments", {
+
+                await axios.delete("http://localhost:3000/comments", {
                     headers: {
                         "Content-Type": "application/json",
                     },
                     data: { commentId }
                 });
 
-                console.log("Comment deleted:", response.data);
+                socket.emit("deleteComment", { commentId });
 
             } catch (error) {
                 console.error("Error deleting comment:", error);
@@ -179,8 +231,6 @@ export const useProjectStore = defineStore("project", {
                 });
 
                 const updatedComment = response.data;
-                console.log("Comment status toggled:", updatedComment);
-
             } catch (error) {
                 console.error("Error toggling comment status:", error);
             }
@@ -188,7 +238,6 @@ export const useProjectStore = defineStore("project", {
 
         async addCollaborator(email, projectId) {
             try {
-                console.log("Adding collaborator in PROJECT STORE:", email, projectId);
                 const response = await axios.post("http://localhost:3000/projects/add-collaborator", {
                     email,
                     projectId

@@ -13,18 +13,21 @@ const router = useRouter();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
 
-const project = computed(() => {
-    const id = parseInt(route.params.id);
-    return projectStore.projects.find(p => p.id === id);
-});
+const fragments = ref([]);
 
-onMounted(() => {
+const projectId = parseInt(route.params.id)
+const chapterId = parseInt(route.query.chapterId)
 
-    const projectId = parseInt(route.params.id)
+onMounted(async () => {
+    await projectStore.fetchChapterFragments(projectId, chapterId)
+    const result = projectStore.fragments.find(c => c.id === projectId);
+    fragments.value = result ? result.bibleFragments : [];
+    console.log(fragments.value, ", resultttt")
+
     socket.emit('joinProjectRoom', projectId)
 
     socket.on('newComment', (newComment) => {
-        const fragment = project.value?.fragments?.find(f => f.id === newComment.fragmentId)
+        const fragment = fragments.value?.find(f => f.id === newComment.fragmentId)
         if (fragment) {
             if (!fragment.comments) fragment.comments = []
             const alreadyExists = fragment.comments.some(c => c.id === newComment.id)
@@ -33,8 +36,7 @@ onMounted(() => {
     })
 
     socket.on('commentStatusUpdated', (updatedComment) => {
-        console.log('Received updated comment:', updatedComment)
-        const fragment = project.value?.fragments?.find(f => f.id === updatedComment.fragmentId)
+        const fragment = fragments.value?.find(f => f.id === updatedComment.fragmentId)
         if (fragment) {
             const commentIndex = fragment.comments.findIndex(c => c.id === updatedComment.id)
             if (commentIndex !== -1) {
@@ -53,7 +55,7 @@ onBeforeUnmount(() => {
 })
 
 const sortedFragments = computed(() => {
-    return project.value?.fragments?.slice().sort((a, b) => a.verseNumber - b.verseNumber) || [];
+    return fragments.value?.slice().sort((a, b) => a.verseNumber - b.verseNumber) || [];
 });
 
 const openFormForFragmentId = ref(null);
@@ -94,6 +96,7 @@ const visibleComments = (fragment) => {
             comment.status === 'public' || comment.userId === userStore.user.id
     );
 };
+
 const selectedCommentId = ref(null);
 const isToggleStatusModalOpen = ref(false);
 
@@ -130,14 +133,15 @@ const closeEditCommentForm = () => {
 </script>
 
 <template>
+    <!-- Salut {{ sortedFragments}} -->
     <!-- {{ project }} -->
     <div>
-        <div v-if="project">
+        <div v-if="sortedFragments">
             <div class="p-3">
                 <ul class="space-y-6">
                     <li v-for="fragment in sortedFragments" :key="fragment.id">
                         <p class="text-gray-900 cursor-pointer mb-1 text-lg" @click="toggleForm(fragment.id)">
-                            <span v-if="fragment.verseNumber != null">{{ fragment.verseNumber }}:</span> {{
+                            <span v-if="fragment.verseNumber != null">{{ fragment.verseNumber }}.</span> {{
                                 fragment.content
                             }}
                         </p>
@@ -159,7 +163,7 @@ const closeEditCommentForm = () => {
                                     <i class="bi bi-chevron-double-down text-xl ms-4"></i>
                                 </button>
                             </div>
-                        </div>
+                        </div> 
 
                         <!-- <div v-if="item.annotations?.length ?? 0"
                         class="absolute -bottom-8 -left-2 bg-white pt-2 rounded-e-full w-[5.9rem]">
@@ -173,10 +177,10 @@ const closeEditCommentForm = () => {
                         </button>
                     </div> -->
 
-                        <div v-if="openCommentsForFragmentId === fragment.id && fragment.comments?.length">
+                         <div v-if="openCommentsForFragmentId === fragment.id && fragment.comments?.length">
                             <ul class="border-s-8 border-brand-olivine -mt-8 -mb-12 pt-2" :class="{
                                 'pb-12': true,
-                                'pb-5': openFormForFragmentId !== fragment.id,
+                                'pb-5 mb-4': openFormForFragmentId !== fragment.id,
                             }">
                                 <li v-for="comment in visibleComments(fragment)" :key="comment.id"
                                     class="text-sm text-gray-700 relative mt-3">
@@ -187,7 +191,6 @@ const closeEditCommentForm = () => {
                                             'bg-brand-cornsilk': comment.userId === userStore.user.id,
                                             'bg-white': comment.userId !== userStore.user.id
                                         }">
-                                            <!-- <span class="text-sm font-light mb-1">{{ comment.userEmail }}</span> -->
                                             <span>{{ comment.content }}</span>
                                         </p>
                                     </div>

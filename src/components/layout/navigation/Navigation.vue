@@ -100,7 +100,6 @@ const showMainIcons = computed(() => {
     return route.path === '/' && userStore.isAuthenticated();
 });
 
-console.log('check if user authenticated', userStore.isAuthenticated());
 </script>
 
 <template>
@@ -117,10 +116,10 @@ console.log('check if user authenticated', userStore.isAuthenticated());
             <!-- <span v-if="userStore.isAuthenticated()">
                 Hello
             </span> -->
-            <span v-if="userStore.isAuthenticated()" class="text-sm text-gray-500">
+            <!-- <span v-if="userStore.isAuthenticated()" class="text-sm text-gray-500">
                 {{ userStore.user.email }}
             </span>
-            <span v-else>Hehe</span>
+            <span v-else>Hehe</span> -->
         </div>
         <div v-if="route.path === '/' && projectStore.projects.length == 0 && !userStore.isAuthenticated()"
             class="flex space-x-5">

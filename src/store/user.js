@@ -14,7 +14,6 @@ export const useUserStore = defineStore('user', {
                 const res = await axios.get('http://localhost:3000/user/me', {
                     withCredentials: true
                 });
-                console.log('Response data from user/me:', res.data);
                 this.user = {
                     id: res.data.id,
                     email: res.data.email
@@ -24,9 +23,6 @@ export const useUserStore = defineStore('user', {
                 projectStore.fetchProjects()
 
                 socket.emit("registerUser", this.user.id);
-
-
-                console.log('User data:', this.user);
             } catch (error) {
                 console.error('Session check failed', error);
                 this.user = null;
@@ -83,7 +79,6 @@ export const useUserStore = defineStore('user', {
                 const response = await axios.post('http://localhost:3000/user', user, {
                     withCredentials: true
                 });
-                console.log('SignUp response:', response)
                 this.user = {
                     id: response.data.user.id,
                     email: response.data.user.email

@@ -20,8 +20,6 @@ export const useNotificationStore = defineStore('notification', {
                     params: { userId: user.id }
                 });
                 this.notifications = response.data;
-                console.log('Fetched notifications:', this.notifications);
-                console.log("repsonse", response.data);
             } catch (error) {
                 console.error('Error fetching notifications:', error);
             }
@@ -32,9 +30,6 @@ export const useNotificationStore = defineStore('notification', {
 
             const receiverId = await userStore.getUserByEmail(notification.email);
 
-            console.log('Receiver ID:', receiverId);
-            console.log('Notification:', notification);
-            console.log("Notification receiver", notification.email);
             if (!receiverId) {
                 console.error('Receiver ID not found');
                 return;
@@ -95,10 +90,6 @@ export const useNotificationStore = defineStore('notification', {
 
             const user = await userStore.getUserById(userId);
 
-            console.log("Notification ID:", notificationId);
-
-            console.log("User email:", user);
-            console.log("Project ID in STORE:", projectId);
             try {
                 await projectStore.addCollaborator(user.email, projectId);
                 await this.markAsAccepted(notificationId);
@@ -121,7 +112,6 @@ export const useNotificationStore = defineStore('notification', {
 
         listenForNotifications() {
             socket.on('newNotification', (newNotification) => {
-                console.log("Received new notification:", newNotification);
                 this.receiveNotification(newNotification); 
             });
         }

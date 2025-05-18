@@ -68,7 +68,7 @@ const addBibleProject = async () => {
             Nu ați selectat nicio carte sau niciun capitol. Vă rugăm să vă întoarceți la pașii anteriori.
         </div>
 
-        <div class="mt-6 text-right">
+        <div class="mt-6">
             <!-- <RouterLink
                   :to="{ name: 'home'}"
                   class="inline-block px-6 py-3 bg-brand-olivine text-white font-semibold rounded-md hover:bg-tea-green transition"

@@ -2,6 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useUserStore } from '@/store/user';
 import HomeView from '../views/HomeView.vue';
 
+const bookId = null;
+const chapterId = null;
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -96,10 +99,24 @@ const router = createRouter({
       component: () => import('../views/SignUpView.vue')
     },
     {
-      path: '/:slug~:id',
-      name: 'project',
-      component: () => import('@/components/layout/Project.vue'),
+      path: '/:slug~:id/select-book',
+      name: 'project-books',
+      component: () => import('../components/ProjectBooks.vue'),
       props: true,
+    },
+    {
+      path: '/:slug~:id/:bookTitle/select-chapter',
+      name: 'project-chapters',
+      component: () => import('../components/ProjectChapters.vue'),
+      props: true,
+      query: { bookId }
+    },
+    {
+      path: '/:slug~:id/fragments',
+      name: 'project-fragments',
+      component: () => import('../components/ProjectFragments.vue'),
+      props: true,
+      query: { chapterId }
     },
     {
       path: '/:id/collaborators',

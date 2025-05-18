@@ -113,8 +113,6 @@ export const useBibleProjectStore = defineStore("bibleProject", {
         },
 
         selectAllBible() {
-            console.log("Store Action: Selecting all Bible books, chapters, and verses.");
-
             const fullySelectedBooks = [];
             for (const book of allBibleBooks) {
 
@@ -150,7 +148,6 @@ export const useBibleProjectStore = defineStore("bibleProject", {
             }
 
             this.bibleProject.selectedBooks = fullySelectedBooks;
-            console.log(`Store Action: Selected all ${this.bibleProject.selectedBooks.length} books.`);
         },
     },
 });

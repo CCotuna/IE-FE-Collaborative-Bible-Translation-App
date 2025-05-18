@@ -14,7 +14,6 @@ const versions = ref(["Dumitru Cornilescu", "Noua traducere romaneasca", "King J
 const isLoading = ref(false);
 
 const handleIntegralImport = async () => {
-    console.log("Component: 'Integral' button clicked.");
     if (!isTitleValid.value) {
         alert("Please enter a valid title (at least 3 characters).");
         return;
@@ -28,11 +27,7 @@ const handleIntegralImport = async () => {
 
     try {
         await bibleProjectStore.selectAllBible();
-        console.log("Component: Store populated with all Bible selection.");
-
         await projectStore.addProject(bibleProjectStore.bibleProject);
-
-        console.log("Component: addProject action called successfully.");
 
         // alert('Successfully created project with integral Bible import!');
         router.push({ name: 'home' });
