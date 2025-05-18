@@ -161,8 +161,7 @@ const closeEditCommentForm = () => {
                 <ul class="space-y-6">
                     <li v-for="fragment in sortedFragments" :key="fragment.id">
                         <p class="text-gray-900 cursor-pointer mb-1 text-lg" @click="toggleForm(fragment.id)">
-                            <span>{{ fragment.id }}.</span>
-                            <span v-if="fragment.verseNumber != null">{{ fragment.verseNumber }}.</span>
+                            <span v-if="fragment.verseNumber != null">{{ fragment.verseNumber }}. </span>
                             <span v-html="fragment.content"></span>
                         </p>
 

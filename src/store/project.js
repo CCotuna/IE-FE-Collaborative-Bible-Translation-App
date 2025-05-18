@@ -105,20 +105,20 @@ export const useProjectStore = defineStore("project", {
 
         async fetchProjectFragments(projectId, userId) {
             try {
-            const response = await axios.get(`http://localhost:3000/projects/${projectId}/fragments`);
+                const response = await axios.get(`http://localhost:3000/projects/${projectId}/fragments`);
 
-            const existing = this.fragments.find(f => f.id === projectId);
-            if (existing) {
-                existing.fragments = response.data;
-            } else {
-                this.fragments.push({
-                id: projectId,
-                fragments: response.data,
-                });
-            }
+                const existing = this.fragments.find(f => f.id === projectId);
+                if (existing) {
+                    existing.fragments = response.data;
+                } else {
+                    this.fragments.push({
+                        id: projectId,
+                        fragments: response.data,
+                    });
+                }
 
             } catch (error) {
-            console.error(`Error fetching Fragments for project ${projectId}:`, error);
+                console.error(`Error fetching Fragments for project ${projectId}:`, error);
             }
         },
 
@@ -177,18 +177,6 @@ export const useProjectStore = defineStore("project", {
 
         },
 
-        deleteProject(projectId) {
-            const projectIndex = this.projects.findIndex((project) => project.id === projectId);
-            this.projects.splice(projectIndex, 1);
-
-            axios.delete("http://localhost:3000/projects", {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                data: { projectId }
-            })
-        },
-
         async addComment({ fragmentId, content, status }) {
             const userStorage = useUserStore();
 
@@ -207,6 +195,18 @@ export const useProjectStore = defineStore("project", {
             } catch (error) {
                 console.error("Error adding comment:", error);
             }
+        },
+
+        deleteProject(projectId) {
+            const projectIndex = this.projects.findIndex((project) => project.id === projectId);
+            this.projects.splice(projectIndex, 1);
+
+            axios.delete("http://localhost:3000/projects", {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                data: { projectId }
+            })
         },
 
         async deleteComment(commentId) {
@@ -233,6 +233,28 @@ export const useProjectStore = defineStore("project", {
 
             } catch (error) {
                 console.error("Error deleting comment:", error);
+            }
+        },
+
+        async deleteBibleBook(bookId) {
+            const projectId = this.books.find(b => b.bibleBooks.some(bb => bb.id === bookId)).id;
+
+            const bookIndex = this.books.findIndex(b => b.id === projectId);
+            if (bookIndex !== -1) {
+                this.books[bookIndex].bibleBooks = this.books[bookIndex].bibleBooks.filter(b => b.id !== bookId);
+            }
+
+            try {
+                await axios.delete("http://localhost:3000/projects/biblebooks", {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    data: { bookId }
+                });
+                return true;
+            } catch (error) {
+                console.error("Error deleting Bible Book:", error);
+                return false;
             }
         },
 

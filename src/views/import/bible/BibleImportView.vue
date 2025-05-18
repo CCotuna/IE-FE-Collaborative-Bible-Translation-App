@@ -48,7 +48,7 @@ const isTitleValid = computed(() => {
 <template>
     <div v-if="isLoading"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm">
-        <div class="flex flex-col items-center p-8 bg-gray-800 text-white rounded-lg shadow-lg">
+        <div class="flex flex-col items-center p-8 bg-brand-olivine text-white rounded-lg shadow-lg">
             <div class="w-10 h-10 border-4 border-gray-300 border-t-white rounded-full animate-spin mb-4"></div>
             <div class="text-base">Creating project...</div>
         </div>

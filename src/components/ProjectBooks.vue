@@ -18,7 +18,6 @@ onMounted(async () => {
 
 const navigateToProjectChapters = (bookId, bookTitle) => {
     const project = projectStore.projects.find(p => p.id === projectId);
-
     if (project) {
         const slug = project.title.toLowerCase().replace(/\s+/g, '-');
         router.push({
@@ -33,12 +32,53 @@ const navigateToProjectChapters = (bookId, bookTitle) => {
     }
 };
 
-const removeBookPrefix = (title) => {
-    return title.replace(/Book/g, '');
-};
+const removeBookPrefix = (title) => title.replace(/Book/g, '');
 
 const navigateToCollaborators = () => {
     router.push({ name: 'collaborators-view', params: { projectId } });
+};
+
+const isModalOpen = ref(false);
+const selectedBookId = ref(null);
+
+const showToast = ref(false);
+const toastMessage = ref('');
+const toastType = ref('success');
+
+const triggerToast = (message, isNegative) => {
+    toastMessage.value = message;
+    showToast.value = true;
+    toastType.value = isNegative ? 'error' : 'success';
+
+    setTimeout(() => {
+        showToast.value = false;
+        toastMessage.value = '';
+        toastType.value = '';
+    }, 3000);
+};
+
+const askDeleteConfirmation = (bookId) => {
+    selectedBookId.value = bookId;
+    isModalOpen.value = true;
+};
+
+const closeModal = () => {
+    isModalOpen.value = false;
+    selectedBookId.value = null;
+};
+
+const confirmDelete = async () => {
+    if (selectedBookId.value !== null) {
+        const success = await projectStore.deleteBibleBook(selectedBookId.value, projectId);
+        console.log("Delete response:", success);
+        if (success) {
+            books.value = books.value.filter(book => book.id !== selectedBookId.value);
+            triggerToast("Cartea a fost ștearsă cu succes.", false);
+        } else {
+            triggerToast("A apărut o eroare la ștergerea cărții.", true);
+        }
+        closeModal();
+    }
 };
 </script>
 
@@ -60,13 +100,34 @@ const navigateToCollaborators = () => {
                         <i
                             class="bi bi-people bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
                     </div>
-                    <div class="cursor-pointer">
+                    <div @click="askDeleteConfirmation(book.id)" class="cursor-pointer">
                         <i
                             class="bi bi-trash3 bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
                     </div>
                 </div>
             </li>
         </ul>
+        <div v-if="isModalOpen" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div class="bg-white rounded-lg p-8 shadow-lg text-center max-w-md w-full">
+                <h2 class="text-lg mb-4">Ești sigur că dorești <strong class="text-red-500">să ștergi</strong> această
+                    carte? Această acțiune este permanentă.</h2>
+                <div class="flex justify-around mt-4">
+                    <button @click="confirmDelete"
+                        class="bg-brand-olivine text-white text-lg px-8 py-2 rounded-full">Confirm</button>
+                    <button @click="closeModal"
+                        class="bg-brand-honeydew text-brand-olivine text-lg px-8 py-2 rounded-full">Renunț</button>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="showToast"
+            class="fixed bottom-4 left-4 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300"
+            :class="{
+                'bg-red-600': toastType === 'error',
+                'bg-brand-olivine': toastType === 'success'
+            }">
+            {{ toastMessage }}
+        </div>
     </div>
 </template>
 

@@ -56,7 +56,7 @@ const navigateToCollaborators = () => {
                         <i
                             class="bi bi-people bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
                     </div>
-                    <div class="cursor-pointer">
+                    <div @click="delete" class="cursor-pointer">
                         <i
                             class="bi bi-trash3 bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
                     </div>
