@@ -1,9 +1,9 @@
 <script setup>
 import { ref, computed } from "vue";
-import { useProjectStore } from "@/store/project"; 
+import { useProjectStore } from "@/store/project";
 import { useNotificationStore } from "@/store/notification";
-import { useUserStore } from "@/store/user"; 
-import { useRoute } from "vue-router"; 
+import { useUserStore } from "@/store/user";
+import { useRoute } from "vue-router";
 
 const emailInput = ref("");
 const errorMessage = ref(null);
@@ -17,18 +17,18 @@ const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
 
 const project = computed(() => {
-    const id = parseInt(projectId); 
+    const id = parseInt(projectId);
     return projectStore.projects.find((p) => p.id === id);
 });
 
 const isOwner = computed(() => {
-  if (!project.value || !userStore.user) return false;
+    if (!project.value || !userStore.user) return false;
 
-  const currentUser = project.value.collaborators.find(
-    (collab) => collab.email === userStore.user.email
-  );
+    const currentUser = project.value.collaborators.find(
+        (collab) => collab.email === userStore.user.email
+    );
 
-  return currentUser?.UserAccess?.role === "owner";
+    return currentUser?.UserAccess?.role === "owner";
 });
 
 const sendInvitation = async () => {
@@ -59,11 +59,11 @@ const sendInvitation = async () => {
         successMessage.value = null;
     }
 };
-
 </script>
 
 <template>
     <div v-if="project" class="p-6">
+        <!-- {{ project }} -->
         <h3 class="text-xl font-semibold text-brand-olivine mb-4">Collaborators:</h3>
         <div class="pl-6 space-y-2 flex flex-col">
             <span v-for="(collaborator, index) in project.collaborators" :key="index" class="text-lg text-black">
@@ -71,8 +71,7 @@ const sendInvitation = async () => {
             </span>
         </div>
 
-        <h2 v-if="isOwner"
-            class="text-2xl font-semibold text-brand-gold-metallic mt-6 mb-4">Invite Collaborator</h2>
+        <h2 v-if="isOwner" class="text-2xl font-semibold text-brand-gold-metallic mt-6 mb-4">Invite Collaborator</h2>
         <div v-if="isOwner" class="flex items-center space-x-4 mb-4">
             <input v-model="emailInput" type="email" placeholder="Enter email address"
                 class="p-2 border-2 border-brand-olivine rounded-md w-96" />

@@ -81,10 +81,9 @@ const confirmDelete = () => {
 <template>
     <div v-if="projects.length > 0">
         <div v-for="project in projects" :key="project.id"
-            class="relative border border-brand-olivine rounded-lg mx-5 mt-4 p-3 space-y-3">
+            class="relative border border-brand-olivine  rounded-lg mx-5 mt-4 p-3 space-y-3">
             <i
                 class="bi bi-bell-fill bg-white text-brand-gold-metallic rounded-full p-2 flex items-center justify-center w-12 h-12 text-3xl absolute -top-4 -left-4"></i>
-
             <div class="flex justify-between items-center">
                 <p class="text-xl cursor-pointer" @click="navigateToProject(project.id)">
                     {{ project.title }}

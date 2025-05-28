@@ -8,7 +8,7 @@ export const useBibleProjectStore = defineStore("bibleProject", {
     state: () => ({
         bibleProject: {
             title: null,
-            language: "English",
+            language: "Română",
             version: "Dumitru Cornilescu",
             selectedBooks: [],
             type: "Biblia",

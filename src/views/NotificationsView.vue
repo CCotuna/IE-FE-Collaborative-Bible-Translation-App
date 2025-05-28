@@ -12,6 +12,7 @@ const notifications = computed(() => notificationStore.notifications)
 const acceptInvitation = async (notificationId, userId, projectId) => {
     try {
         await notificationStore.acceptInvitation(notificationId, userId, projectId)
+        await projectStore.fetchProjectById(projectId)
     } catch (error) {
         console.error('Error responding to invitation:', error)
     }
@@ -33,69 +34,86 @@ onMounted(() => {
 </script>
 
 <template>
-    <!-- <div>
-        <ul>
-            <li v-for="notification in notifications" :key="notification.id">
-                <div v-if="notification.type === 'invitation'">
-                    <p><strong>{{ notification.fromUserEmail }}</strong></p>
-                    <p>{{ notification.type }}</p>
-                    <p>{{ notification.status }}</p>
-                    <p>{{ notification }}</p>
-
-                    <button @click="respondToInvitation(notification.toUserId, notification.projectId)"
-                        class="bg-green-500 text-white px-4 py-2 rounded">
-                        Accept
-                    </button>
-                    <button @click="respondToInvitation(notification.id, false)"
-                        class="bg-red-500 text-white px-4 py-2 rounded">
-                        Decline
-                    </button>
-                </div>
-            </li>
-        </ul>
-    </div> -->
-
     <div v-if="notifications.length > 0">
+        {{ notifications }}
         <ul>
             <li v-for="notification in notifications" :key="notification.id"
-                class="flex flex-col border-b space-y-5 p-6"
-                :class="notification.status === 'pending' ? 'bg-brand-cornsilk' : 'bg-white'">
-                <!-- <div class="flex flex-col text-xl">
-                <span>{{ notification.projectTitle }}</span>
-                <span>{{ notification.fromUserEmail }}</span>
-            </div> -->
-                <div class="flex flex-col space-y-2">
-                    <span class="text-xl">{{ notification.projectTitle }}</span>
-                    <div>Utilizatorul <span>{{ notification.fromUserEmail }}</span> te-a invitat sa devii colaborator la
+                class="flex flex-col border-b space-y-3 p-6" :class="{
+                    'bg-brand-cornsilk': notification.type === 'invitation' && notification.status === 'pending',
+                    'bg-white': !(notification.type === 'invitation' && notification.status === 'pending')
+                }">
+
+                <div v-if="notification.type === 'invitation'" class="flex flex-col space-y-2">
+                    <span class="text-xl font-semibold">Proiect: {{ notification.projectTitle }}</span>
+                    <div>Utilizatorul <span class="font-medium">{{ notification.fromUserEmail }}</span> te-a invitat să
+                        devii colaborator la
                         acest proiect.</div>
                     <div class="flex space-x-2 items-center">
                         <div
                             class="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden border border-brand-olivine bg-brand-custom-white rounded-full">
-                            <span class="font-medium text-brand-olivine">DC</span>
+                            <span class="font-medium text-brand-olivine">{{
+                                notification.fromUserEmail?.substring(0, 2).toUpperCase() || 'NA' }}</span>
                         </div>
-                        <span class="text-gray-400">{{ timeSinceCreated(notification.createdAt) }}</span>
+                        <span class="text-gray-400 text-sm">{{ timeSinceCreated(notification.createdAt) }}</span>
                     </div>
-                    <div v-if="notification.status === 'pending'" class="flex space-x-3">
+                    <div v-if="notification.status === 'pending'" class="flex space-x-3 pt-2">
                         <button
                             @click="acceptInvitation(notification.id, notification.toUserId, notification.projectId)"
-                            class="bg-green-600 text-white px-4 py-2 rounded-md">
-                            Accept
+                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm">
+                            Acceptă
                         </button>
                         <button @click="declineInvitation(notification.id)"
-                            class="bg-red-600 text-white px-4 py-2 rounded-md">
-                            Decline
+                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm">
+                            Refuză
                         </button>
                     </div>
-                    <div v-else>
-                        <span class="text-sm">Status: {{ notification.status }}</span>
+                    <div v-else class="pt-1">
+                        <span class="text-sm italic">Status: {{ notification.status }}</span>
                     </div>
                 </div>
+
+                <div v-else-if="notification.type === 'comment'" class="flex flex-col space-y-2">
+                    <span class="text-xl font-semibold" v-if="notification.projectTitle">Proiect: {{
+                        notification.projectTitle }}</span>
+                    <div>
+                        Utilizatorul <span class="font-medium">{{ notification.fromUserEmail }}</span> a adăugat un
+                        comentariu
+                        <span v-if="notification.fragmentId">la fragmentul <strong class="text-brand-olivine">{{
+                            notification.fragmentId }}</strong></span>.
+                    </div>
+                    <div v-if="notification.message" class="bg-gray-100 p-3 rounded-md border border-gray-200">
+                        <p class="text-sm text-gray-700"><strong>Mesaj:</strong> {{ notification.message }}</p>
+                    </div>
+                    <div class="flex space-x-2 items-center">
+                        <div
+                            class="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden border border-brand-olivine bg-brand-custom-white rounded-full">
+                            <span class="font-medium text-brand-olivine">{{
+                                notification.fromUserEmail?.substring(0, 2).toUpperCase() || 'NA' }}</span>
+                        </div>
+                        <span class="text-gray-400 text-sm">{{ timeSinceCreated(notification.createdAt) }}</span>
+                    </div>
+                    <div class="pt-2">
+                        <button @click="markAsReadPlaceholder(notification.id)"
+                            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
+                            Marchează ca citit
+                        </button>
+                    </div>
+                </div>
+
+                <div v-else class="flex flex-col space-y-2">
+                    <span class="text-xl font-semibold" v-if="notification.projectTitle">{{ notification.projectTitle
+                        }}</span>
+                    <p>Notificare de tip necunoscut: <strong>{{ notification.type }}</strong> de la {{
+                        notification.fromUserEmail }}.</p>
+                    <pre class="text-xs bg-gray-100 p-2 rounded">{{ notification }}</pre>
+                    <span class="text-gray-400 text-sm">{{ timeSinceCreated(notification.createdAt) }}</span>
+                </div>
+
             </li>
         </ul>
     </div>
     <div v-else class="text-center mt-10">
-        <img src="@/assets/emptyState/EmptyStateNotifications.svg" alt="No projects" class="mx-auto mb-6">
-        <p class="text-xl font-bold text-brand-olivine">You have no notifications</p>
+        <img src="@/assets/emptyState/EmptyStateNotifications.svg" alt="No projects" class="mx-auto max-h-[28rem] mb-6">
+        <p class="text-xl font-bold text-brand-olivine">Nu ai nicio notificare!</p>
     </div>
-
 </template>

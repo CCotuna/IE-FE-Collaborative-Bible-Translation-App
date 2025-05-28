@@ -8,7 +8,7 @@ const bibleProjectStore = useBibleProjectStore();
 const projectStore = useProjectStore();
 const router = useRouter();
 
-const languages = ref(["English", "Romana", "French"]);
+const languages = ref(["Română", "English", "French"]);
 const versions = ref(["Dumitru Cornilescu", "Noua traducere romaneasca", "King James Version"]);
 
 const isLoading = ref(false);
@@ -28,8 +28,6 @@ const handleIntegralImport = async () => {
     try {
         await bibleProjectStore.selectAllBible();
         await projectStore.addProject(bibleProjectStore.bibleProject);
-
-        // alert('Successfully created project with integral Bible import!');
         router.push({ name: 'home' });
 
     } catch (error) {
@@ -104,5 +102,4 @@ const isTitleValid = computed(() => {
     </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

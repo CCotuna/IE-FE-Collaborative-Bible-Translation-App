@@ -141,22 +141,25 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
 
-  const publicPages = ['/sign-in', '/sign-up'];
-  const authNotRequired = publicPages.includes(to.path);
+  const publicPaths = ['/', '/sign-in', '/sign-up'];
+  const authNotRequired = publicPaths.includes(to.path);
 
   if (!userStore.user) {
     try {
       await userStore.checkAuth();
     } catch (err) {
       console.error('Error checking auth:', err);
+      if (!authNotRequired) {
+        return next('/');
+      }
     }
   }
 
-  // if (!authNotRequired && !userStore.user) {
-  //   return next('/sign-in');
-  // }
+  if (!userStore.user && !authNotRequired) {
+    return next('/');
+  }
 
-  if (authNotRequired && userStore.user) {
+  if (userStore.user && authNotRequired && to.path !== '/') {
     return next('/');
   }
 

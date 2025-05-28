@@ -18,7 +18,7 @@ const fragments = ref([]);
 const projectId = parseInt(route.params.id)
 const chapterId = parseInt(route.query.chapterId)
 
-const project = projectStore.projects.find(p => p.id === projectId)
+const project = computed(() => projectStore.projects.find(p => p.id === projectId));
 
 onMounted(async () => {
     if (!project) {
@@ -43,7 +43,10 @@ onMounted(async () => {
         if (fragment) {
             if (!fragment.comments) fragment.comments = []
             const alreadyExists = fragment.comments.some(c => c.id === newComment.id)
-            if (!alreadyExists) fragment.comments.push(newComment)
+            if (!alreadyExists) {
+                fragment.comments.push(newComment)
+                console.log('New comment added:', newComment);
+            }
         }
     })
 
@@ -67,15 +70,15 @@ onBeforeUnmount(() => {
 })
 
 const sortedFragments = computed(() => {
-  if (!fragments.value) return [];
+    if (!fragments.value) return [];
 
-  return fragments.value.slice().sort((a, b) => {
-    if (project.value?.type === 'Biblia') {
-      return a.verseNumber - b.verseNumber;
-    } else {
-      return a.id - b.id;
-    }
-  });
+    return fragments.value.slice().sort((a, b) => {
+        if (project.value?.type === 'Biblia') {
+            return a.verseNumber - b.verseNumber;
+        } else {
+            return a.id - b.id;
+        }
+    });
 });
 
 const openFormForFragmentId = ref(null);
@@ -93,7 +96,8 @@ const addComment = async (fragmentId) => {
     await projectStore.addComment({
         fragmentId,
         content: commentText.value,
-        status: commentStatus.value
+        status: commentStatus.value,
+        projectId: parseInt(route.params.id),
     });
 
     commentText.value = '';
@@ -154,8 +158,9 @@ const closeEditCommentForm = () => {
 
 <template>
     <!-- Salut {{ sortedFragments}} -->
-    <!-- {{ project }} -->
+
     <div>
+        <!-- {{ project }} -->
         <div v-if="sortedFragments">
             <div class="p-3">
                 <ul class="space-y-6">
@@ -164,6 +169,7 @@ const closeEditCommentForm = () => {
                             <span v-if="fragment.verseNumber != null">{{ fragment.verseNumber }}. </span>
                             <span v-html="fragment.content"></span>
                         </p>
+                        <!-- {{ fragment }} -->
 
                         <div v-if="visibleComments(fragment).length > 0"
                             class="flex items-center space-x-2 mb-1 cursor-pointer"
@@ -210,7 +216,7 @@ const closeEditCommentForm = () => {
                                             'bg-brand-cornsilk': comment.userId === userStore.user.id,
                                             'bg-white': comment.userId !== userStore.user.id
                                         }">
-                                            <span>{{ comment.content }}</span>
+                                            <span>{{ comment }}</span>
                                         </p>
                                     </div>
 

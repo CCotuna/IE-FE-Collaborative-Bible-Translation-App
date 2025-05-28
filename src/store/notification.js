@@ -27,31 +27,38 @@ export const useNotificationStore = defineStore('notification', {
 
         async sendNotification(notification) {
             const userStore = useUserStore();
-
-            const receiverId = await userStore.getUserByEmail(notification.email);
-
-            if (!receiverId) {
-                console.error('Receiver ID not found');
-                return;
-            }
+            let payload = {
+                fromUserId: notification.senderId,
+                fromUserEmail: notification.senderEmail,
+                projectId: notification.projectId,
+                projectTitle: notification.projectTitle,
+                type: notification.type,
+                status: notification.status,
+                ...(notification.fragmentId != null && { fragmentId: notification.fragmentId }),
+                ...(notification.message != null && { message: notification.message }),
+            };
 
             try {
-                const response = await axios.post(`http://localhost:3000/notifications`, {
-                    fromUserId: notification.senderId,
-                    fromUserEmail: notification.senderEmail,
-                    toUserId: receiverId,
-                    projectId: notification.projectId,
-                    projectTitle: notification.projectTitle,
-                    type: notification.type,
-                    status: notification.status
-                });
+                if (notification.email) {
+                    const receiverUser = await userStore.getUserByEmail(notification.email);
+                    payload.toUserId = receiverUser;
+                } else if (notification.receiverIds && notification.receiverIds.length > 0) {
+                    payload.toUserIds = notification.receiverIds;
+                } else {
+                    console.error('No receiver specified (email or receiverIds)');
+                    return;
+                }
 
+                const response = await axios.post(`http://localhost:3000/notifications`, payload);
+                console.log('Notification(s) sent successfully:', response.data);
                 return response.data;
 
             } catch (error) {
                 console.error('Error sending notification:', error);
+                throw error;
             }
         },
+
 
         async markAsAccepted(notificationId) {
             try {
@@ -112,7 +119,7 @@ export const useNotificationStore = defineStore('notification', {
 
         listenForNotifications() {
             socket.on('newNotification', (newNotification) => {
-                this.receiveNotification(newNotification); 
+                this.receiveNotification(newNotification);
             });
         }
     }

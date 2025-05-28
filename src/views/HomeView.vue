@@ -3,22 +3,26 @@ import { computed } from 'vue';
 import ImportTextView from '@/views/ImportTextView.vue';
 import Library from '@/views/LibraryView.vue';
 
-import { useProjectStore} from '@/store/project'
+import { useProjectStore } from '@/store/project'
 const projectStore = useProjectStore();
 
-import { isAuthenticated } from '@/utils/auth';
-const isLoggedIn = computed(() => isAuthenticated());
+import { useUserStore } from '@/store/user';
+const userStore = useUserStore();
 
-// import { useRoute } from 'vue-router';
-// const route = useRoute();
+const isAuthenticated = computed(() => userStore.isAuthenticated());
 
 </script>
 <template>
-    <div v-if="!isLoggedIn && projectStore.projects.length == 0">
-        <ImportTextView />
+    <div v-if="!isAuthenticated">
+        User not authenticated. Please log in to access the application.
     </div>
-    <div v-else >
-        <Library />
+    <div v-else>
+        <div v-if="projectStore.projects.length == 0">
+            <ImportTextView />
+        </div>
+        <div v-else>
+            <Library />
+        </div>
     </div>
 </template>
 <style scoped></style>

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { useBibleProjectStore } from './bibleProject';
+import { useNotificationStore } from './notification';
 import axios from "axios";
 
 import { useUserStore } from './user';
@@ -177,8 +177,9 @@ export const useProjectStore = defineStore("project", {
 
         },
 
-        async addComment({ fragmentId, content, status }) {
+        async addComment({ fragmentId, content, status, projectId }) {
             const userStorage = useUserStore();
+            const notificationStore = useNotificationStore();
 
             try {
                 await axios.post("http://localhost:3000/comments", {
@@ -192,6 +193,36 @@ export const useProjectStore = defineStore("project", {
                         "Content-Type": "application/json",
                     }
                 });
+
+                if (status === "public") {
+                    const projectWithFragment = this.projects.find(p => p.id === projectId);
+
+                    if (!projectWithFragment) {
+                        console.warn('Project not found for projectId:', projectId);
+                        return;
+                    }
+                    const projectTitle = projectWithFragment.title;
+
+                    const receiverIds = projectWithFragment.collaborators
+                        ?.map(c => c.id)
+                        .filter(id => id !== userStorage.user.id) || [];
+
+                    if (receiverIds.length > 0) {
+                        await notificationStore.sendNotification({
+                            receiverIds: receiverIds,
+                            senderId: userStorage.user.id,
+                            senderEmail: userStorage.user.email,
+                            projectId: projectId,
+                            projectTitle: projectTitle,
+                            type: "comment",
+                            status: "pending",
+                            fragmentId: fragmentId,
+                            message: `Utilizatorul ${userStorage.user.email} a adăugat un comentariu nou la proiectul "${projectTitle}".`,
+                        });
+                    } else {
+                        console.log("No other collaborators to notify.");
+                    }
+                }
             } catch (error) {
                 console.error("Error adding comment:", error);
             }

@@ -15,15 +15,15 @@ const notificationStore = useNotificationStore();
 const filteredNotifications = ref([]);
 
 watch(
-  () => notificationStore.notifications,
-  (newNotifications) => {
-    filteredNotifications.value = newNotifications.filter(
-  (notification) =>
-    notification.toUserId === userStore.user.id &&
-    notification.status === 'pending'
-);
-  },
-  { immediate: true, deep: true }
+    () => notificationStore.notifications,
+    (newNotifications) => {
+        filteredNotifications.value = newNotifications.filter(
+            (notification) =>
+                notification.toUserId === userStore.user.id &&
+                notification.status === 'pending'
+        );
+    },
+    { immediate: true, deep: true }
 );
 
 
@@ -105,6 +105,7 @@ const showMainIcons = computed(() => {
 </script>
 
 <template>
+
     <div class="p-3 w-full flex justify-between items-center border-b">
         <div class="flex items-center space-x-2">
             <button v-if="showGoBack" @click="goBack" class="text-lg text-gray-500 hover:text-gray-800">
@@ -115,13 +116,6 @@ const showMainIcons = computed(() => {
             }" class="p-3 text-2xl font-medium truncate">
                 {{ navbarTitle }}
             </span>
-            <!-- <span v-if="userStore.isAuthenticated()">
-                Hello
-            </span> -->
-            <!-- <span v-if="userStore.isAuthenticated()" class="text-sm text-gray-500">
-                {{ userStore.user.email }}
-            </span>
-            <span v-else>Hehe</span> -->
         </div>
         <div v-if="route.path === '/' && projectStore.projects.length == 0 && !userStore.isAuthenticated()"
             class="flex space-x-5">
@@ -150,11 +144,27 @@ const showMainIcons = computed(() => {
         </div>
         <div v-if="route.name === 'project'" class="flex space-x-3 text-3xl">
             <span><i class="bi bi-search"></i></span>
-            <RouterLink :to="{ name: 'collaborators-view'}"><i class="bi bi-people"></i></RouterLink>
+            <RouterLink :to="{ name: 'collaborators-view' }"><i class="bi bi-people"></i></RouterLink>
             <RouterLink :to="{ name: 'menu' }"><i class="bi bi-gear"></i></RouterLink>
         </div>
         <div v-if="route.name === 'menu'">
-            <button @click="logout()" class="px-8 py-2 bg-red-500 text-white rounded-full">Deconectare</button>
+            <button @click="logout()" class="px-8 py-2 text-white rounded-full font-semibold relative overflow-hidden
+             bg-red-600 group
+             transition-all duration-300 ease-in-out
+             focus:outline-none focus:ring-4 focus:ring-red-300 focus:ring-opacity-75">
+                <span class="absolute inset-0 border-2 border-red-300 rounded-full
+                   transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></span>
+                <span
+                    class="absolute inset-0 border-2 border-red-300 rounded-full
+                   transform scale-y-0 group-hover:scale-y-100 transition-transform duration-500 delay-100 origin-top"></span>
+                <span
+                    class="absolute inset-0 border-2 border-red-300 rounded-full
+                   transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 delay-200 origin-right"></span>
+                <span
+                    class="absolute inset-0 border-2 border-red-300 rounded-full
+                   transform scale-y-0 group-hover:scale-y-100 transition-transform duration-500 delay-300 origin-bottom"></span>
+                <span class="relative z-10">Deconectare</span>
+            </button>
         </div>
     </div>
 </template>
