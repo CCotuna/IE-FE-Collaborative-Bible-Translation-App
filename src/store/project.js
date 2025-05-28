@@ -46,6 +46,7 @@ export const useProjectStore = defineStore("project", {
         books: [],
         chapters: [],
         fragments: [],
+        isProjectSearchOpen: false,
     }),
     actions: {
         async fetchProjects() {
@@ -479,6 +480,10 @@ export const useProjectStore = defineStore("project", {
                 console.error("Error adding collaborator:", error);
                 throw new Error("Failed to add collaborator.");
             }
+        },
+        
+        toggleProjectSearch() {
+            this.isProjectSearchOpen = !this.isProjectSearchOpen;
         },
 
     },

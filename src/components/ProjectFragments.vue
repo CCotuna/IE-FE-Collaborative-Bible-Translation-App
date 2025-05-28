@@ -228,11 +228,24 @@ const confirmDeleteComment = async () => {
     }
 };
 
+// isProjectSearchOpen: false,
+const isSearchActive = computed(() => {
+    return projectStore.isProjectSearchOpen;
+})
+
 </script>
 
 <template>
     <!-- Salut {{ sortedFragments}} -->
     <div>
+        <div v-if="isSearchActive"
+            class="flex items-center justify-between p-3 bg-white border-b">
+            <h1 class="text-2xl font-semibold text-gray-800">Proiect: {{ project?.title || 'Încărcare...' }}</h1>
+            <button
+                class="text-brand-olivine hover:text-brand-olivine-light">
+                <i class="bi bi-x-lg text-3xl"></i>
+            </button>
+        </div>
         <!-- {{ project }} -->
         <div v-if="sortedFragments">
             <div class="p-3">
@@ -357,7 +370,7 @@ const confirmDeleteComment = async () => {
 
                         <div v-if="openFormForFragmentId === fragment.id && editingCommentId === null" :class="{
                             'border-s-8 border-brand-olivine -mb-2 px-3': true,
-                            'pt-8': openCommentsForFragmentId === fragment.id && fragment.comments && fragment.comments.length > 0, 
+                            'pt-8': openCommentsForFragmentId === fragment.id && fragment.comments && fragment.comments.length > 0,
                             'pt-0': openCommentsForFragmentId !== fragment.id || (fragment.comments && fragment.comments.length === 0)
                         }">
                             <textarea v-model="commentText" required

@@ -26,7 +26,7 @@ const pendingNotificationsCount = computed(() => {
     ).length;
 });
 
-if (userStore.isAuthenticated()) { 
+if (userStore.isAuthenticated()) {
     projectStore.fetchProjects();
     notificationStore.fetchNotifications();
 }
@@ -106,6 +106,13 @@ const showMainIcons = computed(() => {
     return route.path === '/' && userStore.isAuthenticated();
 });
 
+const showProjectSpecificIcons = computed(() => {
+    return !!route.params.id && navbarTitle.value !== 'Proiectul nu a fost găsit' && userStore.isAuthenticated();
+});
+
+const toggleProjectSearch = () => {
+    projectStore.toggleProjectSearch();
+}
 </script>
 
 <template>
@@ -169,6 +176,10 @@ const showMainIcons = computed(() => {
                    transform scale-y-0 group-hover:scale-y-100 transition-transform duration-500 delay-300 origin-bottom"></span>
                 <span class="relative z-10">Deconectare</span>
             </button>
+        </div>
+        <div v-if="showProjectSpecificIcons" class="flex space-x-3 text-3xl">
+            <button @click="toggleProjectSearch()"><i class="bi bi-search"></i></button>
+            <RouterLink :to="{ name: 'collaborators-view' }"><i class="bi bi-people"></i></RouterLink>
         </div>
     </div>
 </template>
