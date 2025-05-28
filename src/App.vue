@@ -8,9 +8,9 @@ import { useNotificationStore } from './store/notification'
 const userStore = useUserStore()
 const notificationStore = useNotificationStore()
 
-onMounted(() => {
+onMounted(async () => {
     userStore.checkAuth()
-    notificationStore.fetchNotifications();
+    await notificationStore.fetchNotifications();
     notificationStore.listenForNotifications();
 })
 </script>

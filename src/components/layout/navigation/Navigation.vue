@@ -12,19 +12,24 @@ const projectStore = useProjectStore();
 const userStore = useUserStore();
 const notificationStore = useNotificationStore();
 
-const filteredNotifications = ref([]);
+const pendingNotificationsCount = computed(() => {
+    if (!userStore.user || typeof userStore.user.id === 'undefined') {
+        return 0;
+    }
+    if (!Array.isArray(notificationStore.notifications)) {
+        return 0;
+    }
+    return notificationStore.notifications.filter(
+        (notification) =>
+            notification.toUserId === userStore.user.id &&
+            notification.status === 'pending'
+    ).length;
+});
 
-watch(
-    () => notificationStore.notifications,
-    (newNotifications) => {
-        filteredNotifications.value = newNotifications.filter(
-            (notification) =>
-                notification.toUserId === userStore.user.id &&
-                notification.status === 'pending'
-        );
-    },
-    { immediate: true, deep: true }
-);
+if (userStore.isAuthenticated()) { 
+    projectStore.fetchProjects();
+    notificationStore.fetchNotifications();
+}
 
 
 const goBack = () => {
@@ -33,10 +38,9 @@ const goBack = () => {
 
 const logout = () => {
     userStore.signOut();
+    notificationStore.notifications = [];
     router.push('/')
 }
-
-projectStore.fetchProjects();
 
 const navbarTitle = computed(() => {
     const path = route.path;
@@ -131,11 +135,11 @@ const showMainIcons = computed(() => {
         <div v-if="showMainIcons" class="flex space-x-3 text-3xl">
             <RouterLink :to="{ name: 'projects-search' }"><i class="bi bi-search"></i></RouterLink>
             <RouterLink :to="{ name: 'notifications' }" class="relative"
-                :class="{ 'text-yellow-500': filteredNotifications.length > 0 }">
+                :class="{ 'text-yellow-500': pendingNotificationsCount > 0 }">
                 <i class="bi bi-bell-fill"></i>
-                <span v-if="filteredNotifications.length > 0"
+                <span v-if="pendingNotificationsCount > 0"
                     class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                    {{ filteredNotifications.length }}
+                    {{ pendingNotificationsCount }}
                 </span>
             </RouterLink>
             <RouterLink :to="{ name: 'base-import' }"><i class="bi bi-plus-circle-fill text-brand-olivine"></i>

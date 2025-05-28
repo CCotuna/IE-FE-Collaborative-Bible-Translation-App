@@ -4,76 +4,77 @@ import { useProjectStore } from '@/store/project';
 import { useUserStore } from '@/store/user';
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { timeSinceCreated } from '@/utils/timeSinceCreated';
-
 import socket from '@/plugins/socket';
 
 const route = useRoute();
 const router = useRouter();
-
 const projectStore = useProjectStore();
 const userStore = useUserStore();
 
 const fragments = ref([]);
-
-const projectId = parseInt(route.params.id)
-const chapterId = parseInt(route.query.chapterId)
+const projectId = parseInt(route.params.id);
+const chapterId = parseInt(route.query.chapterId);
 
 const project = computed(() => projectStore.projects.find(p => p.id === projectId));
 
 onMounted(async () => {
-    if (!project) {
-        return
+    if (!project.value) {
+        console.warn("Project not found on mount in component.");
+        return;
     }
 
-    if (project.type === 'Biblia') {
-        await projectStore.fetchChapterFragments(projectId, chapterId)
-        const result = projectStore.fragments.find(c => c.id === projectId);
-        fragments.value = result ? result.bibleFragments : [];
+    if (project.value.type === 'Biblia') {
+        await projectStore.fetchChapterFragments(projectId, chapterId);
     } else {
-
-        await projectStore.fetchProjectFragments(projectId)
-        const result = projectStore.fragments.find(c => c.id === projectId);
-        fragments.value = result ? result.fragments : [];
+        await projectStore.fetchProjectFragments(projectId);
     }
 
-    socket.emit('joinProjectRoom', projectId)
+    const result = projectStore.fragments.find(c => c.id === projectId);
+    if (project.value.type === 'Biblia') {
+        fragments.value = result ? (result.bibleFragments || []) : [];
+    } else {
+        fragments.value = result ? (result.fragments || []) : [];
+    }
+
+    if (projectId) {
+        socket.emit('joinProjectRoom', projectId);
+    }
 
     socket.on('newComment', (newComment) => {
-        const fragment = fragments.value?.find(f => f.id === newComment.fragmentId)
+        const fragment = fragments.value?.find(f => f.id === newComment.fragmentId);
         if (fragment) {
-            if (!fragment.comments) fragment.comments = []
-            const alreadyExists = fragment.comments.some(c => c.id === newComment.id)
+            if (!fragment.comments) fragment.comments = [];
+            const alreadyExists = fragment.comments.some(c => c.id === newComment.id);
             if (!alreadyExists) {
-                fragment.comments.push(newComment)
-                console.log('New comment added:', newComment);
+                fragment.comments.push(newComment);
             }
         }
-    })
+    });
 
     socket.on('commentStatusUpdated', (updatedComment) => {
-        const fragment = fragments.value?.find(f => f.id === updatedComment.fragmentId)
-        if (fragment) {
-            const commentIndex = fragment.comments.findIndex(c => c.id === updatedComment.id)
+        const fragment = fragments.value?.find(f => f.id === updatedComment.fragmentId);
+        if (fragment && fragment.comments) {
+            const commentIndex = fragment.comments.findIndex(c => c.id === updatedComment.id);
             if (commentIndex !== -1) {
-                fragment.comments[commentIndex] = updatedComment
+                fragment.comments[commentIndex] = { ...fragment.comments[commentIndex], ...updatedComment };
             }
         }
-    })
-})
+    });
+});
 
 onBeforeUnmount(() => {
-    const projectId = parseInt(route.params.id)
-    socket.emit('leaveProjectRoom', projectId)
-    socket.off('newComment')
-    socket.off('commentStatusUpdated')
-    socket.off('commentDeleted')
-})
+    if (projectId) {
+        socket.emit('leaveProjectRoom', projectId);
+    }
+    socket.off('newComment');
+    socket.off('commentStatusUpdated');
+});
 
 const sortedFragments = computed(() => {
-    if (!fragments.value) return [];
-
-    return fragments.value.slice().sort((a, b) => {
-        if (project.value?.type === 'Biblia') {
+    if (!fragments.value || fragments.value.length === 0) return [];
+    const projectType = project.value ? project.value.type : null;
+    return [...fragments.value].sort((a, b) => {
+        if (projectType === 'Biblia') {
             return a.verseNumber - b.verseNumber;
         } else {
             return a.id - b.id;
@@ -81,84 +82,156 @@ const sortedFragments = computed(() => {
     });
 });
 
-const openFormForFragmentId = ref(null);
+const editingCommentId = ref(null);
+const editingCommentText = ref('');
+const openEditCommentForm = (comment) => {
+    editingCommentId.value = comment.id;
+    editingCommentText.value = comment.content;
+};
+const closeEditCommentForm = () => {
+    editingCommentId.value = null;
+    editingCommentText.value = '';
+};
+const saveEditedComment = async (commentId) => {
+    const newContent = editingCommentText.value.trim();
 
+    if (!newContent) {
+        console.warn("Edited comment content cannot be empty.");
+        return;
+    }
+    let fragmentIdOfEditedComment = null;
+    let commentIndexInFragment = -1;
+    let fragmentContainer = null;
+
+    outerLoop: for (const fragment of fragments.value) {
+        if (fragment.comments) {
+            const cIndex = fragment.comments.findIndex(c => c.id === commentId);
+            if (cIndex !== -1) {
+                fragmentIdOfEditedComment = fragment.id;
+                commentIndexInFragment = cIndex;
+                fragmentContainer = fragment;
+                break outerLoop;
+            }
+        }
+    }
+
+    if (!fragmentIdOfEditedComment || commentIndexInFragment === -1 || !fragmentContainer) {
+        console.error("Could not find the comment or fragment to update in the local list.");
+        closeEditCommentForm();
+        return;
+    }
+
+    try {
+        await projectStore.updateComment(commentId, newContent);
+
+        if (fragmentContainer.comments && fragmentContainer.comments[commentIndexInFragment]) {
+            fragmentContainer.comments[commentIndexInFragment].content = newContent;
+            console.log(`UI Updated: Comment ${commentId} content changed in fragment ${fragmentIdOfEditedComment}`);
+        }
+
+    } catch (error) {
+        console.error("Error saving edited comment in component:", error);
+    } finally {
+        closeEditCommentForm();
+    }
+};
+
+const openFormForFragmentId = ref(null);
 const toggleForm = (fragmentId) => {
     openFormForFragmentId.value = openFormForFragmentId.value === fragmentId ? null : fragmentId;
 };
 
 const commentText = ref('');
 const commentStatus = ref('private');
-
 const addComment = async (fragmentId) => {
     if (!commentText.value.trim()) return;
-
     await projectStore.addComment({
         fragmentId,
         content: commentText.value,
         status: commentStatus.value,
-        projectId: parseInt(route.params.id),
+        projectId: projectId,
     });
-
     commentText.value = '';
     commentStatus.value = 'private';
     openFormForFragmentId.value = null;
 };
 
 const openCommentsForFragmentId = ref(null);
-
 const toggleComments = (fragmentId) => {
     openCommentsForFragmentId.value =
         openCommentsForFragmentId.value === fragmentId ? null : fragmentId;
 };
 
 const visibleComments = (fragment) => {
-    if (!fragment.comments) return [];
-
+    if (!fragment.comments || !userStore.user) return [];
     return fragment.comments.filter(
         (comment) =>
             comment.status === 'public' || comment.userId === userStore.user.id
     );
 };
 
-const selectedCommentId = ref(null);
+const selectedCommentIdForStatus = ref(null);
 const isToggleStatusModalOpen = ref(false);
-
 const openCommentStatusModal = (commentId) => {
-    selectedCommentId.value = commentId;
+    selectedCommentIdForStatus.value = commentId;
     isToggleStatusModalOpen.value = true;
-}
-
+};
 const closeCommentStatusModal = () => {
     isToggleStatusModalOpen.value = false;
-    selectedCommentId.value = null;
-}
-
+    selectedCommentIdForStatus.value = null;
+};
 const toggleCommentStatus = async () => {
-    if (!selectedCommentId.value) return;
-
+    if (!selectedCommentIdForStatus.value) return;
     try {
-        projectStore.toggleCommentStatus(selectedCommentId.value)
+        await projectStore.toggleCommentStatus(selectedCommentIdForStatus.value);
     } catch (error) {
         console.error('Error toggling comment status:', error);
     } finally {
         closeCommentStatusModal();
     }
-}
+};
 
-const editingCommentId = ref(null);
-const openEditCommentForm = (commentId) => {
-    editingCommentId.value = commentId;
-}
+const isDeleteCommentModalOpen = ref(false);
+const commentToDeleteId = ref(null);
+const fragmentOfCommentToDeleteId = ref(null);
 
-const closeEditCommentForm = () => {
-    editingCommentId.value = null;
-}
+const openDeleteCommentModal = (commentId, fragmentId) => {
+    commentToDeleteId.value = commentId;
+    fragmentOfCommentToDeleteId.value = fragmentId;
+    isDeleteCommentModalOpen.value = true;
+};
+
+const closeDeleteCommentModal = () => {
+    isDeleteCommentModalOpen.value = false;
+    commentToDeleteId.value = null;
+    fragmentOfCommentToDeleteId.value = null;
+};
+
+const confirmDeleteComment = async () => {
+    if (commentToDeleteId.value && fragmentOfCommentToDeleteId.value) {
+        try {
+            await projectStore.deleteComment(commentToDeleteId.value, fragmentOfCommentToDeleteId.value);
+
+            const fragment = fragments.value.find(f => f.id === fragmentOfCommentToDeleteId.value);
+            if (fragment && fragment.comments) {
+                const commentIndex = fragment.comments.findIndex(c => c.id === commentToDeleteId.value);
+                if (commentIndex !== -1) {
+                    fragment.comments.splice(commentIndex, 1);
+                }
+            }
+            closeEditCommentForm();
+        } catch (error) {
+            console.error("Error deleting comment from component:", error);
+        } finally {
+            closeDeleteCommentModal();
+        }
+    }
+};
+
 </script>
 
 <template>
     <!-- Salut {{ sortedFragments}} -->
-
     <div>
         <!-- {{ project }} -->
         <div v-if="sortedFragments">
@@ -190,22 +263,11 @@ const closeEditCommentForm = () => {
                             </div>
                         </div>
 
-                        <!-- <div v-if="item.annotations?.length ?? 0"
-                        class="absolute -bottom-8 -left-2 bg-white pt-2 rounded-e-full w-[5.9rem]">
-                        <button @click="toggleContent(index)"
-                            class="rounded-e-full py-[0.10rem] w-20 ms-2 flex items-center justify-center bg-brand-olivine text-white text-xl">
-                            <span class="text-2xl">{{item.annotations?.filter(a => !a.isPrivate).length ?? 0}}</span>
-                            <i :class="{
-                                'bi-chevron-double-down': openDescriptionIndex !== index,
-                                'bi-chevron-double-down rotate-180 mb-1': openDescriptionIndex === index
-                            }" class="bi ms-4"></i>
-                        </button>
-                    </div> -->
-
                         <div v-if="openCommentsForFragmentId === fragment.id && fragment.comments?.length">
                             <ul class="border-s-8 border-brand-olivine -mt-8 -mb-12 pt-2" :class="{
-                                'pb-12': true,
-                                'pb-5 mb-4': openFormForFragmentId !== fragment.id,
+                                'pb-12': !editingCommentId && (openFormForFragmentId === fragment.id || (fragment.comments && fragment.comments.length > 0)),
+                                'pb-5 mb-4': !editingCommentId && openFormForFragmentId !== fragment.id && fragment.comments && fragment.comments.length > 0,
+                                'pb-0 mb-0': editingCommentId,
                             }">
                                 <li v-for="comment in visibleComments(fragment)" :key="comment.id"
                                     class="text-sm text-gray-700 relative mt-3">
@@ -216,11 +278,11 @@ const closeEditCommentForm = () => {
                                             'bg-brand-cornsilk': comment.userId === userStore.user.id,
                                             'bg-white': comment.userId !== userStore.user.id
                                         }">
-                                            <span>{{ comment }}</span>
+                                            <span>{{ comment.content }}</span>
                                         </p>
                                     </div>
 
-                                    <div v-if="editingCommentId === comment.id" class="p-2 pe-0 pt-6">
+                                    <div v-if="editingCommentId === comment.id" class="ps-2 pe-0 pb-0 pt-6">
                                         <div class="flex justify-between items-center mb-2 border rounded-lg p-1 px-2">
                                             <div class="flex space-x-5 text-brand-olivine">
                                                 <span @click="closeEditCommentForm()" class="text-2xl cursor-pointer">
@@ -233,18 +295,18 @@ const closeEditCommentForm = () => {
                                                 </div>
                                             </div>
                                             <span class="text-2xl text-brand-olivine cursor-pointer"
-                                                @click="projectStore.deleteComment(comment.id)">
+                                                @click="openDeleteCommentModal(comment.id, fragment.id)">
                                                 <i class="bi bi-trash"></i>
                                             </span>
                                         </div>
-                                        <textarea v-model="commentText" required
+                                        <textarea v-model="editingCommentText" required
                                             class="w-full p-2 border border-gray-300 rounded-lg" rows="4"
-                                            placeholder="Scrie comentariul aici..."></textarea>
+                                            placeholder="Editează comentariul aici..."></textarea>
 
                                         <button
                                             class="mt-2 px-4 py-2 bg-brand-olivine text-white rounded-lg hover:bg-brand-olivine-light"
-                                            @click="addComment(comment.id)">
-                                            Editează comentariul
+                                            @click="saveEditedComment(comment.id)">
+                                            Salvează modificările
                                         </button>
                                     </div>
 
@@ -266,7 +328,7 @@ const closeEditCommentForm = () => {
                                     <div v-if="comment.userId === userStore.user.id">
                                         <div v-if="comment.status === 'private' && editingCommentId !== comment.id"
                                             class="absolute -bottom-5 right-0 bg-white rounded-s-full w-[6.5rem] h-12">
-                                            <i @click="openEditCommentForm(comment.id)"
+                                            <i @click="openEditCommentForm(comment)"
                                                 class="bi bi-pen bg-white shadow-md cursor-pointer text-brand-gold-metallic rounded-full p-2 flex items-center justify-center absolute bottom-1 right-28 w-10 h-10 text-2xl"></i>
                                             <button @click="openCommentStatusModal(comment.id)"
                                                 class="absolute bottom-1 right-0 rounded-s-full py-1 w-24 bg-white border-brand-gold-metallic border text-brand-gold-metallic text-xl">
@@ -293,10 +355,10 @@ const closeEditCommentForm = () => {
                             </ul>
                         </div>
 
-                        <div v-if="openFormForFragmentId === fragment.id" :class="{
+                        <div v-if="openFormForFragmentId === fragment.id && editingCommentId === null" :class="{
                             'border-s-8 border-brand-olivine -mb-2 px-3': true,
-                            'pt-8': (openCommentsForFragmentId === fragment.id ?? 0) > 0,
-                            'pt-4': (openCommentsForFragmentId !== fragment.id ?? 0) === 0
+                            'pt-8': openCommentsForFragmentId === fragment.id && fragment.comments && fragment.comments.length > 0, 
+                            'pt-0': openCommentsForFragmentId !== fragment.id || (fragment.comments && fragment.comments.length === 0)
                         }">
                             <textarea v-model="commentText" required
                                 class="w-full p-2 border border-gray-300 rounded-lg" rows="4"
@@ -333,6 +395,21 @@ const closeEditCommentForm = () => {
                         class="bg-brand-olivine text-white text-lg px-8 py-2 rounded-full">Confirm</button>
                     <button @click="closeCommentStatusModal"
                         class="bg-brand-honeydew text-brand-olivine text-lg px-8 py-2 rounded-full">Renunț</button>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="isDeleteCommentModalOpen"
+            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div class="bg-white rounded-lg p-8 shadow-lg text-center max-w-md w-full mx-4">
+                <h2 class="text-xl font-semibold mb-2">Confirmare Ștergere</h2>
+                <p class="text-gray-700 mb-6">Ești sigur că dorești să ștergi acest comentariu? Acțiunea este
+                    ireversibilă.</p>
+                <div class="flex justify-around mt-4">
+                    <button @click="confirmDeleteComment"
+                        class="bg-red-600 hover:bg-red-700 text-white text-lg px-8 py-2 rounded-full transition-colors">Șterge</button>
+                    <button @click="closeDeleteCommentModal"
+                        class="bg-gray-300 hover:bg-gray-400 text-gray-800 text-lg px-8 py-2 rounded-full transition-colors">Anulează</button>
                 </div>
             </div>
         </div>

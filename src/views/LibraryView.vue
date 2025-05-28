@@ -1,14 +1,16 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useProjectStore } from '@/store/project';
 import { useUserStore } from '@/store/user';
 import { timeSinceCreated } from '@/utils/timeSinceCreated';
 import { useRouter } from 'vue-router';
+import socket from '@/plugins/socket';
 
 const userStore = useUserStore();
 
 const projectStore = useProjectStore();
 const projects = computed(() => {
+    if (!projectStore.projects) return [];
     return [...projectStore.projects].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }); const router = useRouter();
 
@@ -46,14 +48,12 @@ const triggerToast = (message, isNegative) => {
     }
     setTimeout(() => {
         showToast.value = false;
-        toastMessage.value = '';
-        toastType.value = '';
     }, 3000);
 };
 
-const askDeleteConfirmation = (id, ownerId) => {
-    selectedProjectId.value = id;
-    selectedOwnerId.value = ownerId;
+const askDeleteConfirmation = (project) => {
+    selectedProjectId.value = project.id;
+    selectedOwnerId.value = project.userId;
     isModalOpen.value = true;
 };
 
@@ -62,19 +62,50 @@ const closeModal = () => {
     selectedProjectId.value = null;
 };
 
-const confirmDelete = () => {
-    if (selectedProjectId.value !== null) {
+const confirmDelete = async () => {
+    if (selectedProjectId.value !== null && selectedOwnerId.value !== null) {
         if (selectedOwnerId.value === userStore.user.id) {
-            projectStore.deleteProject(selectedProjectId.value);
-            triggerToast("Proiectul a fost șters cu succes.", false);
-            closeModal();
+            try {
+                await projectStore.deleteProject(selectedProjectId.value, userStore.user.id);
+                triggerToast("Proiectul a fost șters cu succes.", 'success');
+            } catch (error) {
+                console.error("Error deleting project:", error);
+                triggerToast("A apărut o eroare la ștergerea proiectului.", 'error');
+            } finally {
+                closeModal();
+            }
         } else {
-            triggerToast("Nu ai permisiunea de a șterge acest proiect.", true);
+            triggerToast("Nu ai permisiunea de a șterge acest proiect.", 'error');
             closeModal();
         }
-
     }
 };
+
+const handleProjectDeleted = (data) => {
+    console.log('Socket event: projectDeleted received', data);
+    const projectExistsInList = projectStore.projects.some(p => p.id === data.id);
+
+    if (projectExistsInList) {
+        projectStore.removeProjectById(data.id);
+        if (selectedProjectId.value !== data.id) {
+            triggerToast(`Proiectul "${data.title || 'ID: ' + data.id}" a fost șters de un alt utilizator.`, 'info');
+        }
+    }
+};
+
+onMounted(() => {
+    if (userStore.user && userStore.user.id) {
+    }
+    socket.on('projectDeleted', handleProjectDeleted);
+
+    if (userStore.isAuthenticated() && projectStore.projects.length === 0) {
+        projectStore.fetchProjects();
+    }
+});
+
+onBeforeUnmount(() => {
+    socket.off('projectDeleted', handleProjectDeleted);
+});
 
 </script>
 
@@ -82,6 +113,7 @@ const confirmDelete = () => {
     <div v-if="projects.length > 0">
         <div v-for="project in projects" :key="project.id"
             class="relative border border-brand-olivine  rounded-lg mx-5 mt-4 p-3 space-y-3">
+            <!-- {{ project }} -->
             <i
                 class="bi bi-bell-fill bg-white text-brand-gold-metallic rounded-full p-2 flex items-center justify-center w-12 h-12 text-3xl absolute -top-4 -left-4"></i>
             <div class="flex justify-between items-center">
@@ -112,7 +144,7 @@ const confirmDelete = () => {
                     </div>
                     <i
                         class="bi bi-puzzle bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
-                    <div @click="askDeleteConfirmation(project.id, project.userId)" class="cursor-pointer">
+                    <div @click="askDeleteConfirmation(project)" class="cursor-pointer">
                         <i
                             class="bi bi-trash3 bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
                     </div>
@@ -120,7 +152,6 @@ const confirmDelete = () => {
             </div>
         </div>
 
-        <!-- MODAL -->
         <div v-if="isModalOpen" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div class="bg-white rounded-lg p-8 shadow-lg text-center max-w-md w-full">
                 <h2 class="text-lg mb-4">Ești sigur că dorești <strong class="text-red-500">să ștergi</strong> acest
@@ -145,7 +176,7 @@ const confirmDelete = () => {
     <div v-if="showToast"
         class="fixed bottom-4 left-4 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300" :class="{
             'bg-red-600': toastType === 'error',
-            'bg-brand-olivine': toastType === 'success'
+            'bg-brand-olivine': toastType === 'success',
         }">
         {{ toastMessage }}
     </div>

@@ -5,6 +5,41 @@ import axios from "axios";
 import { useUserStore } from './user';
 import { books } from '@/constants/bibleBooks';
 
+async function sendCommentNotification(commentData) {
+    const { projectId, fragmentId, senderId, senderEmail } = commentData;
+    const projectStore = useProjectStore();
+    const notificationStore = useNotificationStore();
+
+    const project = projectStore.projects.find(p => p.id === projectId);
+    if (!project) {
+        console.warn('sendCommentNotification: Project not found for projectId:', projectId);
+        return;
+    }
+    const projectTitle = project.title;
+
+    const receiverIds = project.collaborators
+        ?.filter(c => c && typeof c.id !== 'undefined')
+        .map(c => c.id)
+        .filter(id => id !== senderId) || [];
+
+    if (receiverIds.length > 0) {
+        await notificationStore.sendNotification({
+            receiverIds: receiverIds,
+            senderId: senderId,
+            senderEmail: senderEmail,
+            projectId: projectId,
+            projectTitle: projectTitle,
+            type: "comment",
+            status: "pending",
+            fragmentId: fragmentId,
+            message: `Utilizatorul ${senderEmail} a adăugat/modificat un comentariu public la proiectul "${projectTitle}".`,
+        });
+        console.log(`Notification sent for comment on project "${projectTitle}" to ${receiverIds.length} users.`);
+    } else {
+        console.log("No other collaborators to notify for comment.");
+    }
+}
+
 export const useProjectStore = defineStore("project", {
     state: () => ({
         projects: [],
@@ -178,92 +213,207 @@ export const useProjectStore = defineStore("project", {
         },
 
         async addComment({ fragmentId, content, status, projectId }) {
-            const userStorage = useUserStore();
-            const notificationStore = useNotificationStore();
-
+            const userStore = useUserStore();
             try {
-                await axios.post("http://localhost:3000/comments", {
+                const response = await axios.post("http://localhost:3000/comments", {
                     fragmentId,
                     content,
                     status,
-                    userId: userStorage.user.id,
-                    userEmail: userStorage.user.email,
+                    userId: userStore.user.id,
+                    userEmail: userStore.user.email,
+                }, {
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                const newComment = response.data;
+
+                if (newComment.status === "public") {
+                    await sendCommentNotification({
+                        projectId: projectId,
+                        fragmentId: newComment.fragmentId,
+                        senderId: userStore.user.id,
+                        senderEmail: userStore.user.email
+                    });
+                }
+            } catch (error) {
+                console.error("Error adding comment:", error);
+                throw error;
+            }
+        },
+
+        async deleteProject(projectId, emittingUserId) {
+            const projectIndex = this.projects.findIndex((project) => project.id === projectId);
+            let originalProjects = [...this.projects];
+
+            if (projectIndex !== -1) {
+                this.projects.splice(projectIndex, 1);
+            }
+
+            try {
+                await axios.delete("http://localhost:3000/projects", {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    data: { projectId, emittingUserId }
+                });
+            } catch (error) {
+                this.projects = originalProjects;
+                console.error("Error deleting project via API:", error);
+                throw error;
+            }
+        },
+
+        removeProjectById(projectId) {
+            const projectIndex = this.projects.findIndex((project) => project.id === projectId);
+            if (projectIndex !== -1) {
+                this.projects.splice(projectIndex, 1);
+            }
+        },
+        async deleteComment(commentId, fragmentIdPassedFromComponent) {
+            try {
+                await axios.delete("http://localhost:3000/comments", {
+                    headers: { "Content-Type": "application/json" },
+                    data: { commentId }
+                });
+
+                let foundAndRemoved = false;
+                for (const fragmentGroup of this.fragments) {
+                    let fragsArray = [];
+                    if (fragmentGroup.bibleFragments && fragmentGroup.bibleFragments.length > 0) {
+                        fragsArray = fragmentGroup.bibleFragments;
+                    } else if (fragmentGroup.fragments && fragmentGroup.fragments.length > 0) {
+                        fragsArray = fragmentGroup.fragments;
+                    }
+
+                    const fragment = fragsArray.find(f => f.id === fragmentIdPassedFromComponent);
+                    if (fragment && fragment.comments) {
+                        const index = fragment.comments.findIndex(c => c.id === commentId);
+                        if (index !== -1) {
+                            fragment.comments.splice(index, 1);
+                            foundAndRemoved = true;
+                            break;
+                        }
+                    }
+                }
+                if (!foundAndRemoved) {
+                    console.warn(`Store: Comment ${commentId} in fragment ${fragmentIdPassedFromComponent} not found for local removal.`);
+                }
+            } catch (error) {
+                console.error("Error deleting comment in store:", error);
+                throw error;
+            }
+        },
+
+        async updateComment(commentId, newContent) {
+            try {
+                const response = await axios.post("http://localhost:3000/comments/update", {
+                    commentId,
+                    content: newContent
                 }, {
                     headers: {
                         "Content-Type": "application/json",
                     }
                 });
 
-                if (status === "public") {
-                    const projectWithFragment = this.projects.find(p => p.id === projectId);
+                const updatedCommentFromAPI = response.data;
 
-                    if (!projectWithFragment) {
-                        console.warn('Project not found for projectId:', projectId);
-                        return;
+                let foundAndUpdateInStore = false;
+                for (const fragmentGroup of this.fragments) {
+                    let fragsArray = [];
+                    if (fragmentGroup.bibleFragments && fragmentGroup.bibleFragments.length > 0) {
+                        fragsArray = fragmentGroup.bibleFragments;
+                    } else if (fragmentGroup.fragments && fragmentGroup.fragments.length > 0) {
+                        fragsArray = fragmentGroup.fragments;
                     }
-                    const projectTitle = projectWithFragment.title;
 
-                    const receiverIds = projectWithFragment.collaborators
-                        ?.map(c => c.id)
-                        .filter(id => id !== userStorage.user.id) || [];
-
-                    if (receiverIds.length > 0) {
-                        await notificationStore.sendNotification({
-                            receiverIds: receiverIds,
-                            senderId: userStorage.user.id,
-                            senderEmail: userStorage.user.email,
-                            projectId: projectId,
-                            projectTitle: projectTitle,
-                            type: "comment",
-                            status: "pending",
-                            fragmentId: fragmentId,
-                            message: `Utilizatorul ${userStorage.user.email} a adăugat un comentariu nou la proiectul "${projectTitle}".`,
-                        });
-                    } else {
-                        console.log("No other collaborators to notify.");
+                    for (const fragment of fragsArray) {
+                        if (fragment.comments) {
+                            const commentIndex = fragment.comments.findIndex(c => c.id === commentId);
+                            if (commentIndex !== -1) {
+                                fragment.comments[commentIndex] = { ...fragment.comments[commentIndex], ...updatedCommentFromAPI };
+                                foundAndUpdateInStore = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (foundAndUpdateInStore) {
+                        break;
                     }
                 }
+                if (!foundAndUpdateInStore) {
+                    console.warn(`Store: Comment ${commentId} not found for local update after API success.`);
+                }
+                return updatedCommentFromAPI;
             } catch (error) {
-                console.error("Error adding comment:", error);
+                console.error("Error updating comment in store (POST):", error);
+                throw error;
             }
         },
 
-        deleteProject(projectId) {
-            const projectIndex = this.projects.findIndex((project) => project.id === projectId);
-            this.projects.splice(projectIndex, 1);
+        async toggleCommentStatus(commentId) {
+            const userStore = useUserStore();
 
-            axios.delete("http://localhost:3000/projects", {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                data: { projectId }
-            })
-        },
-
-        async deleteComment(commentId) {
             try {
-                for (const fragmentGroup of this.fragments) {
-                    const fragment = fragmentGroup.bibleFragments.find(f => f.comments?.some(c => c.id === commentId));
-                    if (fragment) {
-                        const index = fragment.comments.findIndex(c => c.id === commentId);
-                        if (index !== -1) {
-                            fragment.comments.splice(index, 1);
-                            break;
-                        }
-                    }
-                }
-
-                await axios.delete("http://localhost:3000/comments", {
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    data: { commentId }
+                const response = await axios.post("http://localhost:3000/comments/toggle-status", {
+                    commentId
+                }, {
+                    headers: { "Content-Type": "application/json" }
                 });
 
-                socket.emit("deleteComment", { commentId });
+                const updatedComment = response.data;
 
+                if (!updatedComment || typeof updatedComment.status === 'undefined' || typeof updatedComment.fragmentId === 'undefined') {
+                    console.error("toggleCommentStatus: API did not return a valid updated comment with status and fragmentId.");
+                    return;
+                }
+
+                let foundAndUpdateInStore = false;
+                for (const fragmentGroup of this.fragments) {
+                    let fragsArray = fragmentGroup.bibleFragments || fragmentGroup.fragments || [];
+                    for (const fragment of fragsArray) {
+                        if (fragment.comments) {
+                            const commentIndex = fragment.comments.findIndex(c => c.id === updatedComment.id);
+                            if (commentIndex !== -1) {
+                                fragment.comments[commentIndex] = { ...fragment.comments[commentIndex], ...updatedComment };
+                                foundAndUpdateInStore = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (foundAndUpdateInStore) break;
+                }
+
+                if (updatedComment.status === "public") {
+                    let finalProjectId = null;
+                    if (updatedComment.fragment && updatedComment.fragment.projectId) {
+                        finalProjectId = updatedComment.fragment.projectId;
+                    } else {
+                        console.warn("toggleCommentStatus: projectId not directly available on updatedComment. Attempting to find it.");
+                        outerLoop: for (const fg of this.fragments) {
+                            const frags = fg.bibleFragments || fg.fragments || [];
+                            for (const frag of frags) {
+                                if (frag.id === updatedComment.fragmentId) {
+                                    finalProjectId = fg.id; // fg.id este projectId-ul grupului
+                                    break outerLoop;
+                                }
+                            }
+                        }
+                    }
+
+                    if (finalProjectId) {
+                        await sendCommentNotification({
+                            projectId: finalProjectId,
+                            fragmentId: updatedComment.fragmentId,
+                            senderId: userStore.user.id,
+                            senderEmail: userStore.user.email
+                        });
+                    } else {
+                        console.error("toggleCommentStatus: Could not determine projectId for notification.");
+                    }
+                }
             } catch (error) {
-                console.error("Error deleting comment:", error);
+                console.error("Error toggling comment status:", error);
+                throw error;
             }
         },
 
@@ -306,20 +456,6 @@ export const useProjectStore = defineStore("project", {
             } catch (error) {
                 console.error("Error deleting Bible Chapter:", error);
                 return false;
-            }
-        },
-
-        async toggleCommentStatus(commentId) {
-            try {
-                await axios.post("http://localhost:3000/comments/toggle-status", {
-                    commentId
-                }, {
-                    headers: {
-                        "Content-Type": "application/json",
-                    }
-                });
-            } catch (error) {
-                console.error("Error toggling comment status:", error);
             }
         },
 

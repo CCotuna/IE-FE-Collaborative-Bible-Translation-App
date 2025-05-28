@@ -84,6 +84,19 @@ export const useNotificationStore = defineStore('notification', {
             }
         },
 
+        async markAsRead(notificationId) {
+            try {
+                await axios.patch(`http://localhost:3000/notifications/read/${notificationId}`, {
+                    status: 'read'
+                });
+                const notification = this.notifications.find(n => n.id === notificationId);
+                console.log("Notification marked as read:", notification);
+                if (notification) notification.status = 'read';
+            } catch (error) {
+                console.error("Error marking notification as read:", error);
+            }
+        },
+
         receiveNotification(notification) {
             const alreadyExists = this.notifications.some(n => n.id === notification.id);
             if (!alreadyExists) {

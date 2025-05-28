@@ -26,6 +26,14 @@ const declineInvitation = async (notificationId) => {
     }
 }
 
+const markAsRead = async (notificationId) => {
+    try {
+        await notificationStore.markAsRead(notificationId)
+    } catch (error) {
+        console.error('Error marking notification as read:', error)
+    }
+}
+
 onMounted(() => {
     notificationStore.listenForNotifications();
     notificationStore.fetchNotifications();
@@ -35,7 +43,7 @@ onMounted(() => {
 
 <template>
     <div v-if="notifications.length > 0">
-        {{ notifications }}
+        <!-- {{ notifications }} -->
         <ul>
             <li v-for="notification in notifications" :key="notification.id"
                 class="flex flex-col border-b space-y-3 p-6" :class="{
@@ -72,7 +80,7 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <div v-else-if="notification.type === 'comment'" class="flex flex-col space-y-2">
+                <div v-if="notification.type === 'comment'" class="flex flex-col space-y-2">
                     <span class="text-xl font-semibold" v-if="notification.projectTitle">Proiect: {{
                         notification.projectTitle }}</span>
                     <div>
@@ -84,7 +92,7 @@ onMounted(() => {
                     <div v-if="notification.message" class="bg-gray-100 p-3 rounded-md border border-gray-200">
                         <p class="text-sm text-gray-700"><strong>Mesaj:</strong> {{ notification.message }}</p>
                     </div>
-                    <div class="flex space-x-2 items-center">
+                    <div v-if="notification.fromUserEmail" class="flex space-x-2 items-center">
                         <div
                             class="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden border border-brand-olivine bg-brand-custom-white rounded-full">
                             <span class="font-medium text-brand-olivine">{{
@@ -92,21 +100,15 @@ onMounted(() => {
                         </div>
                         <span class="text-gray-400 text-sm">{{ timeSinceCreated(notification.createdAt) }}</span>
                     </div>
-                    <div class="pt-2">
-                        <button @click="markAsReadPlaceholder(notification.id)"
+                    <div v-if="notification.status === 'pending'" class="pt-2">
+                        <button @click="markAsRead(notification.id)"
                             class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
                             Marchează ca citit
                         </button>
                     </div>
-                </div>
-
-                <div v-else class="flex flex-col space-y-2">
-                    <span class="text-xl font-semibold" v-if="notification.projectTitle">{{ notification.projectTitle
-                        }}</span>
-                    <p>Notificare de tip necunoscut: <strong>{{ notification.type }}</strong> de la {{
-                        notification.fromUserEmail }}.</p>
-                    <pre class="text-xs bg-gray-100 p-2 rounded">{{ notification }}</pre>
-                    <span class="text-gray-400 text-sm">{{ timeSinceCreated(notification.createdAt) }}</span>
+                    <div v-else class="pt-1">
+                        <span class="text-sm italic">Status: {{ notification.status }}</span>
+                    </div>
                 </div>
 
             </li>
