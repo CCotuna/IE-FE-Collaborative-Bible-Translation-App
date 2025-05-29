@@ -1,16 +1,17 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useProjectStore } from "@/store/project";
 import { useNotificationStore } from "@/store/notification";
 import { useUserStore } from "@/store/user";
 import { useRoute } from "vue-router";
+import socket from "@/plugins/socket";
 
 const emailInput = ref("");
 const errorMessage = ref(null);
 const successMessage = ref(null);
 
 const route = useRoute();
-const projectId = route.params.id;
+const projectId = parseInt(route.params.id);
 
 const userStore = useUserStore();
 const projectStore = useProjectStore();
@@ -24,11 +25,43 @@ const project = computed(() => {
 const isOwner = computed(() => {
     if (!project.value || !userStore.user) return false;
 
-    const currentUser = project.value.collaborators.find(
-        (collab) => collab.email === userStore.user.email
-    );
+    return project.value.userId === userStore.user.id;
+});
 
-    return currentUser?.UserAccess?.role === "owner";
+onMounted(async () => {
+    if (projectId) {
+        socket.emit('joinProjectRoom', projectId.toString());
+        console.log(`CollaboratorsView: Joined project room ${projectId}`);
+    }
+
+    socket.on('collaboratorAdded', (newCollaborator) => {
+        console.log('Socket event: collaboratorAdded received', newCollaborator);
+
+        if (newCollaborator.projectId === projectId && project.value) {
+            const exists = project.value.collaborators.some(
+                (c) => c.userId === newCollaborator.userId || c.email === newCollaborator.email
+            );
+
+            if (!exists) {
+                project.value.collaborators.push({
+                    email: newCollaborator.email,
+                    userId: newCollaborator.userId,
+                    UserAccess: { role: newCollaborator.role }
+                });
+
+            } else {
+                console.log(`Collaborator ${newCollaborator.email} already in list for project ${projectId}.`);
+            }
+        }
+    });
+});
+
+onBeforeUnmount(() => {
+    if (projectId) {
+        socket.emit('leaveProjectRoom', projectId.toString());
+        console.log(`CollaboratorsView: Left project room ${projectId}`);
+    }
+    socket.off('collaboratorAdded');
 });
 
 const sendInvitation = async () => {

@@ -85,9 +85,7 @@ onMounted(() => {
                         notification.projectTitle }}</span>
                     <div>
                         Utilizatorul <span class="font-medium">{{ notification.fromUserEmail }}</span> a adăugat un
-                        comentariu
-                        <span v-if="notification.fragmentId">la fragmentul <strong class="text-brand-olivine">{{
-                            notification.fragmentId }}</strong></span>.
+                        comentariu. 
                     </div>
                     <div v-if="notification.message" class="bg-gray-100 p-3 rounded-md border border-gray-200">
                         <p class="text-sm text-gray-700"><strong>Mesaj:</strong> {{ notification.message }}</p>
@@ -102,7 +100,7 @@ onMounted(() => {
                     </div>
                     <div v-if="notification.status === 'pending'" class="pt-2">
                         <button @click="markAsRead(notification.id)"
-                            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm">
+                            class="bg-brand-olivine text-white px-4 py-2 rounded-md text-sm">
                             Marchează ca citit
                         </button>
                     </div>

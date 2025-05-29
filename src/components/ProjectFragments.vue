@@ -2,7 +2,7 @@
 import { useRoute, useRouter } from 'vue-router';
 import { useProjectStore } from '@/store/project';
 import { useUserStore } from '@/store/user';
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, watch, nextTick, computed, onMounted, onBeforeUnmount } from 'vue';
 import { timeSinceCreated } from '@/utils/timeSinceCreated';
 import socket from '@/plugins/socket';
 
@@ -17,10 +17,45 @@ const chapterId = parseInt(route.query.chapterId);
 
 const project = computed(() => projectStore.projects.find(p => p.id === projectId));
 
+const isSearchActive = computed(() => projectStore.isProjectSearchOpen);
+const localSearchQuery = ref('');
+const searchInputRef = ref(null);
+
+watch(isSearchActive, (newValue, oldValue) => {
+    if (!newValue) {
+        localSearchQuery.value = '';
+    } else if (newValue && !oldValue) {
+        nextTick(() => {
+            searchInputRef.value?.focus();
+        });
+    }
+});
+
+const isLoadingProject = ref(true);
+
 onMounted(async () => {
-    if (!project.value) {
-        console.warn("Project not found on mount in component.");
-        return;
+    isLoadingProject.value = true;
+
+    let currentProject = projectStore.projects.find(p => p.id === projectId);
+
+    if (!currentProject) {
+        console.log(`Project ${projectId} not found in store on mount. Fetching...`);
+        try {
+            await projectStore.fetchProjectById(projectId);
+            currentProject = projectStore.projects.find(p => p.id === projectId);
+
+            if (!currentProject) {
+                console.error(`Failed to fetch project ${projectId} after explicit fetch.`);
+                triggerToast(`Proiectul cu ID ${projectId} nu a putut fi încărcat.`, 'error');
+                isLoadingProject.value = false;
+                return;
+            }
+        } catch (error) {
+            console.error(`Error fetching project ${projectId} on mount:`, error);
+            triggerToast(`Eroare la încărcarea proiectului ${projectId}.`, 'error');
+            isLoadingProject.value = false;
+            return;
+        }
     }
 
     if (project.value.type === 'Biblia') {
@@ -51,12 +86,60 @@ onMounted(async () => {
         }
     });
 
-    socket.on('commentStatusUpdated', (updatedComment) => {
+    socket.on('commentStatusUpdated', async (updatedComment) => {
+        if (!updatedComment || typeof updatedComment.status === 'undefined' || typeof updatedComment.fragmentId === 'undefined') {
+            console.error("commentStatusUpdated: Socket event did not return a valid updated comment with status and fragmentId.");
+            return;
+        }
+
+        let foundAndUpdateInStore = false;
+        for (const fragment of fragments.value) {
+            if (fragment.comments) {
+                const commentIndex = fragment.comments.findIndex(c => c.id === updatedComment.id);
+                if (commentIndex !== -1) {
+                    fragment.comments[commentIndex] = { ...fragment.comments[commentIndex], ...updatedComment };
+                    foundAndUpdateInStore = true;
+                    break;
+                }
+            }
+        }
+
+        if (!foundAndUpdateInStore) {
+            console.warn(`commentStatusUpdated: Comment with ID ${updatedComment.id} not found in local fragments for update.`);
+        }
+
+        if (updatedComment.status === "public") {
+            let finalProjectId = null;
+            if (updatedComment.fragment && updatedComment.fragment.projectId) {
+                finalProjectId = updatedComment.fragment.projectId;
+            } else {
+                if (project.value && project.value.id) {
+                    finalProjectId = project.value.id;
+                } else {
+                    console.error("commentStatusUpdated: Could not determine projectId for notification.");
+                }
+            }
+
+            if (finalProjectId && userStore.user) {
+                await projectStore.sendCommentNotification({
+                    projectId: finalProjectId,
+                    fragmentId: updatedComment.fragmentId,
+                    senderId: userStore.user.id,
+                    senderEmail: userStore.user.email
+                });
+            } else if (!userStore.user) {
+                console.warn("commentStatusUpdated: User not logged in, skipping notification send.");
+            }
+        }
+    });
+
+    socket.on('commentSuggestionUpdated', (updatedComment) => {
         const fragment = fragments.value?.find(f => f.id === updatedComment.fragmentId);
         if (fragment && fragment.comments) {
             const commentIndex = fragment.comments.findIndex(c => c.id === updatedComment.id);
             if (commentIndex !== -1) {
                 fragment.comments[commentIndex] = { ...fragment.comments[commentIndex], ...updatedComment };
+                fragment.content = updatedComment.content;
             }
         }
     });
@@ -68,12 +151,30 @@ onBeforeUnmount(() => {
     }
     socket.off('newComment');
     socket.off('commentStatusUpdated');
+    socket.off('commentSuggestionUpdated');
 });
 
 const sortedFragments = computed(() => {
     if (!fragments.value || fragments.value.length === 0) return [];
+
+    let fragmentsToDisplay = [...fragments.value];
+
+    if (isSearchActive.value && localSearchQuery.value.trim() !== '') {
+        const query = localSearchQuery.value;
+
+        fragmentsToDisplay = fragmentsToDisplay.filter(fragment => {
+            if (fragment.content) {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = fragment.content;
+                const textContent = tempDiv.textContent || tempDiv.innerText || "";
+                return textContent.toLowerCase().includes(query);
+            }
+            return false;
+        });
+    }
+
     const projectType = project.value ? project.value.type : null;
-    return [...fragments.value].sort((a, b) => {
+    return fragmentsToDisplay.sort((a, b) => {
         if (projectType === 'Biblia') {
             return a.verseNumber - b.verseNumber;
         } else {
@@ -99,36 +200,9 @@ const saveEditedComment = async (commentId) => {
         console.warn("Edited comment content cannot be empty.");
         return;
     }
-    let fragmentIdOfEditedComment = null;
-    let commentIndexInFragment = -1;
-    let fragmentContainer = null;
-
-    outerLoop: for (const fragment of fragments.value) {
-        if (fragment.comments) {
-            const cIndex = fragment.comments.findIndex(c => c.id === commentId);
-            if (cIndex !== -1) {
-                fragmentIdOfEditedComment = fragment.id;
-                commentIndexInFragment = cIndex;
-                fragmentContainer = fragment;
-                break outerLoop;
-            }
-        }
-    }
-
-    if (!fragmentIdOfEditedComment || commentIndexInFragment === -1 || !fragmentContainer) {
-        console.error("Could not find the comment or fragment to update in the local list.");
-        closeEditCommentForm();
-        return;
-    }
 
     try {
         await projectStore.updateComment(commentId, newContent);
-
-        if (fragmentContainer.comments && fragmentContainer.comments[commentIndexInFragment]) {
-            fragmentContainer.comments[commentIndexInFragment].content = newContent;
-            console.log(`UI Updated: Comment ${commentId} content changed in fragment ${fragmentIdOfEditedComment}`);
-        }
-
     } catch (error) {
         console.error("Error saving edited comment in component:", error);
     } finally {
@@ -145,10 +219,17 @@ const commentText = ref('');
 const commentStatus = ref('private');
 const addComment = async (fragmentId) => {
     if (!commentText.value.trim()) return;
+    let isSuggestion = null;
+    if (commentStatus.value === 'public') {
+        isSuggestion = 'suggestion';
+    } else if (commentStatus.value === 'private') {
+        isSuggestion = 'none';
+    }
     await projectStore.addComment({
         fragmentId,
         content: commentText.value,
         status: commentStatus.value,
+        isSuggestion,
         projectId: projectId,
     });
     commentText.value = '';
@@ -191,6 +272,61 @@ const toggleCommentStatus = async () => {
     }
 };
 
+const showToast = ref(false);
+const toastMessage = ref('');
+const toastType = ref('success');
+
+const triggerToast = (message, type = 'success') => {
+    toastMessage.value = message;
+    toastType.value = type;
+    showToast.value = true;
+
+    setTimeout(() => {
+        showToast.value = false;
+    }, 3000);
+};
+
+const isCurrentUserProjectOwner = computed(() => {
+    if (!userStore.user || !project.value) {
+        return false;
+    }
+    return userStore.user.id === project.value.userId;
+});
+
+const selectedCommentIdForSuggestion = ref(null);
+const commentToToggleSuggestion = ref(null);
+const isToggleSuggestionModalOpen = ref(false);
+
+const openToggleSuggestionModal = (comment) => {
+    if (!isCurrentUserProjectOwner.value) {
+        triggerToast("Doar proprietarul proiectului poate modifica sugestiile de comentarii.", 'error');
+        return;
+    }
+    selectedCommentIdForSuggestion.value = comment.id;
+    commentToToggleSuggestion.value = comment;
+    isToggleSuggestionModalOpen.value = true;
+};
+
+const closeToggleSuggestionModal = () => {
+    isToggleSuggestionModalOpen.value = false;
+    selectedCommentIdForSuggestion.value = null;
+    commentToToggleSuggestion.value = null;
+};
+
+const confirmToggleCommentSuggestion = async () => {
+    if (!selectedCommentIdForSuggestion.value) return;
+    try {
+        await projectStore.toggleCommentSuggestion(selectedCommentIdForSuggestion.value);
+        const actionText = commentToToggleSuggestion.value?.isSuggestion === 'accepted' ? "anulată ca adnotare" : "acceptată ca adnotare";
+        triggerToast(`Sugestia a fost ${actionText} cu succes.`, 'success');
+    } catch (error) {
+        console.error('Error toggling comment suggestion from modal:', error);
+        triggerToast('A apărut o eroare la modificarea sugestiei.', 'error');
+    } finally {
+        closeToggleSuggestionModal();
+    }
+};
+
 const isDeleteCommentModalOpen = ref(false);
 const commentToDeleteId = ref(null);
 const fragmentOfCommentToDeleteId = ref(null);
@@ -227,24 +363,22 @@ const confirmDeleteComment = async () => {
         }
     }
 };
-
-// isProjectSearchOpen: false,
-const isSearchActive = computed(() => {
-    return projectStore.isProjectSearchOpen;
-})
-
 </script>
 
 <template>
     <!-- Salut {{ sortedFragments}} -->
     <div>
         <div v-if="isSearchActive"
-            class="flex items-center justify-between p-3 bg-white border-b">
-            <h1 class="text-2xl font-semibold text-gray-800">Proiect: {{ project?.title || 'Încărcare...' }}</h1>
-            <button
-                class="text-brand-olivine hover:text-brand-olivine-light">
-                <i class="bi bi-x-lg text-3xl"></i>
-            </button>
+            class="p-3 bg-white border-b border-gray-200 sticky top-0 z-40 flex items-center space-x-3 shadow-sm">
+            <div class="relative flex-grow">
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                    <i class="bi bi-search text-gray-400"></i>
+                </div>
+                <input type="text" v-model="localSearchQuery" placeholder="Caută în fragmente (case-insensitive)..."
+                    class="block w-full p-2 ps-10 text-sm text-gray-900 border-2 border-brand-olivine/50 rounded-lg 
+                   focus:ring-brand-olivine focus:border-brand-olivine 
+                   placeholder-gray-400 transition-colors duration-150" ref="searchInputRef" />
+            </div>
         </div>
         <!-- {{ project }} -->
         <div v-if="sortedFragments">
@@ -256,7 +390,6 @@ const isSearchActive = computed(() => {
                             <span v-html="fragment.content"></span>
                         </p>
                         <!-- {{ fragment }} -->
-
                         <div v-if="visibleComments(fragment).length > 0"
                             class="flex items-center space-x-2 mb-1 cursor-pointer"
                             :class="openCommentsForFragmentId === fragment.id ? 'ms-4' : 'ms-0'"
@@ -338,8 +471,9 @@ const isSearchActive = computed(() => {
                                         </p>
                                     </div>
 
-                                    <div v-if="comment.userId === userStore.user.id">
-                                        <div v-if="comment.status === 'private' && editingCommentId !== comment.id"
+                                    <div
+                                        v-if="(comment.userId === userStore.user.id) || (isCurrentUserProjectOwner && comment.status === 'public' && editingCommentId !== comment.id)">
+                                        <div v-if="comment.userId === userStore.user.id && comment.status === 'private' && editingCommentId !== comment.id"
                                             class="absolute -bottom-5 right-0 bg-white rounded-s-full w-[6.5rem] h-12">
                                             <i @click="openEditCommentForm(comment)"
                                                 class="bi bi-pen bg-white shadow-md cursor-pointer text-brand-gold-metallic rounded-full p-2 flex items-center justify-center absolute bottom-1 right-28 w-10 h-10 text-2xl"></i>
@@ -348,18 +482,29 @@ const isSearchActive = computed(() => {
                                                 Privat
                                             </button>
                                         </div>
+
                                         <div v-if="comment.status === 'public' && editingCommentId !== comment.id"
                                             class="absolute -bottom-4 right-0 bg-white rounded-s-full w-[6.5rem] h-12">
                                             <div
                                                 class="bg-white rounded-s-full w-[6.5rem] h-12 flex items-center relative z-10">
-                                                <div
-                                                    class="bg-white rounded-full cursor-pointer w-12 h-12 flex items-center justify-center z-10 relative right-6 -bottom-1">
-                                                    <i
-                                                        class="bi bi-repeat bg-brand-olivine text-white rounded-full p-2 flex items-center justify-center w-10 h-10 text-2xl"></i>
+                                                <div @click="openToggleSuggestionModal(comment)"
+                                                    :class="['bg-white rounded-full w-12 h-12 flex items-center justify-center z-10 relative right-6 -bottom-1',
+                                                        isCurrentUserProjectOwner ? 'cursor-pointer' : 'cursor-not-allowed']">
+                                                    <i :class="[
+                                                        'bi bi-repeat rounded-full p-2 flex items-center justify-center w-10 h-10 text-2xl',
+                                                        comment.isSuggestion === 'accepted'
+                                                            ? 'bg-brand-olivine text-white'
+                                                            : 'bg-white text-brand-olivine'
+                                                    ]">
+                                                    </i>
                                                 </div>
-                                                <button @click="openCommentStatusModal(comment.id)"
-                                                    class="absolute bottom-1 right-0 rounded-s-full py-1 w-28 bg-brand-gold-metallic text-white text-xl"><span
-                                                        class="ms-4">Public</span></button>
+
+                                                <button
+                                                    @click="comment.userId === userStore.user.id ? openCommentStatusModal(comment.id) : null"
+                                                    :class="['absolute bottom-1 right-0 rounded-s-full py-1 w-28 bg-brand-gold-metallic text-white text-xl',
+                                                        comment.userId === userStore.user.id ? 'cursor-pointer' : 'cursor-not-allowed opacity-75']">
+                                                    <span class="ms-4">Public</span>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -425,6 +570,37 @@ const isSearchActive = computed(() => {
                         class="bg-gray-300 hover:bg-gray-400 text-gray-800 text-lg px-8 py-2 rounded-full transition-colors">Anulează</button>
                 </div>
             </div>
+        </div>
+
+        <div v-if="isToggleSuggestionModalOpen && commentToToggleSuggestion"
+            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div class="bg-white rounded-lg p-8 shadow-lg text-center max-w-md w-full mx-4">
+                <h2 class="text-xl font-semibold mb-2">Confirmare Modificare Adnotare</h2>
+                <p v-if="!commentToToggleSuggestion.isSuggestion" class="text-gray-700 mb-6">
+                    Ești sigur că dorești să accepți acest comentariu ca adnotare pentru fragment?
+                    Conținutul fragmentului va fi actualizat cu textul comentariului.
+                </p>
+                <p v-else class="text-gray-700 mb-6">
+                    Ești sigur că dorești să anulezi acest comentariu ca adnotare pentru fragment?
+                    Conținutul fragmentului nu va mai fi cel al comentariului (dar nu va reveni automat la o stare
+                    anterioară specifică prin această acțiune).
+                </p>
+                <div class="flex justify-around mt-4">
+                    <button @click="confirmToggleCommentSuggestion"
+                        class="bg-brand-olivine hover:bg-brand-olivine-dark text-white text-lg px-8 py-2 rounded-full transition-colors">Confirmă</button>
+                    <button @click="closeToggleSuggestionModal"
+                        class="bg-gray-300 hover:bg-gray-400 text-gray-800 text-lg px-8 py-2 rounded-full transition-colors">Anulează</button>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="showToast"
+            class="fixed bottom-4 left-4 text-white px-6 py-3 rounded-lg shadow-lg z-[100] transition-all duration-300"
+            :class="{
+                'bg-red-600': toastType === 'error',
+                'bg-brand-olivine': toastType === 'success',
+            }">
+            {{ toastMessage }}
         </div>
     </div>
 </template>

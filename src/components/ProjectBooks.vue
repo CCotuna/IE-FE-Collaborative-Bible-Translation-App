@@ -88,7 +88,7 @@ const confirmDelete = async () => {
             <li v-for="book in books" :key="book.id"
                 class="relative border border-brand-olivine rounded-lg mx-5 mt-4 p-3 px-7 flex justify-between items-center">
                 <i
-                    class="bi bi-bell-fill bg-white text-brand-gold-metallic rounded-full flex items-center justify-center w-12 h-12 text-3xl absolute -top-4 -left-4"></i>
+                    class="bi bi-journal-text bg-white text-brand-gold-metallic rounded-full flex items-center justify-center w-12 h-12 text-3xl absolute -top-4 -left-4"></i>
                 <span @click="navigateToProjectChapters(book.id, book.title)" class="text-2xl cursor-pointer">
                     {{ removeBookPrefix(book.title) }}
                 </span>

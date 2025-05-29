@@ -1,12 +1,14 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useProjectStore } from '@/store/project';
+import { useNotificationStore } from '@/store/notification';
 import { useUserStore } from '@/store/user';
 import { timeSinceCreated } from '@/utils/timeSinceCreated';
 import { useRouter } from 'vue-router';
 import socket from '@/plugins/socket';
 
 const userStore = useUserStore();
+const notificationStore = useNotificationStore();
 
 const projectStore = useProjectStore();
 const projects = computed(() => {
@@ -93,13 +95,14 @@ const handleProjectDeleted = (data) => {
     }
 };
 
-onMounted(() => {
+onMounted(async () => {
     if (userStore.user && userStore.user.id) {
     }
     socket.on('projectDeleted', handleProjectDeleted);
 
     if (userStore.isAuthenticated() && projectStore.projects.length === 0) {
         projectStore.fetchProjects();
+        await notificationStore.fetchNotifications();
     }
 });
 
@@ -112,10 +115,10 @@ onBeforeUnmount(() => {
 <template>
     <div v-if="projects.length > 0">
         <div v-for="project in projects" :key="project.id"
-            class="relative border border-brand-olivine  rounded-lg mx-5 mt-4 p-3 space-y-3">
+            class="relative border border-brand-olivine rounded-lg mx-5 mt-4 p-3 space-y-3">
             <!-- {{ project }} -->
             <i
-                class="bi bi-bell-fill bg-white text-brand-gold-metallic rounded-full p-2 flex items-center justify-center w-12 h-12 text-3xl absolute -top-4 -left-4"></i>
+                class="bi bi-journal-text bg-white text-brand-gold-metallic rounded-full p-2 flex items-center justify-center w-12 h-12 text-3xl absolute -top-4 -left-4"></i>
             <div class="flex justify-between items-center">
                 <p class="text-xl cursor-pointer" @click="navigateToProject(project.id)">
                     {{ project.title }}

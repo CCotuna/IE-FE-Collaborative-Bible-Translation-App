@@ -134,6 +134,16 @@ export const useNotificationStore = defineStore('notification', {
             socket.on('newNotification', (newNotification) => {
                 this.receiveNotification(newNotification);
             });
+        },
+
+        hasUnreadUpdates(projectId, userId) {
+            console.log("Checking for unread updates in notifications:", this.notifications);
+
+            return this.notifications.some(notification =>
+                notification.projectId === projectId &&
+                notification.toUserId === userId &&
+                notification.status === 'unread'
+            );
         }
     }
 })

@@ -10,18 +10,25 @@ async function sendCommentNotification(commentData) {
     const projectStore = useProjectStore();
     const notificationStore = useNotificationStore();
 
+    await projectStore.fetchProjectById(projectId);
     const project = projectStore.projects.find(p => p.id === projectId);
     if (!project) {
         console.warn('sendCommentNotification: Project not found for projectId:', projectId);
         return;
     }
     const projectTitle = project.title;
-
+    console.log(commentData, projectTitle, "Project found for notification");
+    console.log(project, " Project data for notification");
     const receiverIds = project.collaborators
-        ?.filter(c => c && typeof c.id !== 'undefined')
-        .map(c => c.id)
-        .filter(id => id !== senderId) || [];
+        .map(collaborator => {
+            const collaboratorUserId = collaborator.id || collaborator.userId;
+            return collaboratorUserId;
+        })
+        .filter(collaboratorUserId => {
+            return typeof collaboratorUserId === 'number' && collaboratorUserId !== senderId;
+        });
 
+    console.log(receiverIds, "Receiver IDs for notification");
     if (receiverIds.length > 0) {
         await notificationStore.sendNotification({
             receiverIds: receiverIds,
@@ -213,13 +220,14 @@ export const useProjectStore = defineStore("project", {
 
         },
 
-        async addComment({ fragmentId, content, status, projectId }) {
+        async addComment({ fragmentId, content, status, isSuggestion, projectId }) {
             const userStore = useUserStore();
             try {
                 const response = await axios.post("http://localhost:3000/comments", {
                     fragmentId,
                     content,
                     status,
+                    isSuggestion,
                     userId: userStore.user.id,
                     userEmail: userStore.user.email,
                 }, {
@@ -389,7 +397,6 @@ export const useProjectStore = defineStore("project", {
                     if (updatedComment.fragment && updatedComment.fragment.projectId) {
                         finalProjectId = updatedComment.fragment.projectId;
                     } else {
-                        console.warn("toggleCommentStatus: projectId not directly available on updatedComment. Attempting to find it.");
                         outerLoop: for (const fg of this.fragments) {
                             const frags = fg.bibleFragments || fg.fragments || [];
                             for (const frag of frags) {
@@ -414,6 +421,42 @@ export const useProjectStore = defineStore("project", {
                 }
             } catch (error) {
                 console.error("Error toggling comment status:", error);
+                throw error;
+            }
+        },
+
+        async toggleCommentSuggestion(commentId) {
+            try {
+                const response = await axios.post("http://localhost:3000/comments/toggle-suggestion", {
+                    commentId,
+                }, {
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                const updatedComment = response.data;
+
+                let foundAndUpdateInStore = false;
+                for (const fragmentGroup of this.fragments) {
+                    let fragsArray = fragmentGroup.bibleFragments || fragmentGroup.fragments || [];
+                    for (const fragment of fragsArray) {
+                        if (fragment.comments) {
+                            const commentIndex = fragment.comments.findIndex(c => c.id === updatedComment.id);
+                            if (commentIndex !== -1) {
+                                fragment.comments[commentIndex] = { ...fragment.comments[commentIndex], ...updatedComment };
+                                if (updatedComment.content) {
+                                    fragment.content = updatedComment.content;
+                                }
+                                foundAndUpdateInStore = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (foundAndUpdateInStore) break;
+                }
+
+                return updatedComment;
+            } catch (error) {
+                console.error("Error toggling comment suggestion:", error);
                 throw error;
             }
         },
@@ -481,7 +524,7 @@ export const useProjectStore = defineStore("project", {
                 throw new Error("Failed to add collaborator.");
             }
         },
-        
+
         toggleProjectSearch() {
             this.isProjectSearchOpen = !this.isProjectSearchOpen;
         },
