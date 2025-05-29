@@ -110,9 +110,28 @@ onBeforeUnmount(() => {
     socket.off('projectDeleted', handleProjectDeleted);
 });
 
+const isExporting = ref(false);
+
+const exportProject = async (projectId) => {
+    isExporting.value = true;
+
+    const projectToExport = projects.value.find(p => p.id === projectId);
+    const projectTitle = projectToExport ? projectToExport.title : `Proiect ID ${projectId}`;
+    try {
+        await projectStore.exportProjectFragmentsToTXT(projectId);
+    } catch (error) {
+        console.error(`Failed to export project ${projectId} to PDF from component:`, error);
+        triggerToast(`Eroare la exportul PDF pentru "${projectTitle}": ${error.message}`, true);
+    } finally {
+        isExporting.value = false;
+    }
+};
+
+
 </script>
 
 <template>
+    
     <div v-if="projects.length > 0">
         <div v-for="project in projects" :key="project.id"
             class="relative border border-brand-olivine rounded-lg mx-5 mt-4 p-3 space-y-3">
@@ -139,8 +158,11 @@ onBeforeUnmount(() => {
                     <span>{{ timeSinceCreated(project.createdAt) }}</span>
                 </div>
                 <div class="flex space-x-2 items-center text-3xl text-brand-olivine">
-                    <i
-                        class="bi bi-share-fill bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>
+                    <button @click="exportProject(project.id)" :disabled="isExporting"
+                        title="Exportă fragmentele ca PDF" class="bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12 cursor-pointer
+                               disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="bi bi-share-fill"></i>
+                    </button>
                     <div class="cursor-pointer" @click="navigateToCollaborators(project.id)">
                         <i
                             class="bi bi-people bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12"></i>

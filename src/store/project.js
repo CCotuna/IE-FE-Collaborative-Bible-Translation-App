@@ -3,7 +3,6 @@ import { useNotificationStore } from './notification';
 import axios from "axios";
 
 import { useUserStore } from './user';
-import { books } from '@/constants/bibleBooks';
 
 async function sendCommentNotification(commentData) {
     const { projectId, fragmentId, senderId, senderEmail } = commentData;
@@ -529,5 +528,125 @@ export const useProjectStore = defineStore("project", {
             this.isProjectSearchOpen = !this.isProjectSearchOpen;
         },
 
-    },
+        async exportProjectFragmentsToTXT(projectId) {
+            try {
+                const currentProjectId = parseInt(projectId);
+                const project = this.projects.find(p => p.id === currentProjectId);
+                if (!project) {
+                    throw new Error("Proiectul nu a fost găsit pentru export.");
+                }
+
+                console.log(`TXT Export: Starting export for project ${currentProjectId}, type: ${project.type}`);
+
+                // --- Asigură-te că fragmentele sunt încărcate ---
+                // Aceeași logică de încărcare a fragmentelor ca pentru PDF
+                let projectFragmentsGroup = this.fragments.find(group => group.id === currentProjectId);
+                
+                const needsBibleFetch = project.type === 'Biblia' && (!projectFragmentsGroup || !projectFragmentsGroup.bibleFragments?.length);
+                const needsGenericFetch = project.type !== 'Biblia' && (!projectFragmentsGroup || !projectFragmentsGroup.fragments?.length);
+
+                if (needsBibleFetch) {
+                    console.log(`TXT Export: Bible fragments for project ${currentProjectId} needed. Fetching all...`);
+                    // Aici trebuie să folosești logica ta corectă de a aduna toate fragmentele biblice
+                    // așa cum am discutat (iterând prin cărți și capitole, și asigurându-te că
+                    // fetchChapterFragments ADUNĂ fragmentele în this.fragments[...].bibleFragments)
+                    
+                    // 1. Resetează bibleFragments pentru a aduna totul corect
+                    if (projectFragmentsGroup) {
+                        projectFragmentsGroup.bibleFragments = [];
+                    } else {
+                        projectFragmentsGroup = { id: currentProjectId, bibleFragments: [], fragments: [] };
+                        this.fragments.push(projectFragmentsGroup);
+                    }
+
+                    await this.fetchProjectBibleBooks(currentProjectId);
+                    const booksEntry = this.books.find(b => b.id === currentProjectId);
+                    if (!booksEntry || !booksEntry.bibleBooks || booksEntry.bibleBooks.length === 0) {
+                        throw new Error(`Nu s-au găsit cărți pentru proiectul biblic ${currentProjectId}.`);
+                    }
+
+                    for (const book of booksEntry.bibleBooks) {
+                        if (!book.id) continue;
+                        await this.fetchProjectBookChapters(currentProjectId, book.id); // Pasezi projectId și book.id
+                        const chaptersEntry = this.chapters.find(c => c.id === currentProjectId);
+                        const currentBookChapters = chaptersEntry?.bibleChapters;
+                        if (!currentBookChapters || currentBookChapters.length === 0) continue;
+
+                        for (const chapter of currentBookChapters) {
+                            if (!chapter.id) continue;
+                            await this.fetchChapterFragments(currentProjectId, chapter.id);
+                        }
+                    }
+                } else if (needsGenericFetch) {
+                    console.log(`TXT Export: Generic fragments for project ${currentProjectId} missing. Fetching...`);
+                    await this.fetchProjectFragments(currentProjectId);
+                }
+                
+                projectFragmentsGroup = this.fragments.find(group => group.id === currentProjectId); // Re-evaluează
+
+                if (!projectFragmentsGroup || 
+                    (project.type === 'Biblia' && (!projectFragmentsGroup.bibleFragments || projectFragmentsGroup.bibleFragments.length === 0)) ||
+                    (project.type !== 'Biblia' && (!projectFragmentsGroup.fragments || projectFragmentsGroup.fragments.length === 0))
+                ) {
+                    throw new Error("Fragmentele proiectului nu au putut fi încărcate pentru export sau sunt goale.");
+                }
+                
+                const fragmentsToExport = project.type === 'Biblia' ? 
+                                          (projectFragmentsGroup.bibleFragments || []) : 
+                                          (projectFragmentsGroup.fragments || []);
+
+                if (fragmentsToExport.length === 0) {
+                     throw new Error("Proiectul nu are fragmente specifice de exportat.");
+                }
+                console.log("TXT Export: Starting TXT generation with", fragmentsToExport.length, "fragments.");
+
+                // --- Generarea Conținutului TXT ---
+                let txtContent = "";
+
+                // Titlul Proiectului
+                txtContent += project.title + "\n";
+                txtContent += "=".repeat(project.title.length) + "\n\n"; // O linie de subliniere
+
+                // Fragmentele
+                fragmentsToExport.forEach((fragment, index) => {
+                    // Elimină tag-urile HTML din conținut
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = fragment.content || "";
+                    const textContent = (tempDiv.textContent || tempDiv.innerText || "").trim();
+
+                    let prefix = "";
+                    if (project.type === 'Biblia' && fragment.verseNumber != null) {
+                        // Aici ai putea adăuga și numele cărții/capitolului dacă ai acele informații
+                        // și dorești o formatare mai detaliată. Pentru TXT simplu, doar versetul e ok.
+                        prefix = `${fragment.verseNumber}. `;
+                    } else if (project.type !== 'Biblia') {
+                        // Poți adăuga un prefix și pentru proiecte non-biblice dacă dorești
+                        // prefix = `Fragment ${index + 1}: `;
+                    }
+                    
+                    txtContent += prefix + textContent + "\n\n"; // Adaugă două linii noi pentru spațiere între fragmente
+                });
+
+                // --- Crearea și Descărcarea Fișierului TXT ---
+                const fileName = `${project.title.toLowerCase().replace(/\s+/g, '_')}_fragmente.txt`;
+                const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
+                
+                // Creează un link temporar pentru descărcare
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = fileName;
+                document.body.appendChild(link); // Necesar pentru Firefox
+                link.click();
+                document.body.removeChild(link); // Curăță link-ul
+                URL.revokeObjectURL(link.href); // Eliberează obiectul URL
+
+                console.log(`TXT file "${fileName}" generated and download initiated.`);
+                return true;
+
+            } catch (error) {
+                console.error("Error exporting project to TXT:", error);
+                throw error; // Propagă eroarea pentru a fi prinsă în componentă
+            }
+        }
+    }
 });

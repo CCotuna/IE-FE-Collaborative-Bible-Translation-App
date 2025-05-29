@@ -363,6 +363,89 @@ const confirmDeleteComment = async () => {
         }
     }
 };
+
+const isTooltipVisible = ref(false);
+const tooltipStyle = ref({});
+const selectedTextForAI = ref('');
+
+const expandSelectionToWord = (selection) => {
+    const range = selection.getRangeAt(0);
+    const text = range.commonAncestorContainer.textContent;
+    let start = range.startOffset;
+    let end = range.endOffset;
+
+    while (start > 0 && /\w/.test(text[start - 1])) {
+        start--;
+    }
+
+    while (end < text.length && /\w/.test(text[end])) {
+        end++;
+    }
+
+    const newRange = document.createRange();
+    newRange.setStart(range.commonAncestorContainer, start);
+    newRange.setEnd(range.commonAncestorContainer, end);
+
+    selection.removeAllRanges();
+    selection.addRange(newRange);
+
+    return newRange;
+};
+
+
+const showTooltip = (event) => {
+    const selection = window.getSelection();
+    const selectedText = selection.toString().trim();
+
+    const fragmentsContainer = document.querySelector('.fragments-list-container');
+    if (!fragmentsContainer || !fragmentsContainer.contains(selection.anchorNode)) {
+        isTooltipVisible.value = false;
+        return;
+    }
+
+    if (selectedText) {
+        const expandedRange = expandSelectionToWord(selection);
+        selectedTextForAI.value = selection.toString().trim(); 
+
+        isTooltipVisible.value = true;
+        const rangeRect = expandedRange.getBoundingClientRect();
+
+        tooltipStyle.value = {
+            top: `${rangeRect.top + window.scrollY - 155}px`, 
+            left: `${rangeRect.left + window.scrollX + (rangeRect.width / 2) - 20}px` 
+        };
+    } else {
+        isTooltipVisible.value = false;
+        selectedTextForAI.value = ''; 
+    }
+};
+
+const handleClickOutside = (event) => {
+    const tooltipElement = document.querySelector('.ai-tooltip');
+    if (tooltipElement && !tooltipElement.contains(event.target)) {
+        isTooltipVisible.value = false;
+    }
+};
+
+onMounted(() => {
+    document.addEventListener('mouseup', showTooltip);
+    document.addEventListener('touchend', showTooltip);
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+    document.removeEventListener('mouseup', showTooltip);
+    document.removeEventListener('touchend', showTooltip);
+    document.removeEventListener('mousedown', handleClickOutside);
+    document.removeEventListener('touchstart', handleClickOutside);
+});
+
+watch(isTooltipVisible, (newValue) => {
+    if (!newValue) {
+        tooltipStyle.value = {}; 
+    }
+});
 </script>
 
 <template>
@@ -381,28 +464,39 @@ const confirmDeleteComment = async () => {
             </div>
         </div>
         <!-- {{ project }} -->
-        <div v-if="sortedFragments">
+        <div v-if="sortedFragments" class="fragments-list-container">
             <div class="p-3">
                 <ul class="space-y-6">
                     <li v-for="fragment in sortedFragments" :key="fragment.id">
-                        <p class="text-gray-900 cursor-pointer mb-1 text-lg" @click="toggleForm(fragment.id)">
-                            <span v-if="fragment.verseNumber != null">{{ fragment.verseNumber }}. </span>
-                            <span v-html="fragment.content"></span>
+                        <p class="flex items-center text-gray-900 mb-1 text-lg fragment-content">
+                            <span
+                                class="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md transition-colors duration-200 cursor-pointer me-2"
+                                :class="openFormForFragmentId === fragment.id ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-brand-olivine text-white hover:bg-brand-tea-green hover:text-black'"
+                                @click="toggleForm(fragment.id)">
+                                <i
+                                    :class="openFormForFragmentId === fragment.id ? 'bi bi-dash-lg' : 'bi bi-plus-lg'"></i>
+                            </span>
+                            <span class="flex-grow">
+                                <span v-if="fragment.verseNumber != null" class="font-bold me-1">{{ fragment.verseNumber
+                                    }}. </span>
+                                <span v-html="fragment.content"></span>
+                            </span>
                         </p>
+
+
                         <!-- {{ fragment }} -->
-                        <div v-if="visibleComments(fragment).length > 0"
-                            class="flex items-center space-x-2 mb-1 cursor-pointer"
-                            :class="openCommentsForFragmentId === fragment.id ? 'ms-4' : 'ms-0'"
-                            @click="toggleComments(fragment.id)">
-                            <div v-if="openCommentsForFragmentId !== fragment.id" class="flex items-center space-x-2">
+                        <div v-if="visibleComments(fragment).length > 0" class="flex items-center space-x-2 mb-1 ms-8"
+                            :class="openCommentsForFragmentId === fragment.id ? 'ms-4' : 'ms-0'">
+                            <div v-if="openCommentsForFragmentId !== fragment.id"
+                                class="flex items-center space-x-2 cursor-pointer" @click="toggleComments(fragment.id)">
                                 <span class="rounded-full bg-gray-400 text-white text-sm px-4 -ms-1 py-0.5">
                                     {{ visibleComments(fragment).length }}
                                 </span>
                                 <i class="bi bi-bell-fill text-gray-400 text-lg"></i>
                             </div>
-                            <div v-else>
+                            <div v-else class="cursor-pointer" @click="toggleComments(fragment.id)">
                                 <button
-                                    class="rounded-e-full w-20 -ms-4 flex items-center justify-center bg-brand-olivine text-white text-xl">
+                                    class="rounded-e-full w-20 -ms-6 flex items-center justify-center bg-brand-olivine text-white text-xl">
                                     <span class="text-xl"> {{ visibleComments(fragment).length }}</span>
                                     <i class="bi bi-chevron-double-down text-xl ms-4"></i>
                                 </button>
@@ -541,6 +635,30 @@ const confirmDeleteComment = async () => {
 
         <div v-else>
             <p>Project not found</p>
+        </div>
+
+        <div v-if="isTooltipVisible"
+            class="ai-tooltip fixed bg-white p-2 md:p-3 rounded-lg shadow-lg z-[100]
+                before:content-[''] before:absolute before:bottom-0 before:left-1/2 before:-translate-x-1/2
+                before:border-8 before:border-solid before:border-t-white before:border-x-transparent before:border-b-transparent"
+            :style="tooltipStyle">
+            <div class="flex flex-col items-start space-y-1 md:space-y-2">
+                <div class="flex items-center space-x-2">
+                    <span class="text-black text-lg md:text-xl font-extrabold">AI <i class="bi bi-stars"></i></span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-translate text-orange-500"></i> <span
+                        class="text-gray-800 text-sm md:text-base">Traduceri</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-files text-orange-500"></i> <span
+                        class="text-gray-800 text-sm md:text-base">Sinonime</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <i class="bi bi-bookmark text-orange-500"></i> <span
+                        class="text-gray-800 text-sm md:text-base">Expresii</span>
+                </div>
+            </div>
         </div>
 
         <div v-if="isToggleStatusModalOpen"
