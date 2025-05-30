@@ -2,6 +2,7 @@
 import { useRoute, useRouter } from 'vue-router';
 import { useProjectStore } from '@/store/project';
 import { useUserStore } from '@/store/user';
+import { useWordAssistantStore } from '@/store/wordAssistant';
 import { ref, watch, nextTick, computed, onMounted, onBeforeUnmount } from 'vue';
 import { timeSinceCreated } from '@/utils/timeSinceCreated';
 import socket from '@/plugins/socket';
@@ -10,6 +11,7 @@ const route = useRoute();
 const router = useRouter();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
+const wordStore = useWordAssistantStore();
 
 const fragments = ref([]);
 const projectId = parseInt(route.params.id);
@@ -405,18 +407,18 @@ const showTooltip = (event) => {
 
     if (selectedText) {
         const expandedRange = expandSelectionToWord(selection);
-        selectedTextForAI.value = selection.toString().trim(); 
+        selectedTextForAI.value = selection.toString().trim();
 
         isTooltipVisible.value = true;
         const rangeRect = expandedRange.getBoundingClientRect();
 
         tooltipStyle.value = {
-            top: `${rangeRect.top + window.scrollY - 155}px`, 
-            left: `${rangeRect.left + window.scrollX + (rangeRect.width / 2) - 20}px` 
+            top: `${rangeRect.top + window.scrollY - 155}px`,
+            left: `${rangeRect.left + window.scrollX + (rangeRect.width / 2) - 20}px`
         };
     } else {
         isTooltipVisible.value = false;
-        selectedTextForAI.value = ''; 
+        selectedTextForAI.value = '';
     }
 };
 
@@ -443,7 +445,7 @@ onBeforeUnmount(() => {
 
 watch(isTooltipVisible, (newValue) => {
     if (!newValue) {
-        tooltipStyle.value = {}; 
+        tooltipStyle.value = {};
     }
 });
 </script>
@@ -478,7 +480,7 @@ watch(isTooltipVisible, (newValue) => {
                             </span>
                             <span class="flex-grow">
                                 <span v-if="fragment.verseNumber != null" class="font-bold me-1">{{ fragment.verseNumber
-                                    }}. </span>
+                                }}. </span>
                                 <span v-html="fragment.content"></span>
                             </span>
                         </p>

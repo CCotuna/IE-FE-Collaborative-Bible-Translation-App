@@ -16,6 +16,13 @@ export const useBibleProjectStore = defineStore("bibleProject", {
     }),
     actions: {
 
+        getBookName(bookName) {
+            if (bookName.startsWith("Book")) {
+                return bookName.substring(4).trim();
+            }
+            return bookName;
+        },
+
         toggleBook(book) {
             const index = this.bibleProject.selectedBooks.findIndex(b => b.name === book.name);
             if (index === -1) {

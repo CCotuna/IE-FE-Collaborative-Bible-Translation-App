@@ -130,13 +130,19 @@ const toggleProjectSearch = () => {
         </div>
         <div v-if="route.path === '/' && projectStore.projects.length == 0 && !userStore.isAuthenticated()"
             class="flex space-x-5">
-            <RouterLink :to="{ name: 'sign-in' }"
-                class="flex items-center space-x-8 px-3 md:px-8 py-2 text-white bg-brand-olivine rounded-full">Sign in
+            <RouterLink :to="{ name: 'sign-in' }" class="flex items-center justify-center px-3 md:px-8 py-2 
+               text-white bg-brand-olivine rounded-full
+               transition-all duration-300 ease-in-out
+               hover:bg-opacity-85 hover:shadow-md hover:scale-105
+               focus:outline-none focus:ring-2 focus:ring-brand-olivine focus:ring-opacity-75">
+                Sign in
             </RouterLink>
-            <RouterLink :to="{ name: 'sign-up' }"
-                class="flex items-center space-x-8 px-3 md:px-8 py-2 text-brand-olivine bg-brand-honeydew rounded-full">
-                Sign
-                up
+            <RouterLink :to="{ name: 'sign-up' }" class="flex items-center justify-center px-3 md:px-8 py-2 
+               text-brand-olivine bg-brand-honeydew rounded-full
+               transition-all duration-300 ease-in-out
+               hover:bg-brand-tea-green hover:shadow-md hover:text-white hover:scale-105
+               focus:outline-none focus:ring-2 focus:ring-brand-olivine focus:ring-opacity-75">
+                Sign up
             </RouterLink>
         </div>
         <div v-if="showMainIcons" class="flex space-x-3 text-3xl">
