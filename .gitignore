@@ -32,4 +32,6 @@ coverage
 *.sln
 *.sw?
 
+src/components/ToolTipComponent.vue
+
 *.tsbuildinfo

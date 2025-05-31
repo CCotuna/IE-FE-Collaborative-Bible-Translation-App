@@ -5,17 +5,23 @@ import { useUserStore } from '@/store/user';
 import { useWordAssistantStore } from '@/store/wordAssistant';
 import { ref, watch, nextTick, computed, onMounted, onBeforeUnmount } from 'vue';
 import { timeSinceCreated } from '@/utils/timeSinceCreated';
+
+import TextWithTooltip from '@/components/TextWithTooltip.vue';
+import { useInlineFormStore } from '@/store/inlineForm';
 import socket from '@/plugins/socket';
 
 const route = useRoute();
 const router = useRouter();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
-const wordStore = useWordAssistantStore();
+const inlineFormStore = useInlineFormStore();
 
 const fragments = ref([]);
 const projectId = parseInt(route.params.id);
 const chapterId = parseInt(route.query.chapterId);
+
+const newFormTextareaContent = ref('');
+const newFormStatus = ref('proposed'); // Exemplu
 
 const project = computed(() => projectStore.projects.find(p => p.id === projectId));
 
@@ -33,6 +39,96 @@ watch(isSearchActive, (newValue, oldValue) => {
     }
 });
 
+
+const translationText = ref('');
+const targetLanguage = ref('en'); // Limba țintă default pentru traducere
+const synonymQuery = ref('');
+const expressionAnalysis = ref('');
+
+const translatedText = computed(() => {
+    return inlineFormStore.responseData?.translatedText || '';
+});
+
+const synonymsList = computed(() => {
+    return inlineFormStore.responseData?.synonymsList || [];
+});
+
+const expressionsList = computed(() => {
+    return inlineFormStore.responseData?.expressionsList || [];
+});
+
+const translationLanguages = ref([
+    { code: 'ro', name: 'Română' }, { code: 'en', name: 'Engleză' }, { code: 'es', name: 'Spaniolă' },
+    { code: 'fr', name: 'Franceză' }, { code: 'de', name: 'Germană' },
+    { code: 'it', name: 'Italiană' }, { code: 'pt', name: 'Portugheză' },
+    { code: 'ru', name: 'Rusă' }, { code: 'zh', name: 'Chineză (Simplificată)' },
+    { code: 'ja', name: 'Japoneză' }, { code: 'ko', name: 'Coreeană' },
+    { code: 'ar', name: 'Arabă' }, { code: 'hi', name: 'Hindi' },
+    { code: 'tr', name: 'Turcă' }, { code: 'nl', name: 'Olandeză' },
+    { code: 'sv', name: 'Suedeză' }, { code: 'pl', name: 'Poloneză' },
+    { code: 'he', name: 'Ebraică' }, { code: 'el', name: 'Greacă' },
+    { code: 'la', name: 'Latină' }, { code: 'uk', name: 'Ucraineană' }
+]);
+
+watch(() => [inlineFormStore.isFormOpen, inlineFormStore.formType, inlineFormStore.selectedTextForForm],
+    ([isOpen, type, text]) => {
+        if (isOpen) {
+            if (type === 'translate') {
+                translationText.value = '';
+            } else if (type === 'synonyms') {
+                synonymQuery.value = text;
+            } else if (type === 'expressions') {
+                expressionAnalysis.value = `Analizând expresia: "${text}"...\n`;
+            }
+        } else {
+            translationText.value = '';
+            targetLanguage.value = 'en';
+            synonymQuery.value = '';
+            expressionAnalysis.value = '';
+        }
+    }, { deep: true });
+
+const handleTranslateSubmit = async () => {
+    if (!translationText.value.trim() && !inlineFormStore.selectedTextForForm.trim()) {
+        triggerToast('Textul tradus sau cel original trebuie să existe.', 'error');
+        return;
+    }
+    await inlineFormStore.submitTranslation({
+        fragmentId: inlineFormStore.targetFragmentId,
+        originalText: inlineFormStore.selectedTextForForm,
+        translatedText: translationText.value,
+        targetLanguage: targetLanguage.value,
+        projectId: projectId,
+    });
+};
+
+const handleSynonymsSubmit = async () => {
+    if (!synonymQuery.value.trim()) {
+        triggerToast('Textul pentru căutarea sinonimelor nu poate fi gol.', 'error');
+        return;
+    }
+    await inlineFormStore.submitSynonyms({
+        fragmentId: inlineFormStore.targetFragmentId,
+        originalText: inlineFormStore.selectedTextForForm,
+        searchText: synonymQuery.value,
+        projectId: projectId,
+    });
+};
+
+const handleExpressionsSubmit = async () => {
+    if (!expressionAnalysis.value.trim()) {
+        triggerToast('Analiza expresiei nu poate fi goală.', 'error');
+        return;
+    }
+    await inlineFormStore.submitExpression({
+        fragmentId: inlineFormStore.targetFragmentId,
+        originalText: inlineFormStore.selectedTextForForm,
+        expressionDetails: expressionAnalysis.value,
+        projectId: projectId,
+    });
+};
+
+
 const isLoadingProject = ref(true);
 
 onMounted(async () => {
@@ -41,7 +137,6 @@ onMounted(async () => {
     let currentProject = projectStore.projects.find(p => p.id === projectId);
 
     if (!currentProject) {
-        console.log(`Project ${projectId} not found in store on mount. Fetching...`);
         try {
             await projectStore.fetchProjectById(projectId);
             currentProject = projectStore.projects.find(p => p.id === projectId);
@@ -187,6 +282,7 @@ const sortedFragments = computed(() => {
 
 const editingCommentId = ref(null);
 const editingCommentText = ref('');
+
 const openEditCommentForm = (comment) => {
     editingCommentId.value = comment.id;
     editingCommentText.value = comment.content;
@@ -365,93 +461,9 @@ const confirmDeleteComment = async () => {
         }
     }
 };
-
-const isTooltipVisible = ref(false);
-const tooltipStyle = ref({});
-const selectedTextForAI = ref('');
-
-const expandSelectionToWord = (selection) => {
-    const range = selection.getRangeAt(0);
-    const text = range.commonAncestorContainer.textContent;
-    let start = range.startOffset;
-    let end = range.endOffset;
-
-    while (start > 0 && /\w/.test(text[start - 1])) {
-        start--;
-    }
-
-    while (end < text.length && /\w/.test(text[end])) {
-        end++;
-    }
-
-    const newRange = document.createRange();
-    newRange.setStart(range.commonAncestorContainer, start);
-    newRange.setEnd(range.commonAncestorContainer, end);
-
-    selection.removeAllRanges();
-    selection.addRange(newRange);
-
-    return newRange;
-};
-
-
-const showTooltip = (event) => {
-    const selection = window.getSelection();
-    const selectedText = selection.toString().trim();
-
-    const fragmentsContainer = document.querySelector('.fragments-list-container');
-    if (!fragmentsContainer || !fragmentsContainer.contains(selection.anchorNode)) {
-        isTooltipVisible.value = false;
-        return;
-    }
-
-    if (selectedText) {
-        const expandedRange = expandSelectionToWord(selection);
-        selectedTextForAI.value = selection.toString().trim();
-
-        isTooltipVisible.value = true;
-        const rangeRect = expandedRange.getBoundingClientRect();
-
-        tooltipStyle.value = {
-            top: `${rangeRect.top + window.scrollY - 155}px`,
-            left: `${rangeRect.left + window.scrollX + (rangeRect.width / 2) - 20}px`
-        };
-    } else {
-        isTooltipVisible.value = false;
-        selectedTextForAI.value = '';
-    }
-};
-
-const handleClickOutside = (event) => {
-    const tooltipElement = document.querySelector('.ai-tooltip');
-    if (tooltipElement && !tooltipElement.contains(event.target)) {
-        isTooltipVisible.value = false;
-    }
-};
-
-onMounted(() => {
-    document.addEventListener('mouseup', showTooltip);
-    document.addEventListener('touchend', showTooltip);
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
-});
-
-onBeforeUnmount(() => {
-    document.removeEventListener('mouseup', showTooltip);
-    document.removeEventListener('touchend', showTooltip);
-    document.removeEventListener('mousedown', handleClickOutside);
-    document.removeEventListener('touchstart', handleClickOutside);
-});
-
-watch(isTooltipVisible, (newValue) => {
-    if (!newValue) {
-        tooltipStyle.value = {};
-    }
-});
 </script>
 
 <template>
-    <!-- Salut {{ sortedFragments}} -->
     <div>
         <div v-if="isSearchActive"
             class="p-3 bg-white border-b border-gray-200 sticky top-0 z-40 flex items-center space-x-3 shadow-sm">
@@ -465,7 +477,7 @@ watch(isTooltipVisible, (newValue) => {
                    placeholder-gray-400 transition-colors duration-150" ref="searchInputRef" />
             </div>
         </div>
-        <!-- {{ project }} -->
+
         <div v-if="sortedFragments" class="fragments-list-container">
             <div class="p-3">
                 <ul class="space-y-6">
@@ -481,12 +493,11 @@ watch(isTooltipVisible, (newValue) => {
                             <span class="flex-grow">
                                 <span v-if="fragment.verseNumber != null" class="font-bold me-1">{{ fragment.verseNumber
                                 }}. </span>
-                                <span v-html="fragment.content"></span>
+                                <TextWithTooltip :contentHtml="fragment.content" :fragmentId="fragment.id" />
                             </span>
                         </p>
 
 
-                        <!-- {{ fragment }} -->
                         <div v-if="visibleComments(fragment).length > 0" class="flex items-center space-x-2 mb-1 ms-8"
                             :class="openCommentsForFragmentId === fragment.id ? 'ms-4' : 'ms-0'">
                             <div v-if="openCommentsForFragmentId !== fragment.id"
@@ -508,7 +519,7 @@ watch(isTooltipVisible, (newValue) => {
                         <div v-if="openCommentsForFragmentId === fragment.id && fragment.comments?.length">
                             <ul class="border-s-8 border-brand-olivine -mt-8 -mb-12 pt-2" :class="{
                                 'pb-12': !editingCommentId && (openFormForFragmentId === fragment.id || (fragment.comments && fragment.comments.length > 0)),
-                                'pb-5 mb-4': !editingCommentId && openFormForFragmentId !== fragment.id && fragment.comments && fragment.comments.length > 0,
+                                'pb-5 mb-4': !editingCommentId && openFormForFragmentId !== fragment.id && fragment.comments && fragment.comments.length > 0 && !(inlineFormStore.isFormOpen && inlineFormStore.targetFragmentId === fragment.id),
                                 'pb-0 mb-0': editingCommentId,
                             }">
                                 <li v-for="comment in visibleComments(fragment)" :key="comment.id"
@@ -520,11 +531,12 @@ watch(isTooltipVisible, (newValue) => {
                                             'bg-brand-cornsilk': comment.userId === userStore.user.id,
                                             'bg-white': comment.userId !== userStore.user.id
                                         }">
-                                            <span>{{ comment.content }}</span>
+                                            <TextWithTooltip :contentHtml="comment.content" :fragmentId="fragment.id" />
+                                            <!-- <span>{{ comment.content }}</span> -->
                                         </p>
                                     </div>
 
-                                    <div v-if="editingCommentId === comment.id" class="ps-2 pe-0 pb-0 pt-6">
+                                    <div v-if="editingCommentId === comment.id" class="ps-2 pt-8">
                                         <div class="flex justify-between items-center mb-2 border rounded-lg p-1 px-2">
                                             <div class="flex space-x-5 text-brand-olivine">
                                                 <span @click="closeEditCommentForm()" class="text-2xl cursor-pointer">
@@ -546,7 +558,7 @@ watch(isTooltipVisible, (newValue) => {
                                             placeholder="Editează comentariul aici..."></textarea>
 
                                         <button
-                                            class="mt-2 px-4 py-2 bg-brand-olivine text-white rounded-lg hover:bg-brand-olivine-light"
+                                            class="mt-2 px-4 py-2 bg-brand-olivine text-white rounded-lg hover:bg-brand-tea-green hover:text-black"
                                             @click="saveEditedComment(comment.id)">
                                             Salvează modificările
                                         </button>
@@ -625,9 +637,88 @@ watch(isTooltipVisible, (newValue) => {
                             </select>
 
                             <button
-                                class="mt-2 px-4 py-2 bg-brand-olivine text-white rounded-lg hover:bg-brand-olivine-light"
+                                class="mt-2 px-4 py-2 bg-brand-olivine text-white rounded-lg hover:bg-brand-tea-green hover:text-black"
                                 @click="addComment(fragment.id)">
                                 Creează comentariu
+                            </button>
+                        </div>
+
+                        <!-- Formular pentru TRADUCERE -->
+                        <div v-if="inlineFormStore.isFormOpen && inlineFormStore.targetFragmentId === fragment.id && inlineFormStore.formType === 'translate'"
+                            class="border-s-8 border-brand-olivine px-3 pt-4 mt-2 mb-4 global-inline-form-active">
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="text-md font-semibold text-green-900">Tradu cu DeepL</h4>
+                                <button @click="inlineFormStore.closeForm()"
+                                    class="text-gray-500 hover:text-gray-700 text-3xl">×</button>
+                            </div>
+                            <div class="mb-2 p-2 border border-gray-200 bg-gray-50 rounded text-sm text-gray-600">
+                                <strong>Text Original:</strong> "{{ inlineFormStore.selectedTextForForm }}"
+                            </div>
+                            <div class="mb-2 p-2 border border-gray-200 bg-gray-50 rounded text-sm text-gray-600">
+                                <strong class="text-brand-olivine">Text Tradus:</strong> {{
+                                    translatedText || 'Aștept traducerea...' }}
+                            </div>
+                            <label for="targetLanguage" class="block text-sm font-medium text-gray-700 mt-2">Tradu
+                                în:</label>
+                            <select id="targetLanguage" v-model="targetLanguage"
+                                class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                                <option v-for="lang in translationLanguages" :key="lang.code" :value="lang.code">
+                                    {{ lang.name }}
+                                </option>
+                            </select>
+                            <button @click="handleTranslateSubmit"
+                                class="mt-2 px-4 py-2 bg-brand-olivine text-white rounded-lg hover:bg-brand-tea-green hover:text-black">
+                                Tradu textul
+                            </button>
+                        </div>
+
+                        <!-- Formular pentru SINONIME -->
+                        <div v-if="inlineFormStore.isFormOpen && inlineFormStore.targetFragmentId === fragment.id && inlineFormStore.formType === 'synonyms'"
+                            class="border-s-8 border-brand-olivine px-3 pt-4 mt-2 mb-4 global-inline-form-active">
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="text-md font-semibold text-green-900">Caută Sinonime</h4>
+                                <button @click="inlineFormStore.closeForm()"
+                                    class="text-gray-500 hover:text-gray-700 text-3xl">×</button>
+                            </div>
+                            <div class="mb-2 p-2 border border-gray-200 bg-gray-50 rounded text-sm text-gray-600">
+                                <strong>Text Selectat:</strong> "{{ inlineFormStore.selectedTextForForm }}"
+                            </div>
+                            <div class="mb-2 p-2 border border-gray-200 bg-gray-50 rounded text-sm text-gray-600">
+                                <strong class="text-brand-olivine">Sinonime găsite:</strong>
+                                <ul class="space-y-1">
+                                    <li v-for="synonym in synonymsList" :key="synonym">
+                                        • {{ synonym ? synonym : 'Niciun sinonim găsit' }}
+                                    </li>
+                                </ul>
+                            </div>
+                            <button @click="handleSynonymsSubmit"
+                                class="mt-2 px-4 py-2 bg-brand-olivine text-white rounded-lg hover:bg-brand-tea-green hover:text-black">
+                                Caută Sinonime
+                            </button>
+                        </div>
+
+                        <!-- Formular pentru EXPRESII -->
+                        <div v-if="inlineFormStore.isFormOpen && inlineFormStore.targetFragmentId === fragment.id && inlineFormStore.formType === 'expressions'"
+                            class="border-s-8 border-brand-olivine px-3 pt-4 mt-2 mb-4 global-inline-form-active">
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="text-md font-semibold text-green-900">Expresii similare</h4>
+                                <button @click="inlineFormStore.closeForm()"
+                                    class="text-gray-500 hover:text-gray-700 text-3xl">×</button>
+                            </div>
+                            <div class="mb-2 p-2 border border-gray-200 bg-gray-50 rounded text-sm text-gray-600">
+                                <strong>Expresie Selectată:</strong> "{{ inlineFormStore.selectedTextForForm }}"
+                            </div>
+                            <div class="mb-2 p-2 border border-gray-200 bg-gray-50 rounded text-sm text-gray-600">
+                                <strong class="text-brand-olivine">Expresii găsite:</strong>
+                                <ul class="space-y-1">
+                                    <li v-for="expression in expressionsList" :key="expression">
+                                        • {{ expression ? expression : 'Nicio expresie găsită' }}
+                                    </li>
+                                </ul>
+                            </div>
+                            <button @click="handleExpressionsSubmit"
+                                class="mt-2 px-4 py-2 bg-brand-olivine text-white rounded-lg hover:bg-brand-tea-green hover:text-black">
+                                Salvează Analiza
                             </button>
                         </div>
                     </li>
@@ -637,30 +728,6 @@ watch(isTooltipVisible, (newValue) => {
 
         <div v-else>
             <p>Project not found</p>
-        </div>
-
-        <div v-if="isTooltipVisible"
-            class="ai-tooltip fixed bg-white p-2 md:p-3 rounded-lg shadow-lg z-[100]
-                before:content-[''] before:absolute before:bottom-0 before:left-1/2 before:-translate-x-1/2
-                before:border-8 before:border-solid before:border-t-white before:border-x-transparent before:border-b-transparent"
-            :style="tooltipStyle">
-            <div class="flex flex-col items-start space-y-1 md:space-y-2">
-                <div class="flex items-center space-x-2">
-                    <span class="text-black text-lg md:text-xl font-extrabold">AI <i class="bi bi-stars"></i></span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <i class="bi bi-translate text-orange-500"></i> <span
-                        class="text-gray-800 text-sm md:text-base">Traduceri</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <i class="bi bi-files text-orange-500"></i> <span
-                        class="text-gray-800 text-sm md:text-base">Sinonime</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <i class="bi bi-bookmark text-orange-500"></i> <span
-                        class="text-gray-800 text-sm md:text-base">Expresii</span>
-                </div>
-            </div>
         </div>
 
         <div v-if="isToggleStatusModalOpen"
@@ -676,6 +743,7 @@ watch(isTooltipVisible, (newValue) => {
                 </div>
             </div>
         </div>
+
 
         <div v-if="isDeleteCommentModalOpen"
             class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">

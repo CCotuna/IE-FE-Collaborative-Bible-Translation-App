@@ -50,7 +50,6 @@ export const useNotificationStore = defineStore('notification', {
                 }
 
                 const response = await axios.post(`http://localhost:3000/notifications`, payload);
-                console.log('Notification(s) sent successfully:', response.data);
                 return response.data;
 
             } catch (error) {
@@ -90,7 +89,6 @@ export const useNotificationStore = defineStore('notification', {
                     status: 'read'
                 });
                 const notification = this.notifications.find(n => n.id === notificationId);
-                console.log("Notification marked as read:", notification);
                 if (notification) notification.status = 'read';
             } catch (error) {
                 console.error("Error marking notification as read:", error);
@@ -137,8 +135,6 @@ export const useNotificationStore = defineStore('notification', {
         },
 
         hasUnreadUpdates(projectId, userId) {
-            console.log("Checking for unread updates in notifications:", this.notifications);
-
             return this.notifications.some(notification =>
                 notification.projectId === projectId &&
                 notification.toUserId === userId &&

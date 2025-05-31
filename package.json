@@ -21,9 +21,11 @@
     "pinia": "^2.1.7",
     "sequelize": "^6.37.3",
     "socket.io-client": "^4.8.1",
+    "tippy.js": "^6",
     "vite-plugin-pwa": "^0.20.1",
     "vue": "^3.4.29",
-    "vue-router": "^4.5.0"
+    "vue-router": "^4.5.0",
+    "vue-tippy": "v6"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.8.0",

@@ -31,11 +31,9 @@ const isOwner = computed(() => {
 onMounted(async () => {
     if (projectId) {
         socket.emit('joinProjectRoom', projectId.toString());
-        console.log(`CollaboratorsView: Joined project room ${projectId}`);
     }
 
     socket.on('collaboratorAdded', (newCollaborator) => {
-        console.log('Socket event: collaboratorAdded received', newCollaborator);
 
         if (newCollaborator.projectId === projectId && project.value) {
             const exists = project.value.collaborators.some(
@@ -59,7 +57,6 @@ onMounted(async () => {
 onBeforeUnmount(() => {
     if (projectId) {
         socket.emit('leaveProjectRoom', projectId.toString());
-        console.log(`CollaboratorsView: Left project room ${projectId}`);
     }
     socket.off('collaboratorAdded');
 });

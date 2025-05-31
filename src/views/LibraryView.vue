@@ -84,7 +84,6 @@ const confirmDelete = async () => {
 };
 
 const handleProjectDeleted = (data) => {
-    console.log('Socket event: projectDeleted received', data);
     const projectExistsInList = projectStore.projects.some(p => p.id === data.id);
 
     if (projectExistsInList) {

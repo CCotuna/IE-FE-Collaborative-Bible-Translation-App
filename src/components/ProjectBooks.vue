@@ -70,7 +70,6 @@ const closeModal = () => {
 const confirmDelete = async () => {
     if (selectedBookId.value !== null) {
         const success = await projectStore.deleteBibleBook(selectedBookId.value, projectId);
-        console.log("Delete response:", success);
         if (success) {
             books.value = books.value.filter(book => book.id !== selectedBookId.value);
             triggerToast("Cartea a fost ștearsă cu succes.", false);

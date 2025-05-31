@@ -16,8 +16,6 @@ async function sendCommentNotification(commentData) {
         return;
     }
     const projectTitle = project.title;
-    console.log(commentData, projectTitle, "Project found for notification");
-    console.log(project, " Project data for notification");
     const receiverIds = project.collaborators
         .map(collaborator => {
             const collaboratorUserId = collaborator.id || collaborator.userId;
@@ -27,7 +25,6 @@ async function sendCommentNotification(commentData) {
             return typeof collaboratorUserId === 'number' && collaboratorUserId !== senderId;
         });
 
-    console.log(receiverIds, "Receiver IDs for notification");
     if (receiverIds.length > 0) {
         await notificationStore.sendNotification({
             receiverIds: receiverIds,
@@ -40,7 +37,6 @@ async function sendCommentNotification(commentData) {
             fragmentId: fragmentId,
             message: `Utilizatorul ${senderEmail} a adăugat/modificat un comentariu public la proiectul "${projectTitle}".`,
         });
-        console.log(`Notification sent for comment on project "${projectTitle}" to ${receiverIds.length} users.`);
     } else {
         console.log("No other collaborators to notify for comment.");
     }
@@ -536,22 +532,12 @@ export const useProjectStore = defineStore("project", {
                     throw new Error("Proiectul nu a fost găsit pentru export.");
                 }
 
-                console.log(`TXT Export: Starting export for project ${currentProjectId}, type: ${project.type}`);
-
-                // --- Asigură-te că fragmentele sunt încărcate ---
-                // Aceeași logică de încărcare a fragmentelor ca pentru PDF
                 let projectFragmentsGroup = this.fragments.find(group => group.id === currentProjectId);
-                
+
                 const needsBibleFetch = project.type === 'Biblia' && (!projectFragmentsGroup || !projectFragmentsGroup.bibleFragments?.length);
                 const needsGenericFetch = project.type !== 'Biblia' && (!projectFragmentsGroup || !projectFragmentsGroup.fragments?.length);
 
                 if (needsBibleFetch) {
-                    console.log(`TXT Export: Bible fragments for project ${currentProjectId} needed. Fetching all...`);
-                    // Aici trebuie să folosești logica ta corectă de a aduna toate fragmentele biblice
-                    // așa cum am discutat (iterând prin cărți și capitole, și asigurându-te că
-                    // fetchChapterFragments ADUNĂ fragmentele în this.fragments[...].bibleFragments)
-                    
-                    // 1. Resetează bibleFragments pentru a aduna totul corect
                     if (projectFragmentsGroup) {
                         projectFragmentsGroup.bibleFragments = [];
                     } else {
@@ -567,7 +553,7 @@ export const useProjectStore = defineStore("project", {
 
                     for (const book of booksEntry.bibleBooks) {
                         if (!book.id) continue;
-                        await this.fetchProjectBookChapters(currentProjectId, book.id); // Pasezi projectId și book.id
+                        await this.fetchProjectBookChapters(currentProjectId, book.id); 
                         const chaptersEntry = this.chapters.find(c => c.id === currentProjectId);
                         const currentBookChapters = chaptersEntry?.bibleChapters;
                         if (!currentBookChapters || currentBookChapters.length === 0) continue;
@@ -578,74 +564,61 @@ export const useProjectStore = defineStore("project", {
                         }
                     }
                 } else if (needsGenericFetch) {
-                    console.log(`TXT Export: Generic fragments for project ${currentProjectId} missing. Fetching...`);
                     await this.fetchProjectFragments(currentProjectId);
                 }
-                
-                projectFragmentsGroup = this.fragments.find(group => group.id === currentProjectId); // Re-evaluează
 
-                if (!projectFragmentsGroup || 
+                projectFragmentsGroup = this.fragments.find(group => group.id === currentProjectId); 
+
+                if (!projectFragmentsGroup ||
                     (project.type === 'Biblia' && (!projectFragmentsGroup.bibleFragments || projectFragmentsGroup.bibleFragments.length === 0)) ||
                     (project.type !== 'Biblia' && (!projectFragmentsGroup.fragments || projectFragmentsGroup.fragments.length === 0))
                 ) {
                     throw new Error("Fragmentele proiectului nu au putut fi încărcate pentru export sau sunt goale.");
                 }
-                
-                const fragmentsToExport = project.type === 'Biblia' ? 
-                                          (projectFragmentsGroup.bibleFragments || []) : 
-                                          (projectFragmentsGroup.fragments || []);
+
+                const fragmentsToExport = project.type === 'Biblia' ?
+                    (projectFragmentsGroup.bibleFragments || []) :
+                    (projectFragmentsGroup.fragments || []);
 
                 if (fragmentsToExport.length === 0) {
-                     throw new Error("Proiectul nu are fragmente specifice de exportat.");
+                    throw new Error("Proiectul nu are fragmente specifice de exportat.");
                 }
-                console.log("TXT Export: Starting TXT generation with", fragmentsToExport.length, "fragments.");
-
-                // --- Generarea Conținutului TXT ---
+               
                 let txtContent = "";
 
-                // Titlul Proiectului
                 txtContent += project.title + "\n";
-                txtContent += "=".repeat(project.title.length) + "\n\n"; // O linie de subliniere
+                txtContent += "=".repeat(project.title.length) + "\n\n"; 
 
-                // Fragmentele
                 fragmentsToExport.forEach((fragment, index) => {
-                    // Elimină tag-urile HTML din conținut
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = fragment.content || "";
                     const textContent = (tempDiv.textContent || tempDiv.innerText || "").trim();
 
                     let prefix = "";
                     if (project.type === 'Biblia' && fragment.verseNumber != null) {
-                        // Aici ai putea adăuga și numele cărții/capitolului dacă ai acele informații
-                        // și dorești o formatare mai detaliată. Pentru TXT simplu, doar versetul e ok.
                         prefix = `${fragment.verseNumber}. `;
                     } else if (project.type !== 'Biblia') {
-                        // Poți adăuga un prefix și pentru proiecte non-biblice dacă dorești
-                        // prefix = `Fragment ${index + 1}: `;
                     }
-                    
-                    txtContent += prefix + textContent + "\n\n"; // Adaugă două linii noi pentru spațiere între fragmente
+
+                    txtContent += prefix + textContent + "\n\n";
                 });
 
-                // --- Crearea și Descărcarea Fișierului TXT ---
                 const fileName = `${project.title.toLowerCase().replace(/\s+/g, '_')}_fragmente.txt`;
                 const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
-                
-                // Creează un link temporar pentru descărcare
+
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = fileName;
-                document.body.appendChild(link); // Necesar pentru Firefox
+                document.body.appendChild(link); 
                 link.click();
-                document.body.removeChild(link); // Curăță link-ul
-                URL.revokeObjectURL(link.href); // Eliberează obiectul URL
+                document.body.removeChild(link); 
+                URL.revokeObjectURL(link.href); 
 
-                console.log(`TXT file "${fileName}" generated and download initiated.`);
                 return true;
 
             } catch (error) {
                 console.error("Error exporting project to TXT:", error);
-                throw error; // Propagă eroarea pentru a fi prinsă în componentă
+                throw error;
             }
         }
     }
