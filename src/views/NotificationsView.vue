@@ -2,8 +2,11 @@
 import { onMounted, computed } from 'vue'
 import { useNotificationStore } from '@/store/notification'
 import { useProjectStore } from '@/store/project'
+import { useRouter } from 'vue-router'
 
 import { timeSinceCreated } from '@/utils/timeSinceCreated'
+
+const router = useRouter()
 
 const projectStore = useProjectStore()
 const notificationStore = useNotificationStore()
@@ -38,6 +41,20 @@ onMounted(() => {
     notificationStore.listenForNotifications();
     notificationStore.fetchNotifications();
 })
+
+const navigateToProject = (notification) => {
+    const project = projectStore.projects.find(p => p.id === notification.projectId);
+    if (!project) {
+        console.error('Project not found for notification:', notification);
+        return;
+    }
+    const slug = project.title.toLowerCase().replace(/\s+/g, '-');
+    if (project.type === 'Biblia') {
+        router.push({ name: 'project-books', params: { id: project.id, slug } });
+    } else {
+        router.push({ name: 'project-default', params: { id: project.id, slug } });
+    }
+};
 
 </script>
 
@@ -81,12 +98,15 @@ onMounted(() => {
                 </div>
 
                 <div v-if="notification.type === 'comment'" class="flex flex-col space-y-2">
-                    <span class="text-xl font-semibold" v-if="notification.projectTitle">Proiect: {{
-                        notification.projectTitle }}</span>
+                    <span @click="navigateToProject(notification)"
+                        class="text-xl font-semibold cursor-pointer hover:text-brand-gold-metallic"
+                        v-if="notification.projectTitle">Proiect: {{
+                            notification.projectTitle }}</span>
                     <div>
                         Utilizatorul <span class="font-medium">{{ notification.fromUserEmail }}</span> a adăugat un
-                        comentariu. 
+                        comentariu.
                     </div>
+                    {{ notification }}
                     <div v-if="notification.message" class="bg-gray-100 p-3 rounded-md border border-gray-200">
                         <p class="text-sm text-gray-700"><strong>Mesaj:</strong> {{ notification.message }}</p>
                     </div>

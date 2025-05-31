@@ -685,10 +685,12 @@ const confirmDeleteComment = async () => {
                             </div>
                             <div class="mb-2 p-2 border border-gray-200 bg-gray-50 rounded text-sm text-gray-600">
                                 <strong class="text-brand-olivine">Sinonime găsite:</strong>
+                                <span v-if="!(synonymsList && synonymsList.length)"> Astept cererea...</span>
                                 <ul class="space-y-1">
                                     <li v-for="synonym in synonymsList" :key="synonym">
-                                        • {{ synonym ? synonym : 'Niciun sinonim găsit' }}
+                                        • {{ synonym }}
                                     </li>
+
                                 </ul>
                             </div>
                             <button @click="handleSynonymsSubmit"
@@ -710,9 +712,10 @@ const confirmDeleteComment = async () => {
                             </div>
                             <div class="mb-2 p-2 border border-gray-200 bg-gray-50 rounded text-sm text-gray-600">
                                 <strong class="text-brand-olivine">Expresii găsite:</strong>
+                                <span v-if="!(expressionsList && expressionsList.length)"> Astept cererea...</span>
                                 <ul class="space-y-1">
                                     <li v-for="expression in expressionsList" :key="expression">
-                                        • {{ expression ? expression : 'Nicio expresie găsită' }}
+                                        • {{ expression }}
                                     </li>
                                 </ul>
                             </div>
