@@ -109,28 +109,30 @@ onBeforeUnmount(() => {
     socket.off('projectDeleted', handleProjectDeleted);
 });
 
-const isExporting = ref(false);
+const isExporting = computed(() => projectStore.isExportingPdf);
 
-const exportProject = async (projectId) => {
-    isExporting.value = true;
+// const exportProject = async (projectId) => {
+//     isExporting.value = true;
 
-    const projectToExport = projects.value.find(p => p.id === projectId);
-    const projectTitle = projectToExport ? projectToExport.title : `Proiect ID ${projectId}`;
-    try {
-        await projectStore.exportProjectFragmentsToTXT(projectId);
-    } catch (error) {
-        console.error(`Failed to export project ${projectId} to PDF from component:`, error);
-        triggerToast(`Eroare la exportul PDF pentru "${projectTitle}": ${error.message}`, true);
-    } finally {
-        isExporting.value = false;
-    }
+//     const projectToExport = projects.value.find(p => p.id === projectId);
+//     const projectTitle = projectToExport ? projectToExport.title : `Proiect ID ${projectId}`;
+//     try {
+//         await projectStore.exportProjectFragmentsToTXT(projectId);
+//     } catch (error) {
+//         console.error(`Failed to export project ${projectId} to PDF from component:`, error);
+//         triggerToast(`Eroare la exportul PDF pentru "${projectTitle}": ${error.message}`, true);
+//     } finally {
+//         isExporting.value = false;
+//     }
+// };
+
+const handleExportToPdf = async (projectId) => {
+    await projectStore.exportProjectToPdf(projectId);
 };
-
-
 </script>
 
 <template>
-    
+
     <div v-if="projects.length > 0">
         <div v-for="project in projects" :key="project.id"
             class="relative border border-brand-olivine rounded-lg mx-5 mt-4 p-3 space-y-3">
@@ -139,6 +141,7 @@ const exportProject = async (projectId) => {
                 class="bi bi-journal-text bg-white text-brand-gold-metallic rounded-full p-2 flex items-center justify-center w-12 h-12 text-3xl absolute -top-4 -left-4"></i>
             <div class="flex justify-between items-center">
                 <p class="text-xl cursor-pointer" @click="navigateToProject(project.id)">
+                    <!-- {{ project }} -->
                     {{ project.title }}
                 </p>
                 <p v-if="project.type" class="bg-brand-honeydew p-2 px-5 rounded-lg">
@@ -157,9 +160,9 @@ const exportProject = async (projectId) => {
                     <span>{{ timeSinceCreated(project.createdAt) }}</span>
                 </div>
                 <div class="flex space-x-2 items-center text-3xl text-brand-olivine">
-                    <button @click="exportProject(project.id)" :disabled="isExporting"
+                    <button @click="handleExportToPdf(project.id)" :disabled="isExporting"
                         title="Exportă fragmentele ca PDF" class="bg-white shadow-md rounded-full p-2 flex items-center justify-center w-12 h-12 cursor-pointer
-                               disabled:opacity-50 disabled:cursor-not-allowed">
+                       disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="bi bi-share-fill"></i>
                     </button>
                     <div class="cursor-pointer" @click="navigateToCollaborators(project.id)">

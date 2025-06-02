@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { useNotificationStore } from './notification';
 import axios from "axios";
+import { jsPDF } from "jspdf";
 
 import { useUserStore } from './user';
 
@@ -49,6 +50,7 @@ export const useProjectStore = defineStore("project", {
         chapters: [],
         fragments: [],
         isProjectSearchOpen: false,
+        isExportingPdf: false,
     }),
     actions: {
         async fetchProjects() {
@@ -524,6 +526,303 @@ export const useProjectStore = defineStore("project", {
             this.isProjectSearchOpen = !this.isProjectSearchOpen;
         },
 
+        async exportProjectToPdf(projectId) {
+            this.isExportingPdf = true;
+            try {
+                const currentProjectId = parseInt(projectId, 10);
+                const project = this.projects.find(p => p.id === currentProjectId);
+                if (!project) {
+                    throw new Error("Proiectul nu a fost găsit pentru export PDF.");
+                }
+                let collectedFragmentsForPdf = [];
+                const needsBibleFetch = project.type === 'Biblia';
+                const needsGenericFetch = project.type !== 'Biblia';
+
+                if (needsBibleFetch) {
+                    await this.fetchProjectBibleBooks(currentProjectId);
+                    const booksEntry = this.books.find(b => b.id === currentProjectId);
+                    if (booksEntry && booksEntry.bibleBooks && booksEntry.bibleBooks.length > 0) {
+                        for (const book of booksEntry.bibleBooks) {
+                            if (!book.id) continue;
+                            const cleanBookTitle = (book.title || "Carte Necunoscută").startsWith("Book")
+                                ? (book.title || "Carte Necunoscută").substring(4)
+                                : (book.title || "Carte Necunoscută");
+                            let chaptersForThisBook = [];
+                            try {
+                                const chaptersResponse = await axios.get(`http://localhost:3000/projects/biblebooks/${book.id}/chapters`);
+                                chaptersForThisBook = chaptersResponse.data || [];
+                            } catch (error) { console.warn(`Eroare fetch capitole pt carte ${book.id}`); continue; }
+
+                            for (const chapter of chaptersForThisBook) {
+                                if (!chapter.id) continue;
+                                const chapterIdentifier = chapter.title || chapter.number || chapter.id;
+                                let fragmentsForThisChapter = [];
+                                try {
+                                    const fragmentsResponse = await axios.get(`http://localhost:3000/projects/biblechapters/${chapter.id}/fragments`);
+                                    fragmentsForThisChapter = fragmentsResponse.data || [];
+                                } catch (error) { console.warn(`Eroare fetch fragmente pt capitol ${chapter.id}`); continue; }
+
+                                if (fragmentsForThisChapter.length > 0) {
+                                    const enrichedFragments = fragmentsForThisChapter.map(frag => ({
+                                        ...frag,
+                                        bookName: cleanBookTitle,
+                                        chapterNumber: chapterIdentifier,
+                                    }));
+                                    collectedFragmentsForPdf.push(...enrichedFragments);
+                                }
+                            }
+                        }
+                    }
+                } else if (needsGenericFetch) {
+                    try {
+                        const response = await axios.get(`http://localhost:3000/projects/${currentProjectId}/fragments`);
+                        const genericFragmentsData = response.data || [];
+                        if (genericFragmentsData.length > 0) {
+                            collectedFragmentsForPdf.push(...genericFragmentsData);
+                        }
+                    } catch (error) { console.warn(`Eroare fetch fragmente pt proiect generic ${currentProjectId}`); }
+                }
+                const fragmentsToExport = collectedFragmentsForPdf;
+
+                if (fragmentsToExport.length === 0 && project) {
+                    console.warn(`Proiectul "${project.title}" nu are fragmente de exportat.`);
+                }
+
+                const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+                let robotoFontLoaded = false;
+                const ROBOTO_FONT_FAMILY_NAME = 'RobotoLoaded';
+
+                const fontFilesToLoad = [
+                    { path: '/fonts/Roboto-Regular.ttf', name: ROBOTO_FONT_FAMILY_NAME, style: 'normal' },
+                    { path: '/fonts/Roboto-Bold.ttf', name: ROBOTO_FONT_FAMILY_NAME, style: 'bold' },
+                    { path: '/fonts/Roboto-Italic.ttf', name: ROBOTO_FONT_FAMILY_NAME, style: 'italic' },
+                    { path: '/fonts/Roboto-BoldItalic.ttf', name: ROBOTO_FONT_FAMILY_NAME, style: 'bolditalic' }
+                ];
+
+                try {
+                    for (const fontInfo of fontFilesToLoad) {
+                        const response = await fetch(fontInfo.path);
+                        if (!response.ok) throw new Error(`Nu s-a putut încărca ${fontInfo.path}: ${response.statusText}`);
+                        const fontBlob = await response.blob();
+                        const reader = new FileReader();
+                        await new Promise((resolve, reject) => {
+                            reader.onloadend = () => {
+                                const fontBase64 = (reader.result).split(',')[1];
+                                const vfsPath = `${fontInfo.name}-${fontInfo.style}.ttf`;
+                                doc.addFileToVFS(vfsPath, fontBase64);
+                                doc.addFont(vfsPath, fontInfo.name, fontInfo.style);
+                                console.log(`[PDF Font] Fontul ${vfsPath} încărcat ca ${fontInfo.name} ${fontInfo.style}.`);
+                                resolve();
+                            };
+                            reader.onerror = reject;
+                            reader.readAsDataURL(fontBlob);
+                        });
+                    }
+                    robotoFontLoaded = true;
+                    doc.setFont(ROBOTO_FONT_FAMILY_NAME, 'normal');
+                } catch (fontError) {
+                    console.error("[PDF Font] Eroare la încărcarea fonturilor Roboto. Se va folosi fontul default.", fontError);
+                    doc.setFont('Helvetica', 'normal');
+                }
+
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const margin = 15;
+                let currentY = margin;
+
+                const baseLineHeight = 5.5;
+                const titleFontSize = 16;
+                const metaFontSize = 9;
+                const bookTitleFontSize = 14;
+                const chapterTitleFontSize = 12;
+                const verseNumberFontSize = 9.5;
+                const contentTextFontSize = 10;
+
+                const fragmentPrefixFontSize = 11;
+                const fragmentPrefixColor = '#1a237e';
+
+                const titleColor = '#333333';
+                const metaColor = '#666666';
+                const bookTitleColor = '#004D40';
+                const chapterTitleColor = '#00695C';
+                const verseNumberColor = '#555555';
+                const contentTextColor = '#212529';
+
+                const addTextWithWrap = (text, x, options = {}) => {
+                    const textToDraw = String(text || "");
+                    if (textToDraw.trim() === "" && !options.allowEmpty) {
+                        if (options.addSpacingAfter && typeof currentY === 'number' && !isNaN(currentY)) {
+                            currentY += (options.addSpacingAfter * baseLineHeight);
+                        }
+                        return;
+                    }
+                    const fontSize = options.fontSize || contentTextFontSize;
+                    const fontStyleOption = options.fontStyle || 'normal';
+                    const color = options.color || contentTextColor;
+                    const align = options.align || 'left';
+                    const effectiveLineHeight = (options.lineHeightFactor || 1.2) * baseLineHeight * (fontSize / contentTextFontSize);
+
+                    doc.setFont(ROBOTO_FONT_FAMILY_NAME, fontStyleOption);
+                    doc.setFontSize(fontSize);
+                    doc.setTextColor(color);
+
+                    const textWidth = align === 'center' ? pageWidth - 2 * margin : pageWidth - margin - x;
+                    const lines = doc.splitTextToSize(textToDraw, textWidth <= 0 ? 1 : textWidth);
+
+                    lines.forEach((line) => {
+                        if (typeof currentY !== 'number' || isNaN(currentY) || currentY + effectiveLineHeight > pageHeight - margin - 5) {
+                            doc.addPage();
+                            currentY = margin;
+                            doc.setFont(ROBOTO_FONT_FAMILY_NAME, fontStyleOption);
+                            doc.setFontSize(fontSize);
+                            doc.setTextColor(color);
+                            if (typeof options.onNewPage === 'function') {
+                                options.onNewPage();
+                            }
+                        }
+                        let textX = x;
+                        if (align === 'center') textX = pageWidth / 2;
+
+                        doc.text(line, textX, currentY, { align: align });
+                        currentY += effectiveLineHeight;
+                    });
+
+                    if (options.addSpacingAfter && typeof currentY === 'number' && !isNaN(currentY)) {
+                        currentY += (options.addSpacingAfter * baseLineHeight);
+                    }
+                };
+
+                const extractTextFromHTML = (htmlString) => {
+                    if (!htmlString) return "";
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = htmlString;
+                    Array.from(tempDiv.querySelectorAll('br')).forEach(br => br.replaceWith('\n'));
+                    return (tempDiv.textContent || tempDiv.innerText || "").trim();
+                };
+
+                addTextWithWrap(project.title, pageWidth / 2, {
+                    fontSize: titleFontSize, fontStyle: 'bold', color: titleColor, align: 'center', addSpacingAfter: 0.5
+                });
+
+                let metaInfoParts = [];
+                if (project.type) metaInfoParts.push(`Tip: ${project.type}`);
+                if (project.createdAt) metaInfoParts.push(`Creat la: ${new Date(project.createdAt).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' })}`);
+                if (metaInfoParts.length > 0) {
+                    addTextWithWrap(metaInfoParts.join('   |   '), pageWidth / 2, {
+                        fontSize: metaFontSize, fontStyle: 'italic', color: metaColor, align: 'center', addSpacingAfter: 1.8
+                    });
+                } else {
+                    currentY += baseLineHeight * 1.8;
+                }
+
+                doc.setDrawColor(189, 189, 189);
+                doc.setLineWidth(0.25);
+                if (typeof currentY === 'number' && !isNaN(currentY)) {
+                    doc.line(margin, currentY, pageWidth - margin, currentY);
+                    currentY += baseLineHeight * 1.5;
+                } else {
+                    currentY = margin + 50;
+                }
+
+                if (fragmentsToExport.length > 0) {
+                    let currentBookRendered = null;
+                    let currentChapterRendered = null;
+                    const reInitializeHeadersOnNewPage = () => { /* ... la fel ... */ };
+
+                    fragmentsToExport.forEach((fragment, index) => {
+                        if (currentY + baseLineHeight * 5 > pageHeight - margin - 5) {
+                            doc.addPage(); currentY = margin; reInitializeHeadersOnNewPage();
+                        }
+
+                        if (project.type === 'Biblia') {
+                            if (fragment.bookName && fragment.bookName !== currentBookRendered) {
+                                if (currentBookRendered !== null) currentY += baseLineHeight * 1;
+                                currentBookRendered = fragment.bookName;
+                                currentChapterRendered = null;
+                                addTextWithWrap(currentBookRendered, margin, {
+                                    fontSize: bookTitleFontSize, fontStyle: 'bold', color: bookTitleColor, addSpacingAfter: 0.6, onNewPage: reInitializeHeadersOnNewPage
+                                });
+                            }
+                            if (fragment.chapterNumber && String(fragment.chapterNumber) !== currentChapterRendered) {
+                                currentChapterRendered = String(fragment.chapterNumber);
+                                addTextWithWrap(`Capitolul ${currentChapterRendered}`, margin, {
+                                    fontSize: chapterTitleFontSize, fontStyle: 'bold', color: chapterTitleColor, addSpacingAfter: 0.8, onNewPage: reInitializeHeadersOnNewPage
+                                });
+                            }
+
+                            if (fragment.verseNumber) {
+                                const versePrefix = `${fragment.verseNumber}. `;
+                                const verseText = extractTextFromHTML(fragment.content) || "(verset gol)";
+
+                                doc.setFont(ROBOTO_FONT_FAMILY_NAME, 'normal');
+                                doc.setFontSize(verseNumberFontSize);
+                                const prefixWidth = doc.getTextWidth(versePrefix);
+
+                                const yBeforePrefix = currentY;
+                                addTextWithWrap(versePrefix, margin + 5, {
+                                    fontSize: verseNumberFontSize, fontStyle: 'normal', color: verseNumberColor,
+                                });
+                                addTextWithWrap(verseText, margin + 5 + prefixWidth + 1, {
+                                    _currentYOverride: yBeforePrefix,
+                                    fontSize: contentTextFontSize, fontStyle: 'normal', color: contentTextColor, addSpacingAfter: 0.5
+                                });
+                            } else {
+                                const fragmentText = extractTextFromHTML(fragment.content);
+                                addTextWithWrap(fragmentText || "(conținut gol)", margin + 5, { addSpacingAfter: 0.5 });
+                            }
+
+                        } else {
+                            const prefixString = `Fragment ${index + 1}:`;
+                            addTextWithWrap(prefixString, margin, {
+                                fontSize: fragmentPrefixFontSize, fontStyle: 'bold', color: fragmentPrefixColor, addSpacingAfter: 0.4
+                            });
+                            const fragmentText = extractTextFromHTML(fragment.content);
+                            addTextWithWrap(fragmentText || "(conținut gol)", margin + 7, {
+                                fontSize: contentTextFontSize, fontStyle: 'normal', color: contentTextColor, addSpacingAfter: 0.8
+                            });
+                        }
+
+                        if (typeof currentY === 'number' && !isNaN(currentY)) {
+                            if (currentY < pageHeight - margin - 5 && index < fragmentsToExport.length - 1) {
+                                doc.setDrawColor(222, 222, 222);
+                                doc.setLineWidth(0.15);
+                                doc.line(margin, currentY, pageWidth - margin, currentY);
+                                currentY += baseLineHeight * 1.2;
+                            } else if (index < fragmentsToExport.length - 1) {
+                                currentY += baseLineHeight * 1.2;
+                            }
+                        }
+                    });
+                } else {
+                    addTextWithWrap("Acest proiect nu conține fragmente pentru export.", pageWidth / 2, { /* ... */ });
+                }
+
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    const pageNumText = `Pagina ${i} / ${pageCount}`;
+                    doc.setFont(ROBOTO_FONT_FAMILY_NAME, 'normal');
+                    doc.setFontSize(metaFontSize - 1);
+                    doc.setTextColor(metaColor);
+                    doc.text(pageNumText, pageWidth / 2, pageHeight - margin + 7, { align: 'center' });
+                }
+
+                const cleanProjectTitle = project.title.replace(/[^\w\s.-]/gi, '').replace(/\s+/g, '_');
+                const filename = `${cleanProjectTitle || 'proiect'}_export.pdf`;
+                doc.save(filename);
+
+                return { success: true, message: "PDF generat și descărcat cu succes cu jsPDF." };
+
+            } catch (error) {
+                console.error("Eroare la exportul PDF (frontend cu jsPDF):", error);
+                const errorMessage = error.message || "A apărut o eroare la generarea PDF-ului în browser cu jsPDF.";
+                throw new Error(errorMessage);
+            } finally {
+                this.isExportingPdf = false;
+            }
+        },
+
         async exportProjectFragmentsToTXT(projectId) {
             try {
                 const currentProjectId = parseInt(projectId);
@@ -553,7 +852,7 @@ export const useProjectStore = defineStore("project", {
 
                     for (const book of booksEntry.bibleBooks) {
                         if (!book.id) continue;
-                        await this.fetchProjectBookChapters(currentProjectId, book.id); 
+                        await this.fetchProjectBookChapters(currentProjectId, book.id);
                         const chaptersEntry = this.chapters.find(c => c.id === currentProjectId);
                         const currentBookChapters = chaptersEntry?.bibleChapters;
                         if (!currentBookChapters || currentBookChapters.length === 0) continue;
@@ -567,7 +866,7 @@ export const useProjectStore = defineStore("project", {
                     await this.fetchProjectFragments(currentProjectId);
                 }
 
-                projectFragmentsGroup = this.fragments.find(group => group.id === currentProjectId); 
+                projectFragmentsGroup = this.fragments.find(group => group.id === currentProjectId);
 
                 if (!projectFragmentsGroup ||
                     (project.type === 'Biblia' && (!projectFragmentsGroup.bibleFragments || projectFragmentsGroup.bibleFragments.length === 0)) ||
@@ -583,11 +882,11 @@ export const useProjectStore = defineStore("project", {
                 if (fragmentsToExport.length === 0) {
                     throw new Error("Proiectul nu are fragmente specifice de exportat.");
                 }
-               
+
                 let txtContent = "";
 
                 txtContent += project.title + "\n";
-                txtContent += "=".repeat(project.title.length) + "\n\n"; 
+                txtContent += "=".repeat(project.title.length) + "\n\n";
 
                 fragmentsToExport.forEach((fragment, index) => {
                     const tempDiv = document.createElement('div');
@@ -609,10 +908,10 @@ export const useProjectStore = defineStore("project", {
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = fileName;
-                document.body.appendChild(link); 
+                document.body.appendChild(link);
                 link.click();
-                document.body.removeChild(link); 
-                URL.revokeObjectURL(link.href); 
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
 
                 return true;
 

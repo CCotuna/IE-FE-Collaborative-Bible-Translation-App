@@ -106,7 +106,6 @@ const navigateToProject = (notification) => {
                         Utilizatorul <span class="font-medium">{{ notification.fromUserEmail }}</span> a adăugat un
                         comentariu.
                     </div>
-                    {{ notification }}
                     <div v-if="notification.message" class="bg-gray-100 p-3 rounded-md border border-gray-200">
                         <p class="text-sm text-gray-700"><strong>Mesaj:</strong> {{ notification.message }}</p>
                     </div>
