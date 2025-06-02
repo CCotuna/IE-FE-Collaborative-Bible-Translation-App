@@ -482,7 +482,7 @@ const confirmDeleteComment = async () => {
             <div class="p-3">
                 <ul class="space-y-6">
                     <li v-for="fragment in sortedFragments" :key="fragment.id">
-                        <p class="flex items-center text-gray-900 mb-1 text-lg fragment-content">
+                        <p class="flex text-gray-900 mb-1 text-lg fragment-content">
                             <span
                                 class="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-md transition-colors duration-200 cursor-pointer me-2"
                                 :class="openFormForFragmentId === fragment.id ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-brand-olivine text-white hover:bg-brand-tea-green hover:text-black'"
@@ -492,7 +492,7 @@ const confirmDeleteComment = async () => {
                             </span>
                             <span class="flex-grow">
                                 <span v-if="fragment.verseNumber != null" class="font-bold me-1">{{ fragment.verseNumber
-                                }}. </span>
+                                    }}. </span>
                                 <TextWithTooltip :contentHtml="fragment.content" :fragmentId="fragment.id" />
                             </span>
                         </p>
@@ -738,11 +738,11 @@ const confirmDeleteComment = async () => {
             <div class="bg-white rounded-lg p-8 shadow-lg text-center">
                 <h2 class="text-lg mb-4">Ești sigur că dorești<br> să schimbi vizibilitatea acestui text<br> în modul
                     public?</h2>
-                <div class="flex justify-around mt-4">
+                <div class="flex justify-center space-x-4 mt-4">
                     <button @click="toggleCommentStatus"
-                        class="bg-brand-olivine text-white text-lg px-8 py-2 rounded-full">Confirm</button>
+                        class="bg-brand-olivine hover:bg-brand-tea-green hover:text-black text-white text-lg px-8 py-2 rounded-full">Confirm</button>
                     <button @click="closeCommentStatusModal"
-                        class="bg-brand-honeydew text-brand-olivine text-lg px-8 py-2 rounded-full">Renunț</button>
+                        class="bg-brand-honeydew hover:bg-brand-olivine hover:text-white text-brand-olivine text-lg px-8 py-2 rounded-full">Renunț</button>
                 </div>
             </div>
         </div>
@@ -754,9 +754,9 @@ const confirmDeleteComment = async () => {
                 <h2 class="text-xl font-semibold mb-2">Confirmare Ștergere</h2>
                 <p class="text-gray-700 mb-6">Ești sigur că dorești să ștergi acest comentariu? Acțiunea este
                     ireversibilă.</p>
-                <div class="flex justify-around mt-4">
+                <div class="flex justify-center space-x-4 mt-4">
                     <button @click="confirmDeleteComment"
-                        class="bg-red-600 hover:bg-red-700 text-white text-lg px-8 py-2 rounded-full transition-colors">Șterge</button>
+                        class="bg-brand-olivine hover:bg-red-600 text-white text-lg px-8 py-2 rounded-full transition-colors">Șterge</button>
                     <button @click="closeDeleteCommentModal"
                         class="bg-gray-300 hover:bg-gray-400 text-gray-800 text-lg px-8 py-2 rounded-full transition-colors">Anulează</button>
                 </div>
@@ -767,18 +767,24 @@ const confirmDeleteComment = async () => {
             class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div class="bg-white rounded-lg p-8 shadow-lg text-center max-w-md w-full mx-4">
                 <h2 class="text-xl font-semibold mb-2">Confirmare Modificare Adnotare</h2>
-                <p v-if="!commentToToggleSuggestion.isSuggestion" class="text-gray-700 mb-6">
-                    Ești sigur că dorești să accepți acest comentariu ca adnotare pentru fragment?
-                    Conținutul fragmentului va fi actualizat cu textul comentariului.
-                </p>
+                <div v-if="commentToToggleSuggestion.isSuggestion === 'suggestion'" class="text-gray-700 mb-4">
+                    <p class="mb-2">
+                        Ești sigur că dorești să accepți acest comentariu ca adnotare pentru fragment?
+                    </p>
+                    <div
+                        class="flex items-center space-x-4 bg-blue-50 text-blue-700 p-2 rounded-md text-sm border border-blue-200">
+                        <i class="bi bi-info-circle-fill text-xl"></i>
+                        <span class="text-left">
+                            Conținutul fragmentului va fi actualizat <br> cu textul adnotării.
+                        </span>
+                    </div>
+                </div>
                 <p v-else class="text-gray-700 mb-6">
-                    Ești sigur că dorești să anulezi acest comentariu ca adnotare pentru fragment?
-                    Conținutul fragmentului nu va mai fi cel al comentariului (dar nu va reveni automat la o stare
-                    anterioară specifică prin această acțiune).
+                    <span>Ești sigur că dorești să anulezi acest comentariu ca adnotare pentru fragment?</span>
                 </p>
-                <div class="flex justify-around mt-4">
+                <div class="flex justify-center space-x-4 mt-4">
                     <button @click="confirmToggleCommentSuggestion"
-                        class="bg-brand-olivine hover:bg-brand-olivine-dark text-white text-lg px-8 py-2 rounded-full transition-colors">Confirmă</button>
+                        class="bg-brand-olivine hover:bg-brand-tea-green hover:text-black text-white text-lg px-8 py-2 rounded-full transition-colors">Confirmă</button>
                     <button @click="closeToggleSuggestionModal"
                         class="bg-gray-300 hover:bg-gray-400 text-gray-800 text-lg px-8 py-2 rounded-full transition-colors">Anulează</button>
                 </div>

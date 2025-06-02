@@ -184,11 +184,11 @@ const handleExportToPdf = async (projectId) => {
                 <h2 class="text-lg mb-4">Ești sigur că dorești <strong class="text-red-500">să ștergi</strong> acest
                     proiect?Această acțiune este
                     permanentă.</h2>
-                <div class="flex justify-around mt-4">
+                <div class="flex justify-center space-x-4 mt-4">
                     <button @click="confirmDelete"
-                        class="bg-brand-olivine text-white text-lg px-8 py-2 rounded-full">Confirm</button>
+                        class="bg-brand-olivine hover:bg-red-600 text-white text-lg px-8 py-2 rounded-full">Confirm</button>
                     <button @click="closeModal"
-                        class="bg-brand-honeydew text-brand-olivine text-lg px-8 py-2 rounded-full">Renunț</button>
+                        class="bg-brand-honeydew hover:bg-brand-olivine hover:text-white text-brand-olivine text-lg px-8 py-2 rounded-full">Renunț</button>
                 </div>
             </div>
         </div>
