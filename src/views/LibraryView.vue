@@ -137,8 +137,10 @@ const handleExportToPdf = async (projectId) => {
         <div v-for="project in projects" :key="project.id"
             class="relative border border-brand-olivine rounded-lg mx-5 mt-4 p-3 space-y-3">
             <!-- {{ project }} -->
-            <i
+            <i v-if="project.userId === userStore.user.id"
                 class="bi bi-journal-text bg-white text-brand-gold-metallic rounded-full p-2 flex items-center justify-center w-12 h-12 text-3xl absolute -top-4 -left-4"></i>
+            <i v-else
+                class="bi bi-journal-arrow-down bg-white text-brand-gold-metallic rounded-full p-2 flex items-center justify-center w-12 h-12 text-3xl absolute -top-4 -left-4"></i>
             <div class="flex justify-between items-center">
                 <p class="text-xl cursor-pointer" @click="navigateToProject(project.id)">
                     <!-- {{ project }} -->

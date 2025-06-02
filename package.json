@@ -1,5 +1,5 @@
 {
-  "name": "temp",
+  "name": "we-translate",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -22,7 +22,7 @@
     "sequelize": "^6.37.3",
     "socket.io-client": "^4.8.1",
     "tippy.js": "^6",
-    "vite-plugin-pwa": "^0.20.1",
+    "vite-plugin-pwa": "^1.0.0",
     "vue": "^3.4.29",
     "vue-router": "^4.5.0",
     "vue-tippy": "v6"

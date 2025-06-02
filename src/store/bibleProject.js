@@ -16,6 +16,10 @@ export const useBibleProjectStore = defineStore("bibleProject", {
     }),
     actions: {
 
+        async resetBibleProject() {
+            this.bibleProject = null;
+        },
+
         getBookName(bookName) {
             if (bookName.startsWith("Book")) {
                 return bookName.substring(4).trim();

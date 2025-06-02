@@ -120,24 +120,32 @@ const toggleProjectSearch = () => {
     <div class="p-3 w-full flex justify-between items-center border-b">
         <div class="flex items-center space-x-2">
             <button v-if="showGoBack" @click="goBack" class="text-lg text-gray-500 hover:text-gray-800">
-                <i class="bi bi-chevron-left text-brand-olivine"></i>
+            <i class="bi bi-chevron-left text-brand-olivine"></i>
             </button>
-            <span :class="{
-                'w-64 md:w-full ps-0': route.name === 'project',
-            }" class="p-3 text-2xl font-medium truncate">
+            <span
+            :class="{
+                'w-64  md:w-full ps-0': route.name === 'project',
+            }"
+            class="p-3 text-2xl font-medium truncate"
+            >
+            <span class="block md:hidden">
+                {{ navbarTitle.length > 30 ? navbarTitle.slice(0, 30) + '...' : navbarTitle }}
+            </span>
+            <span class="hidden md:block">
                 {{ navbarTitle }}
+            </span>
             </span>
         </div>
         <div v-if="route.path === '/' && projectStore.projects.length == 0 && !userStore.isAuthenticated()"
-            class="flex space-x-5">
-            <RouterLink :to="{ name: 'sign-in' }" class="flex items-center justify-center px-3 md:px-8 py-2 
+            class="flex space-x-2 md:space-x-5">
+            <RouterLink :to="{ name: 'sign-in' }" class="flex items-center justify-center px-5 md:px-8 py-2 
                text-white bg-brand-olivine rounded-full
                transition-all duration-300 ease-in-out
                hover:bg-opacity-85 hover:shadow-md hover:scale-105
                focus:outline-none focus:ring-2 focus:ring-brand-olivine focus:ring-opacity-75">
                 Sign in
             </RouterLink>
-            <RouterLink :to="{ name: 'sign-up' }" class="flex items-center justify-center px-3 md:px-8 py-2 
+            <RouterLink :to="{ name: 'sign-up' }" class="flex items-center justify-center px-5 md:px-8 py-2 
                text-brand-olivine bg-brand-honeydew rounded-full
                transition-all duration-300 ease-in-out
                hover:bg-brand-tea-green hover:shadow-md hover:text-white hover:scale-105
@@ -165,20 +173,20 @@ const toggleProjectSearch = () => {
             <RouterLink :to="{ name: 'menu' }"><i class="bi bi-gear"></i></RouterLink>
         </div>
         <div v-if="route.name === 'menu'">
-            <button @click="logout()" class="px-8 py-2 text-white rounded-full font-semibold relative overflow-hidden
-             bg-red-600 group
+            <button @click="logout()" class=" p-2 px-5 rounded-lg text-white font-semibold relative overflow-hidden
+             bg-brand-olivine hover:bg-red-600 group
              transition-all duration-300 ease-in-out
              focus:outline-none focus:ring-4 focus:ring-red-300 focus:ring-opacity-75">
-                <span class="absolute inset-0 border-2 border-red-300 rounded-full
+                <span class="absolute inset-0 border-2 border-red-300 rounded-lg
                    transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></span>
                 <span
-                    class="absolute inset-0 border-2 border-red-300 rounded-full
+                    class="absolute inset-0 border-2 border-red-300 rounded-lg
                    transform scale-y-0 group-hover:scale-y-100 transition-transform duration-500 delay-100 origin-top"></span>
                 <span
-                    class="absolute inset-0 border-2 border-red-300 rounded-full
+                    class="absolute inset-0 border-2 border-red-300 rounded-lg
                    transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 delay-200 origin-right"></span>
                 <span
-                    class="absolute inset-0 border-2 border-red-300 rounded-full
+                    class="absolute inset-0 border-2 border-red-300 rounded-lg
                    transform scale-y-0 group-hover:scale-y-100 transition-transform duration-500 delay-300 origin-bottom"></span>
                 <span class="relative z-10">Deconectare</span>
             </button>

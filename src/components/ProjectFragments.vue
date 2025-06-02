@@ -251,20 +251,30 @@ onBeforeUnmount(() => {
     socket.off('commentSuggestionUpdated');
 });
 
+const normalizeTextForSearch = (text) => {
+    if (typeof text !== 'string') return '';
+    return text
+        .toLowerCase() // 1. Convertește la litere mici
+        .normalize("NFD") // 2. Descompune caracterele accentuate în caracter de bază + diacritic
+        .replace(/[\u0300-\u036f]/g, ""); // 3. Elimină diacriticele (combining diacritical marks)
+};
+
 const sortedFragments = computed(() => {
     if (!fragments.value || fragments.value.length === 0) return [];
 
     let fragmentsToDisplay = [...fragments.value];
 
     if (isSearchActive.value && localSearchQuery.value.trim() !== '') {
-        const query = localSearchQuery.value;
+        const normalizedQuery = normalizeTextForSearch(localSearchQuery.value);
 
         fragmentsToDisplay = fragmentsToDisplay.filter(fragment => {
             if (fragment.content) {
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = fragment.content;
                 const textContent = tempDiv.textContent || tempDiv.innerText || "";
-                return textContent.toLowerCase().includes(query);
+
+                const normalizedFragmentContent = normalizeTextForSearch(textContent);
+                return normalizedFragmentContent.includes(normalizedQuery);
             }
             return false;
         });
@@ -490,9 +500,9 @@ const confirmDeleteComment = async () => {
                                 <i
                                     :class="openFormForFragmentId === fragment.id ? 'bi bi-dash-lg' : 'bi bi-plus-lg'"></i>
                             </span>
-                            <span class="flex-grow">
+                            <span class="flex-grow -mt-1">
                                 <span v-if="fragment.verseNumber != null" class="font-bold me-1">{{ fragment.verseNumber
-                                    }}. </span>
+                                }}. </span>
                                 <TextWithTooltip :contentHtml="fragment.content" :fragmentId="fragment.id" />
                             </span>
                         </p>

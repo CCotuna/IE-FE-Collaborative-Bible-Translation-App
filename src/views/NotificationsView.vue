@@ -132,7 +132,7 @@ const navigateToProject = (notification) => {
         </ul>
     </div>
     <div v-else class="text-center mt-10">
-        <img src="@/assets/emptyState/EmptyStateNotifications.svg" alt="No projects" class="mx-auto max-h-[28rem] mb-6">
-        <p class="text-xl font-bold text-brand-olivine">Nu ai nicio notificare!</p>
+        <p class="text-xl text-brand-olivine">Nu ai nicio notificare!</p>
+        <img src="@/assets/emptyState/EmptyStateNotifications.svg" alt="No projects" class="mx-auto max-h-[24rem] mb-6">
     </div>
 </template>

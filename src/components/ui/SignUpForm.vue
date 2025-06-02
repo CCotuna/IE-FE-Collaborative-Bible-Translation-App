@@ -46,25 +46,21 @@ const handleSubmit = async () => {
 </script>
 <template>
   <div class="relative flex items-center justify-center overflow-hidden py-8">
-    <i class="bi bi-robot absolute text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-brand-tea-green opacity-20"
+    <i class="bi bi-robot absolute text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-brand-tea-green opacity-50 md:opacity-30"
       style="top: 10%; left: 15%;"></i>
-
-    <i class="bi bi-translate absolute text-4xl sm:text-5xl md:text-6xl text-brand-olivine opacity-20"
+    <i class="bi bi-translate absolute text-4xl sm:text-5xl md:text-6xl text-brand-olivine opacity-50 md:opacity-30"
       style="bottom: 5%; right: 20%;"></i>
-
-    <i class="bi bi-stars absolute text-3xl sm:text-4xl md:text-5xl text-brand-gold-metallic opacity-20"
+    <i class="bi bi-stars absolute text-3xl sm:text-4xl md:text-5xl text-brand-gold-metallic opacity-50 md:opacity-30"
       style="top: 50%; left: 5%;"></i>
-
-    <i class="bi bi-cpu-fill absolute text-4xl sm:text-5xl md:text-5xl text-brand-tea-green opacity-20"
+    <i class="bi bi-cpu-fill absolute text-4xl sm:text-5xl md:text-5xl text-brand-tea-green opacity-50 md:opacity-30"
       style="top: 20%; right: 5%;"></i>
-
-    <i class="bi bi-lightbulb-fill absolute text-6xl text-brand-olivine opacity-20 hidden md:block"
+    <i class="bi bi-lightbulb-fill absolute text-6xl text-brand-olivine opacity-50 md:opacity-30 hidden md:block"
       style="bottom: 20%; left: 25%;"></i>
-    <i class="bi bi-code-slash absolute text-8xl text-brand-gold-metallic opacity-20 hidden lg:block"
+    <i class="bi bi-code-slash absolute text-8xl text-brand-gold-metallic opacity-50 md:opacity-30 hidden lg:block"
       style="top: 30%; right: 10%;"></i>
-    <i class="bi bi-globe absolute text-7xl text-brand-tea-green opacity-20 hidden lg:block"
+    <i class="bi bi-globe absolute text-7xl text-brand-tea-green opacity-50 md:opacity-30 hidden lg:block"
       style="bottom: 15%; left: 10%;"></i>
-    <i class="bi bi-book absolute text-5xl text-brand-olivine opacity-20 hidden lg:block"
+    <i class="bi bi-book absolute text-5xl text-brand-olivine opacity-50 md:opacity-30 hidden lg:block"
       style="top: 5%; right: 30%;"></i>
 
 
@@ -92,7 +88,8 @@ const handleSubmit = async () => {
         <p>{{ localError || error }}</p>
       </div>
       <div class="mt-4 text-sm text-gray-600 text-center">
-        <p>Ai deja un cont? <RouterLink :to="{ name: 'sign-in' }" class="text-brand-olivine hover:underline font-medium">
+        <p>Ai deja un cont? <RouterLink :to="{ name: 'sign-in' }"
+            class="text-brand-olivine hover:underline font-medium">
             Conectează-te aici</RouterLink>
         </p>
       </div>

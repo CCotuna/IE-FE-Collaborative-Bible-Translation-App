@@ -26,6 +26,7 @@ const getTotalVerses = (book, chapterNumber) => {
 
 const addBibleProject = async () => {
     await projectStore.addProject(bibleProjectStore.bibleProject);
+    bibleProjectStore.resetBibleProject();
     router.push({ name: 'home' });
 }
 

@@ -94,10 +94,12 @@ const sendInvitation = async () => {
 <template>
     <div v-if="project" class="p-6">
         <!-- {{ project }} -->
-        <h3 class="text-xl font-semibold text-brand-olivine mb-4">Collaborators:</h3>
+        <h3 class="text-xl font-semibold text-brand-olivine mb-4">Colaboratori:</h3>
         <div class="pl-6 space-y-2 flex flex-col">
             <span v-for="(collaborator, index) in project.collaborators" :key="index" class="text-lg text-black">
-                {{ index + 1 }} - {{ collaborator.email }} - {{ collaborator.UserAccess.role }}
+                {{ index + 1 }} - <span
+                    :class="userStore.user.email === collaborator.email ? 'text-brand-olivine font-semibold' : ''">{{
+                        collaborator.email }}</span> - {{ collaborator.UserAccess.role }}
             </span>
         </div>
 
@@ -106,7 +108,7 @@ const sendInvitation = async () => {
             <input v-model="emailInput" type="email" placeholder="Enter email address"
                 class="p-2 border-2 border-brand-olivine rounded-md w-96" />
             <button @click="sendInvitation"
-                class="px-6 py-2 bg-brand-olivine text-white rounded-md hover:bg-brand-tea-green transition duration-300">
+                class="px-5 py-2 bg-brand-olivine text-white rounded-md hover:bg-brand-tea-green hover:text-black transition duration-300 flex-shrink-0">
                 Send Invitation
             </button>
         </div>

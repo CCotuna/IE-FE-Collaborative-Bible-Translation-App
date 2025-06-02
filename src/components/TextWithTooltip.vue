@@ -37,19 +37,19 @@ const generateTooltipHtml = () => {
     return `
     <div class="bg-white p-2 rounded-xl w-auto">
         <div class="flex flex-col items-start space-y-1 md:space-y-1.5"> 
-            <div class="flex items-center space-x-1 mb-1 w-full cursor-default text-xs md:text-xl">
+            <div class="flex items-center space-x-1 mb-1 w-full cursor-default text-xl">
                 <span class="text-black font-bold">AI</span> 
                 <i class="bi bi-stars text-brand-gold-metallic"></i>
             </div>
-            <button data-action="translate" class="flex items-center space-x-2 text-xs md:text-xl">
+            <button data-action="translate" class="flex items-center space-x-2 text-xl">
                 <i class="${translateIconClass} text-brand-gold-metallic text-2xl"></i>
                 <span class="text-gray-800 hover:text-brand-gold-metallic">Traduceri</span>
             </button>
-            <button data-action="synonyms" class="flex items-center space-x-2 text-xs md:text-xl">
+            <button data-action="synonyms" class="flex items-center space-x-2 text-xl">
                 <i class="${synonymsIconClass} text-brand-gold-metallic text-2xl"></i>
                 <span class="text-gray-800 hover:text-brand-gold-metallic">Sinonime</span>
             </button>
-            <button data-action="expressions" class="flex items-center space-x-2 text-xs md:text-xl">
+            <button data-action="expressions" class="flex items-center space-x-2 text-xl">
                 <i class="${expressionsIconClass} text-brand-gold-metallic text-2xl"></i>
                 <span class="text-gray-800 hover:text-brand-gold-metallic">Expresii</span>
             </button>
