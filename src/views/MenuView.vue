@@ -1,12 +1,9 @@
 <script setup>
-import { isAuthenticated } from '@/utils/auth';
 import { useUserStore } from '@/store/user';
-import { useRouter } from 'vue-router'
 
 const userStore = useUserStore();
-const router = useRouter()
-
 </script>
+
 <template>
     <div class="ps-7 pt-4 flex flex-col space-y-5">
         <div v-if="!userStore.checkAuth()" class="flex space-x-5">

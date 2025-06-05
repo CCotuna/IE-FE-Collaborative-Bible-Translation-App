@@ -9,11 +9,16 @@ export const useUserStore = defineStore('user', {
         error: null
     }),
     actions: {
+        isAuthenticated() {
+            return !!this.user;
+        },
+        
         async checkAuth() {
             try {
                 const res = await axios.get('http://localhost:3000/user/me', {
                     withCredentials: true
                 });
+
                 this.user = {
                     id: res.data.id,
                     email: res.data.email
@@ -28,9 +33,7 @@ export const useUserStore = defineStore('user', {
                 this.user = null;
             }
         },
-        isAuthenticated() {
-            return !!this.user;
-        },
+
         async getUserByEmail(email) {
             try {
                 const response = await axios.get('http://localhost:3000/user/getUserByEmail', {
@@ -42,6 +45,7 @@ export const useUserStore = defineStore('user', {
                 console.error('Error finding user by email:', error);
             }
         },
+
         async getUserById(id) {
             try {
                 const response = await axios.get('http://localhost:3000/user/getUserById', {
@@ -53,6 +57,7 @@ export const useUserStore = defineStore('user', {
                 console.error('Error finding user by ID:', error);
             }
         },
+
         async signIn(user) {
             try {
                 const response = await axios.post('http://localhost:3000/user/signin', user, {
@@ -74,6 +79,7 @@ export const useUserStore = defineStore('user', {
                 console.error('SignIn error:', this.error)
             }
         },
+
         async signUp(user) {
             try {
                 const response = await axios.post('http://localhost:3000/user', user, {
@@ -95,6 +101,7 @@ export const useUserStore = defineStore('user', {
                 console.error('SignUp error:', this.error)
             }
         },
+
         async signOut() {
             try {
                 await axios.post('http://localhost:3000/user/logout', {}, {

@@ -19,12 +19,6 @@ onMounted(async () => {
     <div>
         <Navigation />
         <RouterView />
-        <!-- <div>
-          <footer class="bg-brand-olivine text-white text-center py-2 mt-10">
-              <p>&copy; 2025 Bible Translate App</p>
-              <p v-if="userStore.user.email">Welcome, {{ userStore.user.email }}!</p>
-          </footer>
-      </div> -->
     </div>
 </template>
 

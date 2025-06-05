@@ -14,7 +14,9 @@ const projectStore = useProjectStore();
 const projects = computed(() => {
     if (!projectStore.projects) return [];
     return [...projectStore.projects].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-}); const router = useRouter();
+}); 
+
+const router = useRouter();
 
 const navigateToProject = (id) => {
     const project = projects.value.find(p => p.id === id);
