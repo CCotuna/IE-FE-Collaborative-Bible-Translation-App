@@ -8,6 +8,7 @@ export const useInlineFormStore = defineStore("inlineForm", {
         selectedTextForForm: '',
         targetFragmentId: null,
         responseData: null,
+        isCopied: false
     }),
     actions: {
         openForm(type, text, fragmentId) {
@@ -70,7 +71,7 @@ export const useInlineFormStore = defineStore("inlineForm", {
             catch (error) {
                 console.error("Error submitting synonyms:", error);
             }
-            
+
         },
 
         async submitExpression(payload) {
@@ -97,6 +98,23 @@ export const useInlineFormStore = defineStore("inlineForm", {
             this.selectedTextForForm = '';
             this.targetFragmentId = null;
             this.responseData = null;
+        },
+
+        async copyToClipboard(textToCopy) {
+            if (!textToCopy || textToCopy === 'Aștept traducerea...') {
+                console.warn("Nu există text valid pentru a fi copiat.");
+                return;
+            }
+            try {
+                await navigator.clipboard.writeText(textToCopy);
+                this.isCopied = true; 
+                setTimeout(() => {
+                    this.isCopied = false;
+                }, 2000); // 2 secunde
+            } catch (err) {
+                console.error('Eroare la copierea textului: ', err);
+                alert('Nu s-a putut copia textul. Asigură-te că ești într-un context securizat (HTTPS) și că browser-ul permite accesul la clipboard.');
+            }
         }
     },
 });

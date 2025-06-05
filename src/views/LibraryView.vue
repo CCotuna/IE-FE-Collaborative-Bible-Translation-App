@@ -44,9 +44,9 @@ const triggerToast = (message, isNegative) => {
     toastMessage.value = message;
     showToast.value = true;
     if (isNegative) {
-        toastType.value = 'error';
-    } else {
         toastType.value = 'success';
+    } else {
+        toastType.value = 'error';
     }
     setTimeout(() => {
         showToast.value = false;

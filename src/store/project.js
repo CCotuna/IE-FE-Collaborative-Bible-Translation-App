@@ -5,7 +5,7 @@ import { jsPDF } from "jspdf";
 
 import { useUserStore } from './user';
 
-async function sendCommentNotification(commentData) {
+export async function sendCommentNotification(commentData) {
     const { projectId, fragmentId, senderId, senderEmail } = commentData;
     const projectStore = useProjectStore();
     const notificationStore = useNotificationStore();

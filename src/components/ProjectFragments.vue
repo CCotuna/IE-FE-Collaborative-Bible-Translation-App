@@ -9,6 +9,7 @@ import { timeSinceCreated } from '@/utils/timeSinceCreated';
 import TextWithTooltip from '@/components/TextWithTooltip.vue';
 import { useInlineFormStore } from '@/store/inlineForm';
 import socket from '@/plugins/socket';
+import { sendCommentNotification } from '@/store/project'
 
 const route = useRoute();
 const router = useRouter();
@@ -218,7 +219,7 @@ onMounted(async () => {
             }
 
             if (finalProjectId && userStore.user) {
-                await projectStore.sendCommentNotification({
+                await sendCommentNotification({
                     projectId: finalProjectId,
                     fragmentId: updatedComment.fragmentId,
                     senderId: userStore.user.id,
@@ -254,9 +255,9 @@ onBeforeUnmount(() => {
 const normalizeTextForSearch = (text) => {
     if (typeof text !== 'string') return '';
     return text
-        .toLowerCase() // 1. Convertește la litere mici
-        .normalize("NFD") // 2. Descompune caracterele accentuate în caracter de bază + diacritic
-        .replace(/[\u0300-\u036f]/g, ""); // 3. Elimină diacriticele (combining diacritical marks)
+        .toLowerCase() 
+        .normalize("NFD") 
+        .replace(/[\u0300-\u036f]/g, ""); 
 };
 
 const sortedFragments = computed(() => {
@@ -471,6 +472,13 @@ const confirmDeleteComment = async () => {
         }
     }
 };
+
+const handleCopyText = () => {
+    if (translatedText.value && translatedText.value !== 'Aștept traducerea...') {
+        inlineFormStore.copyToClipboard(translatedText.value);
+    }
+};
+
 </script>
 
 <template>
@@ -502,7 +510,7 @@ const confirmDeleteComment = async () => {
                             </span>
                             <span class="flex-grow -mt-1">
                                 <span v-if="fragment.verseNumber != null" class="font-bold me-1">{{ fragment.verseNumber
-                                }}. </span>
+                                    }}. </span>
                                 <TextWithTooltip :contentHtml="fragment.content" :fragmentId="fragment.id" />
                             </span>
                         </p>
@@ -641,13 +649,13 @@ const confirmDeleteComment = async () => {
                                 placeholder="Scrie un comentariu nou..."></textarea>
 
                             <select v-model="commentStatus" required
-                                class="border border-gray-300 p-2 mb-4 md:mb-0 md:me-4 rounded-md w-full max-w-xs">
+                                class="border border-gray-300 p-2 mb-2 md:mb-0 md:me-4 rounded-md w-full max-w-xs">
                                 <option value="private">Privat</option>
                                 <option value="public">Public</option>
                             </select>
 
                             <button
-                                class="mt-2 px-4 py-2 bg-brand-olivine text-white rounded-lg hover:bg-brand-tea-green hover:text-black"
+                                class="mt-0 px-4 py-2 bg-brand-olivine text-white rounded-lg hover:bg-brand-tea-green hover:text-black"
                                 @click="addComment(fragment.id)">
                                 Creează comentariu
                             </button>
@@ -655,18 +663,39 @@ const confirmDeleteComment = async () => {
 
                         <!-- Formular pentru TRADUCERE -->
                         <div v-if="inlineFormStore.isFormOpen && inlineFormStore.targetFragmentId === fragment.id && inlineFormStore.formType === 'translate'"
-                            class="border-s-8 border-brand-olivine px-3 pt-4 mt-2 mb-4 global-inline-form-active">
+                            class="border-s-8 border-brand-olivine px-3 mb-4 global-inline-form-active" :class="{
+                                'mt-0 pt-1': !(openFormForFragmentId === fragment.id && editingCommentId === null) || !(openCommentsForFragmentId === fragment.id && fragment.comments?.length),
+                                'pt-4 mt-2': (openFormForFragmentId === fragment.id && editingCommentId === null) || (openCommentsForFragmentId === fragment.id && fragment.comments?.length)
+                            }">
                             <div class="flex justify-between items-center mb-2">
-                                <h4 class="text-md font-semibold text-green-900">Tradu cu DeepL</h4>
+                                <div class="flex items-center space-x-1 mb-1 ms-1 w-full cursor-default text-xl">
+                                    <span class="text-black font-bold">AI</span>
+                                    <i class="bi bi-stars text-brand-gold-metallic"></i>
+                                    <span class="text-black font-bold ms-4">Traducere</span>
+                                </div>
+
                                 <button @click="inlineFormStore.closeForm()"
                                     class="text-gray-500 hover:text-gray-700 text-3xl">×</button>
                             </div>
                             <div class="mb-2 p-2 border border-gray-200 bg-gray-50 rounded text-sm text-gray-600">
                                 <strong>Text Original:</strong> "{{ inlineFormStore.selectedTextForForm }}"
                             </div>
-                            <div class="mb-2 p-2 border border-gray-200 bg-gray-50 rounded text-sm text-gray-600">
-                                <strong class="text-brand-olivine">Text Tradus:</strong> {{
-                                    translatedText || 'Aștept traducerea...' }}
+                            <div
+                                class="mb-2 p-2 border border-gray-200 bg-gray-50 rounded text-sm text-gray-600 flex justify-between items-center">
+                                <div class="flex-grow">
+                                    <strong class="text-brand-olivine">Text Tradus: </strong>
+                                    <span
+                                        :class="{ 'italic text-gray-400': !translatedText || translatedText === 'Aștept traducerea...' }">
+                                        {{ translatedText || 'Aștept traducerea...' }}
+                                    </span>
+                                </div>
+                                <button v-if="translatedText && translatedText !== 'Aștept traducerea...'"
+                                    @click="handleCopyText"
+                                    class="ml-2 p-1 text-brand-gold-metallic font-bold text-lg hover:text-gray-700 focus:outline-none rounded"
+                                    :title="inlineFormStore.isCopied ? 'Copiat!' : 'Copiază textul tradus'">
+                                    <i
+                                        :class="inlineFormStore.isCopied ? 'bi bi-clipboard-check-fill text-green-500' : 'bi bi-clipboard'"></i>
+                                </button>
                             </div>
                             <label for="targetLanguage" class="block text-sm font-medium text-gray-700 mt-2">Tradu
                                 în:</label>
@@ -684,9 +713,17 @@ const confirmDeleteComment = async () => {
 
                         <!-- Formular pentru SINONIME -->
                         <div v-if="inlineFormStore.isFormOpen && inlineFormStore.targetFragmentId === fragment.id && inlineFormStore.formType === 'synonyms'"
-                            class="border-s-8 border-brand-olivine px-3 pt-4 mt-2 mb-4 global-inline-form-active">
+                            class="border-s-8 border-brand-olivine px-3 pt-4 mt-2 mb-4 global-inline-form-active"
+                            :class="{
+                                'mt-0 pt-0': !(openFormForFragmentId === fragment.id && editingCommentId === null) || !(openCommentsForFragmentId === fragment.id && fragment.comments?.length),
+                                'pt-4 mt-2': (openFormForFragmentId === fragment.id && editingCommentId === null) || (openCommentsForFragmentId === fragment.id && fragment.comments?.length)
+                            }">
                             <div class="flex justify-between items-center mb-2">
-                                <h4 class="text-md font-semibold text-green-900">Caută Sinonime</h4>
+                                <div class="flex items-center space-x-1 mb-1 ms-1 w-full cursor-default text-xl">
+                                    <span class="text-black font-bold">AI</span>
+                                    <i class="bi bi-stars text-brand-gold-metallic"></i>
+                                    <span class="text-black font-bold ms-4">Sinonime</span>
+                                </div>
                                 <button @click="inlineFormStore.closeForm()"
                                     class="text-gray-500 hover:text-gray-700 text-3xl">×</button>
                             </div>
@@ -711,10 +748,17 @@ const confirmDeleteComment = async () => {
 
                         <!-- Formular pentru EXPRESII -->
                         <div v-if="inlineFormStore.isFormOpen && inlineFormStore.targetFragmentId === fragment.id && inlineFormStore.formType === 'expressions'"
-                            class="border-s-8 border-brand-olivine px-3 pt-4 mt-2 mb-4 global-inline-form-active">
+                            class="border-s-8 border-brand-olivine px-3 pt-4 mt-2 mb-4 global-inline-form-active"
+                            :class="{
+                                'mt-0 pt-1': !(openFormForFragmentId === fragment.id && editingCommentId === null) || !(openCommentsForFragmentId === fragment.id && fragment.comments?.length),
+                                'pt-4 mt-2': (openFormForFragmentId === fragment.id && editingCommentId === null) || (openCommentsForFragmentId === fragment.id && fragment.comments?.length)
+                            }">
                             <div class="flex justify-between items-center mb-2">
-                                <h4 class="text-md font-semibold text-green-900">Expresii similare</h4>
-                                <button @click="inlineFormStore.closeForm()"
+                                <div class="flex items-center space-x-1 mb-1 ms-1 w-full cursor-default text-xl">
+                                    <span class="text-black font-bold">AI</span>
+                                    <i class="bi bi-stars text-brand-gold-metallic"></i>
+                                    <span class="text-black font-bold ms-4">Expresii</span>
+                                </div> <button @click="inlineFormStore.closeForm()"
                                     class="text-gray-500 hover:text-gray-700 text-3xl">×</button>
                             </div>
                             <div class="mb-2 p-2 border border-gray-200 bg-gray-50 rounded text-sm text-gray-600">
