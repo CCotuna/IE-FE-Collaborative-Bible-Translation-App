@@ -2,6 +2,7 @@
 import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import Navigation from './components/layout/navigation/Navigation.vue'
+import ToastContainer from './components/common/ToastContainer.vue'
 import { useUserStore } from '@/store/user'
 import { useNotificationStore } from './store/notification'
 
@@ -19,6 +20,8 @@ onMounted(async () => {
     <div>
         <Navigation />
         <RouterView />
+
+        <ToastContainer />
     </div>
 </template>
 

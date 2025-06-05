@@ -4,17 +4,20 @@ import { useProjectStore } from '@/store/project';
 import { useNotificationStore } from '@/store/notification';
 import { useUserStore } from '@/store/user';
 import { timeSinceCreated } from '@/utils/timeSinceCreated';
+import { useToaster } from '@/utils/useToaster';
 import { useRouter } from 'vue-router';
 import socket from '@/plugins/socket';
 
 const userStore = useUserStore();
 const notificationStore = useNotificationStore();
 
+const { showToast } = useToaster();
+
 const projectStore = useProjectStore();
 const projects = computed(() => {
     if (!projectStore.projects) return [];
     return [...projectStore.projects].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-}); 
+});
 
 const router = useRouter();
 
@@ -38,23 +41,6 @@ const isModalOpen = ref(false);
 const selectedProjectId = ref(null);
 const selectedOwnerId = ref(null);
 
-const showToast = ref(false);
-const toastMessage = ref('');
-const toastType = ref('success');
-
-const triggerToast = (message, isNegative) => {
-    toastMessage.value = message;
-    showToast.value = true;
-    if (isNegative) {
-        toastType.value = 'success';
-    } else {
-        toastType.value = 'error';
-    }
-    setTimeout(() => {
-        showToast.value = false;
-    }, 3000);
-};
-
 const askDeleteConfirmation = (project) => {
     selectedProjectId.value = project.id;
     selectedOwnerId.value = project.userId;
@@ -71,15 +57,27 @@ const confirmDelete = async () => {
         if (selectedOwnerId.value === userStore.user.id) {
             try {
                 await projectStore.deleteProject(selectedProjectId.value, userStore.user.id);
-                triggerToast("Proiectul a fost șters cu succes.", 'success');
+                showToast({
+                    text: "Proiectul a fost șters cu succes.",
+                    status: 'success',
+                    timeout: 1500
+                })
             } catch (error) {
                 console.error("Error deleting project:", error);
-                triggerToast("A apărut o eroare la ștergerea proiectului.", 'error');
+                showToast({
+                    text: "A apărut o eroare la ștergerea proiectului.",
+                    status: 'success',
+                    timeout: 1500
+                })
             } finally {
                 closeModal();
             }
         } else {
-            triggerToast("Nu ai permisiunea de a șterge acest proiect.", 'error');
+            showToast({
+                text: "Nu ai permisiunea de a șterge acest proiect.",
+                status: 'success',
+                timeout: 1500
+            })
             closeModal();
         }
     }
@@ -113,21 +111,6 @@ onBeforeUnmount(() => {
 
 const isExporting = computed(() => projectStore.isExportingPdf);
 
-// const exportProject = async (projectId) => {
-//     isExporting.value = true;
-
-//     const projectToExport = projects.value.find(p => p.id === projectId);
-//     const projectTitle = projectToExport ? projectToExport.title : `Proiect ID ${projectId}`;
-//     try {
-//         await projectStore.exportProjectFragmentsToTXT(projectId);
-//     } catch (error) {
-//         console.error(`Failed to export project ${projectId} to PDF from component:`, error);
-//         triggerToast(`Eroare la exportul PDF pentru "${projectTitle}": ${error.message}`, true);
-//     } finally {
-//         isExporting.value = false;
-//     }
-// };
-
 const handleExportToPdf = async (projectId) => {
     await projectStore.exportProjectToPdf(projectId);
 };
@@ -137,15 +120,13 @@ const handleExportToPdf = async (projectId) => {
 
     <div v-if="projects.length > 0">
         <div v-for="project in projects" :key="project.id"
-            class="relative border border-brand-olivine rounded-lg mx-5 mt-4 p-3 space-y-3">
-            <!-- {{ project }} -->
-            <i v-if="project.userId === userStore.user.id"
+            class="relative border border-brand-olivine rounded-lg mx-5 mt-4 p-3 space-y-3"> <i
+                v-if="project.userId === userStore.user.id"
                 class="bi bi-journal-text bg-white text-brand-gold-metallic rounded-full p-2 flex items-center justify-center w-12 h-12 text-3xl absolute -top-4 -left-4"></i>
             <i v-else
                 class="bi bi-journal-arrow-down bg-white text-brand-gold-metallic rounded-full p-2 flex items-center justify-center w-12 h-12 text-3xl absolute -top-4 -left-4"></i>
             <div class="flex justify-between items-center">
                 <p class="text-xl cursor-pointer" @click="navigateToProject(project.id)">
-                    <!-- {{ project }} -->
                     {{ project.title }}
                 </p>
                 <p v-if="project.type" class="bg-brand-honeydew p-2 px-5 rounded-lg">
@@ -203,13 +184,4 @@ const handleExportToPdf = async (projectId) => {
         <p class="text-center text-2xl font-bold text-brand-olivine">No projects yet</p>
         <p class="text-center text-lg text-black">Create a new project to get started</p>
     </div>
-
-    <div v-if="showToast"
-        class="fixed bottom-4 left-4 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300" :class="{
-            'bg-red-600': toastType === 'error',
-            'bg-brand-olivine': toastType === 'success',
-        }">
-        {{ toastMessage }}
-    </div>
-
 </template>
