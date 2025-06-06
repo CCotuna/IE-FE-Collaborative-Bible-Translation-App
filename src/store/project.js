@@ -560,7 +560,6 @@ export const useProjectStore = defineStore("project", {
                                 const vfsPath = `${fontInfo.name}-${fontInfo.style}.ttf`;
                                 doc.addFileToVFS(vfsPath, fontBase64);
                                 doc.addFont(vfsPath, fontInfo.name, fontInfo.style);
-                                console.log(`[PDF Font] Fontul ${vfsPath} încărcat ca ${fontInfo.name} ${fontInfo.style}.`);
                                 resolve();
                             };
                             reader.onerror = reject;

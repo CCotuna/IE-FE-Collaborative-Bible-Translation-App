@@ -1,7 +1,10 @@
 <script setup>
 import { ref } from "vue";
+import { useI18n } from 'vue-i18n'
+
 import ImportOptions from "@/components/forms/ImportOptions.vue";
 
+const { t } = useI18n();
 import { useProjectStore } from "@/store/project";
 const projectStore = useProjectStore();
 
@@ -16,12 +19,12 @@ const isChecked = ref(false);
         <RouterLink :to="{ name: 'new-project' }"
           class="flex items-center space-x-8 px-8 py-2 text-white bg-brand-olivine rounded-full">
           <i class="bi bi-pencil-square text-3xl"></i>
-          <span class="text-xl">Import text</span>
+          <span class="text-xl">{{ t('importView.importTextBtnLabel') }}</span>
         </RouterLink>
         <RouterLink :to="{ name: 'new-project-pdf' }">
           <button class="flex items-center space-x-8 px-8 py-2 text-white bg-brand-olivine rounded-full">
             <i class="bi bi-file-earmark-arrow-up text-3xl"></i>
-            <span class="text-xl">Import fișier</span>
+            <span class="text-xl">{{ t('importView.importTextFileBtnLabel') }}</span>
           </button>
         </RouterLink>
       </div>
@@ -45,7 +48,7 @@ const isChecked = ref(false);
     <RouterLink :to="{ name: 'classified-import' }"
       class="flex items-center space-x-8 px-5 py-2 text-white bg-brand-olivine rounded-full">
       <i class="bi bi-book text-3xl"></i>
-      <span class="text-xl">Import clasificat</span>
+      <span class="text-xl">{{ t('importView.importTextClassifiedBtnLabel') }}</span>
     </RouterLink>
   </div>
 </template>

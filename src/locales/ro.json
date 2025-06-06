@@ -1,0 +1,9 @@
+{
+    "languageChanged": "Language changed to {lang}!",
+    "languageAlreadySet": "Language is already set to {lang}!",
+    "importView": {
+        "importTextBtnLabel": "Import text",
+        "importTextFileBtnLabel": "Import fisier",
+        "importTextClassifiedBtnLabel": "Import clasificat"
+    }
+}

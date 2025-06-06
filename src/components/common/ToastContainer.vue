@@ -15,5 +15,4 @@ import ToastBase from '@/components/common/ToastBase.vue'
 import { useToaster } from '@/utils/useToaster'
 
 const { toasts, removeToast } = useToaster()
-console.log('ToastContainer toasts:', toasts)
 </script>

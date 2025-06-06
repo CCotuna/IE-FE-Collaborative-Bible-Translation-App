@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useUserStore } from '@/store/user'
 import { useRouter } from 'vue-router'
-import { validateEmail } from '@/utils/validateUtil'
+import { validateEmail } from '@/utils/validationUtils'
 import AuthIcons from '@/components/design/AuthIcons.vue'
 
 const router = useRouter()

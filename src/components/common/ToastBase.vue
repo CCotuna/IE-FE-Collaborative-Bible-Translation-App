@@ -38,8 +38,6 @@ const props = defineProps({
     }
 })
 
-console.log('ToastBase props: in toastbase', props)
-
 const emit = defineEmits(['close'])
 
 const visible = ref(true)

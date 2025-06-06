@@ -1,0 +1,9 @@
+{
+    "languageChanged": "Limba a fost schimbată în {lang}!",
+    "languageAlreadySet": "Limba este deja setată la {lang}!",
+    "importView": {
+        "importTextBtnLabel": "Import text",
+        "importTextFileBtnLabel": "Import file",
+        "importTextClassifiedBtnLabel": "Classified import"
+    }
+}
