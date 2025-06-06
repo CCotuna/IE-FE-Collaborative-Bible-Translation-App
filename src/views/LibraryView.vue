@@ -3,23 +3,27 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useProjectStore } from '@/store/project';
 import { useNotificationStore } from '@/store/notification';
 import { useUserStore } from '@/store/user';
-import { timeSinceCreated } from '@/utils/timeSinceCreated';
+import { timeSinceCreated } from '@/utils/dateUtils';
 import { useToaster } from '@/utils/useToaster';
 import { useRouter } from 'vue-router';
 import socket from '@/plugins/socket';
 
 const userStore = useUserStore();
 const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
 
+const router = useRouter();
 const { showToast } = useToaster();
 
-const projectStore = useProjectStore();
+const isModalOpen = ref(false);
+const selectedProjectId = ref(null);
+const selectedOwnerId = ref(null);
+const isExporting = computed(() => projectStore.isExportingPdf);
+
 const projects = computed(() => {
     if (!projectStore.projects) return [];
     return [...projectStore.projects].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 });
-
-const router = useRouter();
 
 const navigateToProject = (id) => {
     const project = projects.value.find(p => p.id === id);
@@ -36,10 +40,6 @@ const navigateToProject = (id) => {
 const navigateToCollaborators = (id) => {
     router.push({ name: 'collaborators-view', params: { id } });
 };
-
-const isModalOpen = ref(false);
-const selectedProjectId = ref(null);
-const selectedOwnerId = ref(null);
 
 const askDeleteConfirmation = (project) => {
     selectedProjectId.value = project.id;
@@ -108,8 +108,6 @@ onMounted(async () => {
 onBeforeUnmount(() => {
     socket.off('projectDeleted', handleProjectDeleted);
 });
-
-const isExporting = computed(() => projectStore.isExportingPdf);
 
 const handleExportToPdf = async (projectId) => {
     await projectStore.exportProjectToPdf(projectId);

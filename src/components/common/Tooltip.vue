@@ -1,4 +1,3 @@
-// components/TextWithTooltip.vue
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useTippy } from 'vue-tippy';

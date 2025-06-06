@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useProjectStore } from '@/store/project';
-import { timeSinceCreated } from '@/utils/timeSinceCreated';
+import { timeSinceCreated } from '@/utils/dateUtils';
 import { useRouter } from 'vue-router';
 
 const projectStore = useProjectStore();

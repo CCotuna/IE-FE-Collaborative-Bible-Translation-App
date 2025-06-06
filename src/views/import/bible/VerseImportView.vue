@@ -26,7 +26,6 @@ const getTotalVerses = (book, chapterNumber) => {
 
 const addBibleProject = async () => {
     await projectStore.addProject(bibleProjectStore.bibleProject);
-    bibleProjectStore.resetBibleProject();
     router.push({ name: 'home' });
 }
 
@@ -40,6 +39,7 @@ const sortedSelectedChapters = (chapters) => {
     <div class="p-4 sm:p-6">
         <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-6 sm:mb-8">Selectează
             Versetele</h2>
+        {{ bibleProjectStore.bibleProject.selectedBooks }} cărți selectate
 
         <div v-if="bibleProjectStore.bibleProject.selectedBooks.length > 0" class="space-y-8">
 

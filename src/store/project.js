@@ -5,44 +5,6 @@ import { jsPDF } from "jspdf";
 
 import { useUserStore } from './user';
 
-export async function sendCommentNotification(commentData) {
-    const { projectId, fragmentId, senderId, senderEmail } = commentData;
-    const projectStore = useProjectStore();
-    const notificationStore = useNotificationStore();
-
-    await projectStore.fetchProjectById(projectId);
-    const project = projectStore.projects.find(p => p.id === projectId);
-    if (!project) {
-        console.warn('sendCommentNotification: Project not found for projectId:', projectId);
-        return;
-    }
-    const projectTitle = project.title;
-    const receiverIds = project.collaborators
-        .map(collaborator => {
-            const collaboratorUserId = collaborator.id || collaborator.userId;
-            return collaboratorUserId;
-        })
-        .filter(collaboratorUserId => {
-            return typeof collaboratorUserId === 'number' && collaboratorUserId !== senderId;
-        });
-
-    if (receiverIds.length > 0) {
-        await notificationStore.sendNotification({
-            receiverIds: receiverIds,
-            senderId: senderId,
-            senderEmail: senderEmail,
-            projectId: projectId,
-            projectTitle: projectTitle,
-            type: "comment",
-            status: "pending",
-            fragmentId: fragmentId,
-            message: `Utilizatorul ${senderEmail} a adăugat/modificat un comentariu public la proiectul "${projectTitle}".`,
-        });
-    } else {
-        console.log("No other collaborators to notify for comment.");
-    }
-}
-
 export const useProjectStore = defineStore("project", {
     state: () => ({
         projects: [],
@@ -55,19 +17,16 @@ export const useProjectStore = defineStore("project", {
     actions: {
         async fetchProjects() {
             const userStorage = useUserStore();
-
             const userId = userStorage.user.id;
 
             if (!userId) {
                 this.projects = [];
                 return;
             }
-
             try {
                 const projects = await axios.get("http://localhost:3000/projects", {
                     params: { userId }
                 });
-
                 this.projects = projects.data;
             } catch (error) {
                 console.error("Error fetching projects:", error);
@@ -92,7 +51,6 @@ export const useProjectStore = defineStore("project", {
                 const response = await axios.get("http://localhost:3000/projects/getProjectById", {
                     params: { projectId, userId }
                 });
-
                 if (response.data) {
                     this.projects.push(response.data);
                     return response.data;
@@ -108,7 +66,6 @@ export const useProjectStore = defineStore("project", {
         async fetchProjectBibleBooks(projectId) {
             try {
                 const response = await axios.get(`http://localhost:3000/projects/biblebooks/${projectId}/books`);
-
                 const existing = this.books.find(b => b.id === projectId);
                 if (existing) {
                     existing.bibleBooks = response.data;
@@ -127,7 +84,6 @@ export const useProjectStore = defineStore("project", {
         async fetchProjectBookChapters(projectId, bookId) {
             try {
                 const response = await axios.get(`http://localhost:3000/projects/biblebooks/${bookId}/chapters`);
-
                 const existing = this.chapters.find(c => c.id === projectId);
                 if (existing) {
                     existing.bibleChapters = response.data;
@@ -137,7 +93,6 @@ export const useProjectStore = defineStore("project", {
                         bibleChapters: response.data,
                     });
                 }
-
             } catch (error) {
                 console.error(`Error fetching Bible Chapters for project ${projectId}:`, error);
             }
@@ -146,7 +101,6 @@ export const useProjectStore = defineStore("project", {
         async fetchProjectFragments(projectId, userId) {
             try {
                 const response = await axios.get(`http://localhost:3000/projects/${projectId}/fragments`);
-
                 const existing = this.fragments.find(f => f.id === projectId);
                 if (existing) {
                     existing.fragments = response.data;
@@ -156,7 +110,6 @@ export const useProjectStore = defineStore("project", {
                         fragments: response.data,
                     });
                 }
-
             } catch (error) {
                 console.error(`Error fetching Fragments for project ${projectId}:`, error);
             }
@@ -165,7 +118,6 @@ export const useProjectStore = defineStore("project", {
         async fetchChapterFragments(projectId, chapterId) {
             try {
                 const response = await axios.get(`http://localhost:3000/projects/biblechapters/${chapterId}/fragments`);
-
                 const existing = this.fragments.find(f => f.id === projectId);
                 if (existing) {
                     existing.bibleFragments = response.data;
@@ -175,7 +127,6 @@ export const useProjectStore = defineStore("project", {
                         bibleFragments: response.data,
                     });
                 }
-
             } catch (error) {
                 console.error(`Error fetching Bible Fragments for project ${projectId}:`, error);
             }
@@ -201,16 +152,13 @@ export const useProjectStore = defineStore("project", {
                         "Content-Type": "application/json",
                     }
                 });
-
                 this.projects.push({
                     ...newProject,
                     id: response.data.id,
                     createdAt: response.data.createdAt,
                     updatedAt: response.data.updatedAt,
                 });
-
                 this.fetchProjects();
-
             } catch (error) {
                 console.error("Error adding project:", error);
             }
@@ -219,6 +167,7 @@ export const useProjectStore = defineStore("project", {
 
         async addComment({ fragmentId, content, status, isSuggestion, projectId }) {
             const userStore = useUserStore();
+            const notificationStore = useNotificationStore();
             try {
                 const response = await axios.post("http://localhost:3000/comments", {
                     fragmentId,
@@ -232,9 +181,8 @@ export const useProjectStore = defineStore("project", {
                 });
 
                 const newComment = response.data;
-
                 if (newComment.status === "public") {
-                    await sendCommentNotification({
+                    await notificationStore.sendCommentNotification({
                         projectId: projectId,
                         fragmentId: newComment.fragmentId,
                         senderId: userStore.user.id,
@@ -254,7 +202,6 @@ export const useProjectStore = defineStore("project", {
             if (projectIndex !== -1) {
                 this.projects.splice(projectIndex, 1);
             }
-
             try {
                 await axios.delete("http://localhost:3000/projects", {
                     headers: {
@@ -275,6 +222,7 @@ export const useProjectStore = defineStore("project", {
                 this.projects.splice(projectIndex, 1);
             }
         },
+
         async deleteComment(commentId, fragmentIdPassedFromComponent) {
             try {
                 await axios.delete("http://localhost:3000/comments", {
@@ -331,7 +279,6 @@ export const useProjectStore = defineStore("project", {
                     } else if (fragmentGroup.fragments && fragmentGroup.fragments.length > 0) {
                         fragsArray = fragmentGroup.fragments;
                     }
-
                     for (const fragment of fragsArray) {
                         if (fragment.comments) {
                             const commentIndex = fragment.comments.findIndex(c => c.id === commentId);
@@ -358,6 +305,7 @@ export const useProjectStore = defineStore("project", {
 
         async toggleCommentStatus(commentId) {
             const userStore = useUserStore();
+            const notificationStore = useNotificationStore();
 
             try {
                 const response = await axios.post("http://localhost:3000/comments/toggle-status", {
@@ -406,7 +354,7 @@ export const useProjectStore = defineStore("project", {
                     }
 
                     if (finalProjectId) {
-                        await sendCommentNotification({
+                        await notificationStore.sendCommentNotification({
                             projectId: finalProjectId,
                             fragmentId: updatedComment.fragmentId,
                             senderId: userStore.user.id,

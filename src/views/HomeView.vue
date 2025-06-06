@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import ImportTextView from '@/views/ImportTextView.vue';
+import ImportView from '@/views/ImportView.vue';
 import NotAuthenticated from '@/components/design/NotAuthenticated.vue';
 import Library from '@/views/LibraryView.vue';
 
@@ -19,7 +19,7 @@ const isAuthenticated = computed(() => userStore.isAuthenticated());
     </div>
     <div v-else>
         <div v-if="projectStore.projects.length == 0">
-            <ImportTextView />
+            <ImportView />
         </div>
         <div v-else>
             <Library />

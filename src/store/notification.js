@@ -140,6 +140,44 @@ export const useNotificationStore = defineStore('notification', {
                 notification.toUserId === userId &&
                 notification.status === 'unread'
             );
+        },
+
+        async sendCommentNotification(commentData) {
+            const { projectId, fragmentId, senderId, senderEmail } = commentData;
+            const projectStore = useProjectStore();
+            const notificationStore = useNotificationStore();
+
+            await projectStore.fetchProjectById(projectId);
+            const project = projectStore.projects.find(p => p.id === projectId);
+            if (!project) {
+                console.warn('sendCommentNotification: Project not found for projectId:', projectId);
+                return;
+            }
+            const projectTitle = project.title;
+            const receiverIds = project.collaborators
+                .map(collaborator => {
+                    const collaboratorUserId = collaborator.id || collaborator.userId;
+                    return collaboratorUserId;
+                })
+                .filter(collaboratorUserId => {
+                    return typeof collaboratorUserId === 'number' && collaboratorUserId !== senderId;
+                });
+
+            if (receiverIds.length > 0) {
+                await notificationStore.sendNotification({
+                    receiverIds: receiverIds,
+                    senderId: senderId,
+                    senderEmail: senderEmail,
+                    projectId: projectId,
+                    projectTitle: projectTitle,
+                    type: "comment",
+                    status: "pending",
+                    fragmentId: fragmentId,
+                    message: `Utilizatorul ${senderEmail} a adăugat/modificat un comentariu public la proiectul "${projectTitle}".`,
+                });
+            } else {
+                console.log("No other collaborators to notify for comment.");
+            }
         }
     }
 })

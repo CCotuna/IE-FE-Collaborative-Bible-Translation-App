@@ -4,13 +4,18 @@ import { useNotificationStore } from '@/store/notification'
 import { useProjectStore } from '@/store/project'
 import { useRouter } from 'vue-router'
 
-import { timeSinceCreated } from '@/utils/timeSinceCreated'
+import { timeSinceCreated } from '@/utils/dateUtils'
 
 const router = useRouter()
 
 const projectStore = useProjectStore()
 const notificationStore = useNotificationStore()
 const notifications = computed(() => notificationStore.notifications)
+
+onMounted(() => {
+    notificationStore.listenForNotifications();
+    notificationStore.fetchNotifications();
+})
 
 const acceptInvitation = async (notificationId, userId, projectId) => {
     try {
@@ -37,11 +42,6 @@ const markAsRead = async (notificationId) => {
     }
 }
 
-onMounted(() => {
-    notificationStore.listenForNotifications();
-    notificationStore.fetchNotifications();
-})
-
 const navigateToProject = (notification) => {
     const project = projectStore.projects.find(p => p.id === notification.projectId);
     if (!project) {
@@ -55,12 +55,10 @@ const navigateToProject = (notification) => {
         router.push({ name: 'project-default', params: { id: project.id, slug } });
     }
 };
-
 </script>
 
 <template>
     <div v-if="notifications.length > 0">
-        <!-- {{ notifications }} -->
         <ul>
             <li v-for="notification in notifications" :key="notification.id"
                 class="flex flex-col border-b space-y-3 p-6" :class="{

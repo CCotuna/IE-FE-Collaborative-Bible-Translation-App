@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import ImportOptions from "@/components/ui/ImportOptions.vue";
+import ImportOptions from "@/components/forms/ImportOptions.vue";
 
 import { useProjectStore } from "@/store/project";
 const projectStore = useProjectStore();
@@ -19,10 +19,10 @@ const isChecked = ref(false);
           <span class="text-xl">Import text</span>
         </RouterLink>
         <RouterLink :to="{ name: 'new-project-pdf' }">
-        <button class="flex items-center space-x-8 px-8 py-2 text-white bg-brand-olivine rounded-full">
-          <i class="bi bi-file-earmark-arrow-up text-3xl"></i>
-          <span class="text-xl">Import fișier</span>
-        </button>
+          <button class="flex items-center space-x-8 px-8 py-2 text-white bg-brand-olivine rounded-full">
+            <i class="bi bi-file-earmark-arrow-up text-3xl"></i>
+            <span class="text-xl">Import fișier</span>
+          </button>
         </RouterLink>
       </div>
 

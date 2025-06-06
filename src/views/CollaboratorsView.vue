@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useProjectStore } from "@/store/project";
 import { useNotificationStore } from "@/store/notification";
+// import { isOwner } from "@/utils/validateUtil";
 import { useUserStore } from "@/store/user";
 import { useRoute } from "vue-router";
 import socket from "@/plugins/socket";

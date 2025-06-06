@@ -16,7 +16,7 @@ const router = createRouter({
     {
       path: '/base-import',
       name: 'base-import',
-      component: () => import('../views/ImportTextView.vue')
+      component: () => import('../views/ImportView.vue')
     },
     {
       path: '/base-import/new-project',
@@ -81,6 +81,11 @@ const router = createRouter({
     {
       path: '/menu/help',
       name: 'help',
+      component: () => import('../views/HelpView.vue')
+    },
+    {
+      path: '/menu/share-profile',
+      name: 'share-profile',
       component: () => import('../views/HelpView.vue')
     },
     {

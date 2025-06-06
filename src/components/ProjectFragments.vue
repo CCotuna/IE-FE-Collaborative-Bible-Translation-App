@@ -2,27 +2,27 @@
 import { useRoute, useRouter } from 'vue-router';
 import { useProjectStore } from '@/store/project';
 import { useUserStore } from '@/store/user';
-import { useWordAssistantStore } from '@/store/wordAssistant';
+import { useNotificationStore } from '@/store/notification';
 import { ref, watch, nextTick, computed, onMounted, onBeforeUnmount } from 'vue';
-import { timeSinceCreated } from '@/utils/timeSinceCreated';
+import { timeSinceCreated } from '@/utils/dateUtils';
 
-import TextWithTooltip from '@/components/TextWithTooltip.vue';
+import Tooltip from '@/components/common/Tooltip.vue';
 import { useInlineFormStore } from '@/store/inlineForm';
 import socket from '@/plugins/socket';
-import { sendCommentNotification } from '@/store/project'
 
 const route = useRoute();
 const router = useRouter();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
 const inlineFormStore = useInlineFormStore();
+const notificationStore = useNotificationStore();
 
 const fragments = ref([]);
 const projectId = parseInt(route.params.id);
 const chapterId = parseInt(route.query.chapterId);
 
 const newFormTextareaContent = ref('');
-const newFormStatus = ref('proposed'); // Exemplu
+const newFormStatus = ref('proposed');
 
 const project = computed(() => projectStore.projects.find(p => p.id === projectId));
 
@@ -219,7 +219,7 @@ onMounted(async () => {
             }
 
             if (finalProjectId && userStore.user) {
-                await sendCommentNotification({
+                await notificationStore.sendCommentNotification({
                     projectId: finalProjectId,
                     fragmentId: updatedComment.fragmentId,
                     senderId: userStore.user.id,
@@ -511,7 +511,7 @@ const handleCopyText = () => {
                             <span class="flex-grow -mt-1">
                                 <span v-if="fragment.verseNumber != null" class="font-bold me-1">{{ fragment.verseNumber
                                     }}. </span>
-                                <TextWithTooltip :contentHtml="fragment.content" :fragmentId="fragment.id" />
+                                <Tooltip :contentHtml="fragment.content" :fragmentId="fragment.id" />
                             </span>
                         </p>
 
@@ -549,7 +549,7 @@ const handleCopyText = () => {
                                             'bg-brand-cornsilk': comment.userId === userStore.user.id,
                                             'bg-white': comment.userId !== userStore.user.id
                                         }">
-                                            <TextWithTooltip :contentHtml="comment.content" :fragmentId="fragment.id" />
+                                            <Tooltip :contentHtml="comment.content" :fragmentId="fragment.id" />
                                             <!-- <span>{{ comment.content }}</span> -->
                                         </p>
                                     </div>
