@@ -1,36 +1,44 @@
 <script setup>
-import { ref } from 'vue';
-const selectedOption = ref(null);
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n();
 
-const selectOption = (option) => {
-  selectedOption.value = option;
+const props = defineProps({
+    currentSelectedOption: {
+        type: String,
+        default: null
+    }
+})
+
+const emit = defineEmits(['option-selected']);
+
+const selectOption = (optionValue) => {
+    emit('option-selected', optionValue);
 }
 </script>
 <template>
-    <span>Semnul pentru împǎrțirea textului:</span>
-    <!-- {{ selectedOption }} -->
+    <span>{{ t('importView.textSplitter.label') }}</span>
     <button @click="selectOption('Punct')"
-        :class="selectedOption === 'Punct' ? 'border border-brand-olivine text-brand-olivine' : 'border border-gray-200 text-black'"
+        :class="currentSelectedOption === 'Punct' ? 'border border-brand-olivine text-brand-olivine' : 'border border-gray-200 text-black'"
         class="py-2 rounded-md transition">
-        Punct
+        {{ t('importView.textSplitter.options.period') }}
     </button>
 
     <button @click="selectOption('Rand nou')"
-        :class="selectedOption === 'Rand nou' ? 'border border-brand-olivine text-brand-olivine' : 'border border-gray-200 text-black'"
+        :class="currentSelectedOption === 'Rand nou' ? 'border border-brand-olivine text-brand-olivine' : 'border border-gray-200 text-black'"
         class=" py-2 rounded-md transition">
-        Rând nou
+        {{ t('importView.textSplitter.options.newline') }}
     </button>
 
     <button @click="selectOption('Text continuu')"
-        :class="selectedOption === 'Text continuu' ? 'border border-brand-olivine text-brand-olivine' : 'border border-gray-200 text-black'"
+        :class="currentSelectedOption === 'Text continuu' ? 'border border-brand-olivine text-brand-olivine' : 'border border-gray-200 text-black'"
         class="py-2 rounded-md transition">
-        Text continuu
+        {{ t('importView.textSplitter.options.continuousText') }}
     </button>
 
     <button @click="selectOption('Paragrafe')"
-        :class="selectedOption === 'Paragrafe' ? 'border border-brand-olivine text-brand-olivine' : 'border border-gray-200 text-black'"
+        :class="currentSelectedOption === 'Paragrafe' ? 'border border-brand-olivine text-brand-olivine' : 'border border-gray-200 text-black'"
         class=" py-2 rounded-md transition">
-        Paragrafe
+        {{ t('importView.textSplitter.options.paragraphs') }}
     </button>
 </template>
 <style scoped></style>

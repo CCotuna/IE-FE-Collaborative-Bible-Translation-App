@@ -6,6 +6,9 @@ import 'tippy.js/animations/scale.css';
 import 'tippy.js/themes/light.css';
 import { useInlineFormStore } from '@/store/inlineForm';
 
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n();
+
 const props = defineProps({
     contentHtml: {
         type: String,
@@ -42,15 +45,15 @@ const generateTooltipHtml = () => {
             </div>
             <button data-action="translate" class="flex items-center space-x-2 text-xl">
                 <i class="${translateIconClass} text-brand-gold-metallic text-2xl"></i>
-                <span class="text-gray-800 hover:text-brand-gold-metallic">Traduceri</span>
+                <span class="text-gray-800 hover:text-brand-gold-metallic">${t('tooltip.translate')}</span>
             </button>
             <button data-action="synonyms" class="flex items-center space-x-2 text-xl">
                 <i class="${synonymsIconClass} text-brand-gold-metallic text-2xl"></i>
-                <span class="text-gray-800 hover:text-brand-gold-metallic">Sinonime</span>
+                <span class="text-gray-800 hover:text-brand-gold-metallic">${t('tooltip.synonyms')}</span>
             </button>
             <button data-action="expressions" class="flex items-center space-x-2 text-xl">
                 <i class="${expressionsIconClass} text-brand-gold-metallic text-2xl"></i>
-                <span class="text-gray-800 hover:text-brand-gold-metallic">Expresii</span>
+                <span class="text-gray-800 hover:text-brand-gold-metallic">${t('tooltip.expressions')}</span>
             </button>
         </div>
     </div>

@@ -14,13 +14,13 @@ onMounted(async () => {
     await notificationStore.fetchNotifications();
     notificationStore.listenForNotifications();
 })
+
 </script>
 
 <template>
     <div>
         <Navigation />
         <RouterView />
-
         <ToastContainer />
     </div>
 </template>

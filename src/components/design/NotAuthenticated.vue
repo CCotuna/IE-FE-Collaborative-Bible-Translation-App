@@ -1,4 +1,7 @@
-<script setup></script>
+<script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n();
+</script>
 <template>
     <div class="w-full max-w-lg bg-brand-custom-white rounded-xl p-6 sm:p-10 text-center">
         <div class="w-20 h-[5px] bg-brand-gold-metallic rounded-full mx-auto mb-6 sm:mb-8"></div>
@@ -6,10 +9,10 @@
             class="mx-auto h-48 sm:h-64 md:h-80 w-auto mb-6 sm:mb-8" />
 
         <h1 class="text-3xl sm:text-4xl font-bold text-slate-700 mb-4 leading-tight">
-            Conectează-te pentru a continua
+            {{ t('homepageGuest.signInPrompt') }}
         </h1>
         <p class="text-md sm:text-lg text-slate-500 mb-8 sm:mb-10">
-            Contul tău îți oferă acces la toate instrumentele și proiectele tale.
+            {{ t('homepageGuest.signInDescription') }}
         </p>
 
         <RouterLink :to="{ name: 'sign-in' }" class="w-full sm:w-auto bg-brand-olivine text-brand-custom-white font-semibold 
@@ -17,15 +20,15 @@
                        transform transition-all duration-300 ease-in-out 
                        hover:bg-opacity-85 hover:shadow-xl hover:scale-105 
                        focus:outline-none focus:ring-4 focus:ring-brand-olivine focus:ring-opacity-40">
-            Autentificare
+            {{ t('menuView.signIn') }}
         </RouterLink>
 
         <div class="mt-10 text-sm text-slate-500">
             <p>
-                Nu ai încă un cont?
+                {{ t('homepageGuest.signUpDescription')}}
                 <RouterLink :to="{ name: 'sign-up' }"
                     class="font-semibold text-brand-gold-metallic hover:text-brand-olivine hover:underline focus:outline-none">
-                    Creează unul acum
+                    {{ t('homepageGuest.signUpPrompt') }}
                 </RouterLink>
             </p>
         </div>

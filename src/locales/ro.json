@@ -1,9 +1,117 @@
 {
     "languageChanged": "Language changed to {lang}!",
     "languageAlreadySet": "Language is already set to {lang}!",
+    "homepageGuest": {
+        "signInPrompt": "Conectează-te pentru a continua",
+        "signInDescription": "Contul tău îți oferă acces la toate instrumentele și proiectele tale.",
+        "signUpPrompt": "Creează unul acum.",
+        "signUpDescription": "Nu ai încă un cont?"
+    },
     "importView": {
-        "importTextBtnLabel": "Import text",
-        "importTextFileBtnLabel": "Import fisier",
-        "importTextClassifiedBtnLabel": "Import clasificat"
+        "helpText": "Adaugă primul tău text folosind una dintre cele trei metode",
+        "importMethods": {
+            "text": "Import text",
+            "file": "Import fișier",
+            "classified": "Import clasificat"
+        },
+        "defaultOptionsToggle": {
+            "label": "Opțiuni predefinite de import"
+        },
+        "textSplitter": {
+            "label": "Semnul pentru împărțirea textului",
+            "options": {
+                "period": "Punct",
+                "newline": "Rând nou",
+                "continuousText": "Text continuu",
+                "paragraphs": "Paragrafe"
+            }
+        }
+    },
+    "projectSearchView": {
+        "searchPlaceholder": "Caută un proiect...",
+        "noResults": "Nu s-au găsit proiecte."
+    },
+    "notificationsView": {
+        "noNotifications": "Nu există notificări.",
+        "clearAll": "Șterge toate notificările"
+    },
+    "menuView": {
+        "logout": "Deconectare",
+        "signIn": "Autentificare",
+        "signUp": "Înregistrare",
+        "profile": {
+            "title": "Contul meu",
+            "email": "E-mail",
+            "changePassword": "Schimbă parola",
+            "deleteAccount": "Șterge contul"
+        },
+        "settings": {
+            "title": "Setări",
+            "language": "Limba actuală",
+            "cancel": "Anulează",
+            "save": "Salvează modificările"
+        },
+        "share-profile": {
+            "title": "Trimite"
+        },
+        "about": {
+            "title": "Despre"
+        },
+        "help": {
+            "title": "Ajutor"
+        }
+    },
+    "classifiedImportView": {
+        "bible": {
+            "title": "Biblia",
+            "description": "Importă Biblia dintr-un fișier text sau dintr-o sursă online.",
+            "bibleBook": {
+                "title": "Biblia - Carte",
+                "description": "Selectează o carte din Biblie pentru a importa."
+            },
+            "bibleChapter": {
+                "title": "Biblia - Capitol",
+                "description": "Selectează un capitol din cartea selectată."
+            },
+            "bibleVerse": {
+                "title": "Biblia - Verset",
+                "description": "Selectează un verset specific din capitolul selectat."
+            }
+        },
+        "christianHymns": {
+            "title": "Imnuri creștine"
+        },
+        "christianPoems": {
+            "title": "Poezii creștine"
+        },
+        "christianCommentaries": {
+            "title": "Comentarii creștine"
+        }
+    },
+    "navigationTitles": {
+        "/base-import": "Import text",
+        "/base-import/new-project": "Import text",
+        "/pdf-import": "Extract PDF",
+        "/classified-import": "Import clasificat",
+        "/classified-import/bible": "Biblia",
+        "/classified-import/bible/book": "Biblia Partial",
+        "/classified-import/bible/book/chapter": "Psalmi",
+        "/classified-import/bible/book/chapter/verse": "Psalmi 17",
+        "/notifications": "Notificări",
+        "/menu": "Meniu",
+        "/menu/my-account": "Contul meu",
+        "/menu/about": "Despre noi",
+        "/menu/help": "Ajutor",
+        "/menu/settings": "Setări",
+        "/projects": "Biblioteca mea",
+        "/projects/search": "Căutare proiecte",
+        "/projectNotFound": "Proiectul nu a fost găsit",
+        "/sign-in": "Autentificare",
+        "/sign-up": "Înregistrare"
+    },
+    "tooltip": {
+        "translate": "Traducere",
+        "synonyms": "Sinonime",
+        "expressions": "Expresii"
     }
 }

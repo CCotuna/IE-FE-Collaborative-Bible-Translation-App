@@ -5,6 +5,9 @@ import { useProjectStore } from '@/store/project';
 import { useUserStore } from '@/store/user';
 import { useNotificationStore } from '@/store/notification';
 
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n();
+
 const route = useRoute();
 const router = useRouter();
 
@@ -31,11 +34,6 @@ if (userStore.isAuthenticated()) {
     notificationStore.fetchNotifications();
 }
 
-
-const goBack = () => {
-    router.go(-1);
-};
-
 const logout = () => {
     userStore.signOut();
     notificationStore.notifications = [];
@@ -46,7 +44,7 @@ const navbarTitle = computed(() => {
     const path = route.path;
 
     if (path === '/') {
-        return projectStore.projects.length === 0 && !userStore.isAuthenticated() ? 'Import text' : 'Biblioteca mea';
+        return projectStore.projects.length === 0 && !userStore.isAuthenticated() ? t('navigationTitles./base-import') : t('navigationTitles./projects');
     }
 
     if (route.params.id) {
@@ -57,43 +55,47 @@ const navbarTitle = computed(() => {
 
     switch (path) {
         case '/base-import':
-            return 'Import text';
+            return t('navigationTitles./base-import');
         case '/base-import/new-project':
-            return 'Import text';
-        case '/pdf-import/new-project':
-            return 'Extract PDF';
+            return t('navigationTitles./base-import/new-project');
+        case '/pdf-import':
+            return t('navigationTitles./pdf-import');
         case '/classified-import':
-            return 'Import clasificat';
+            return t('navigationTitles./classified-import');
         case '/classified-import/bible':
-            return 'Biblia';
+            return t('navigationTitles./classified-import/bible');
         case '/classified-import/bible/book':
-            return 'Biblia Partial'
+            return t('navigationTitles./classified-import/bible/book');
         case '/classified-import/bible/book/chapter':
-            return 'Psalmi';
+            return t('navigationTitles./classified-import/bible/book/chapter');
         case '/classified-import/bible/book/chapter/verse':
-            return 'Psalmi 17';
+            return t('navigationTitles./classified-import/bible/book/chapter/verse');
         case '/notifications':
-            return 'Notificări';
+            return t('navigationTitles./notifications');
         case '/menu':
-            return 'Meniu';
+            return t('navigationTitles./menu');
         case '/menu/my-account':
-            return 'Contul meu'
+            return t('navigationTitles./menu/my-account');
         case '/menu/about':
-            return 'Despre noi';
+            return t('navigationTitles./menu/about');
         case '/menu/help':
-            return 'Ajutor';
+            return t('navigationTitles./menu/help');
         case '/menu/settings':
-            return 'Setări';
+            return t('navigationTitles./menu/settings');
         case '/projects/search':
-            return 'Căutare proiecte';
+            return t('navigationTitles./projects/search');
         case '/sign-in':
-            return 'Autentificare';
+            return t('navigationTitles./sign-in');
         case '/sign-up':
-            return 'Înregistrare';
+            return t('navigationTitles./sign-up');
         default:
             return '';
     }
 });
+
+const goBack = () => {
+    router.go(-1);
+};
 
 const showGoBack = computed(() => {
     if (['/', '/library'].includes(route.path)) {
@@ -116,7 +118,6 @@ const toggleProjectSearch = () => {
 </script>
 
 <template>
-
     <div class="p-3 w-full flex justify-between items-center border-b">
         <div class="flex items-center space-x-2">
             <button v-if="showGoBack" @click="goBack" class="text-lg text-gray-500 hover:text-gray-800">
@@ -143,14 +144,14 @@ const toggleProjectSearch = () => {
                transition-all duration-300 ease-in-out
                hover:bg-opacity-85 hover:shadow-md hover:scale-105
                focus:outline-none focus:ring-2 focus:ring-brand-olivine focus:ring-opacity-75">
-                Sign in
+                {{ t('menuView.signIn') }}
             </RouterLink>
             <RouterLink :to="{ name: 'sign-up' }" class="flex items-center justify-center px-5 md:px-8 py-2 
                text-brand-olivine bg-brand-honeydew rounded-full
                transition-all duration-300 ease-in-out
                hover:bg-brand-tea-green hover:shadow-md hover:text-white hover:scale-105
                focus:outline-none focus:ring-2 focus:ring-brand-olivine focus:ring-opacity-75">
-                Sign up
+                {{ t('menuView.signUp') }}
             </RouterLink>
         </div>
         <div v-if="showMainIcons" class="flex space-x-3 text-3xl">
@@ -188,7 +189,7 @@ const toggleProjectSearch = () => {
                 <span
                     class="absolute inset-0 border-2 border-red-300 rounded-lg
                    transform scale-y-0 group-hover:scale-y-100 transition-transform duration-500 delay-300 origin-bottom"></span>
-                <span class="relative z-10">Deconectare</span>
+                <span class="relative z-10">{{ t('menuView.logout') }}</span>
             </button>
         </div>
         <div v-if="showProjectSpecificIcons" class="flex space-x-3 text-3xl">

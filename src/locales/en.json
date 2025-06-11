@@ -1,9 +1,117 @@
 {
     "languageChanged": "Limba a fost schimbată în {lang}!",
     "languageAlreadySet": "Limba este deja setată la {lang}!",
+    "homepageGuest": {
+        "signInPrompt": "Sign in to continue",
+        "signInDescription": "Your account gives you access to all your tools and projects.",
+        "signUpPrompt": "Create one now.",
+        "signUpDescription": "Don't have an account yet?"
+    },
     "importView": {
-        "importTextBtnLabel": "Import text",
-        "importTextFileBtnLabel": "Import file",
-        "importTextClassifiedBtnLabel": "Classified import"
+        "helpText": "Add your first text using one of the three methods",
+        "importMethods": {
+            "text": "Import text",
+            "file": "Import file",
+            "classified": "Classified import"
+        },
+        "defaultOptionsToggle": {
+            "label": "Default import options"
+        },
+        "textSplitter": {
+            "label": "Text split character",
+            "options": {
+                "period": "Period",
+                "newline": "New line",
+                "continuousText": "Continuous text",
+                "paragraphs": "Paragraphs"
+            }
+        }
+    },
+    "projectSearchView": {
+        "searchPlaceholder": "Search for a project...",
+        "noResults": "No projects found."
+    },
+    "notificationsView": {
+        "noNotifications": "No notifications.",
+        "clearAll": "Clear all notifications"
+    },
+    "menuView": {
+        "logout": "Logout",
+        "signIn": "Sign in",
+        "signUp": "Sign up",
+        "profile": {
+            "title": "My account",
+            "email": "E-mail",
+            "changePassword": "Change password",
+            "deleteAccount": "Delete account"
+        },
+        "settings": {
+            "title": "Settings",
+            "language": "Current language",
+            "cancel": "Cancel",
+            "save": "Save changes"
+        },
+        "share-profile": {
+            "title": "Share"
+        },
+        "about": {
+            "title": "About"
+        },
+        "help": {
+            "title": "Help"
+        }
+    },
+    "classifiedImportView": {
+        "bible": {
+            "title": "Bible",
+            "description": "Import the Bible from a text file or an online source.",
+            "bibleBook": {
+                "title": "Bible - Book",
+                "description": "Select a book from the Bible to import."
+            },
+            "bibleChapter": {
+                "title": "Bible - Chapter",
+                "description": "Select a chapter from the selected book."
+            },
+            "bibleVerse": {
+                "title": "Bible - Verse",
+                "description": "Select a specific verse from the selected chapter."
+            }
+        },
+        "christianHymns": {
+            "title": "Christian hymns"
+        },
+        "christianPoems": {
+            "title": "Christian poems"
+        },
+        "christianCommentaries": {
+            "title": "Christian commentaries"
+        }
+    },
+    "navigationTitles": {
+        "/base-import": "Import text",
+        "/base-import/new-project": "Import text",
+        "/pdf-import": "Extract PDF",
+        "/classified-import": "Classified import",
+        "/classified-import/bible": "Bible",
+        "/classified-import/bible/book": "Partial Bible",
+        "/classified-import/bible/book/chapter": "Psalms",
+        "/classified-import/bible/book/chapter/verse": "Psalms 17",
+        "/notifications": "Notifications",
+        "/menu": "Menu",
+        "/menu/my-account": "My account",
+        "/menu/about": "About us",
+        "/menu/help": "Help",
+        "/menu/settings": "Settings",
+        "/projects": "My library",
+        "/projects/search": "Project search",
+        "/projectNotFound": "Project not found",
+        "/sign-in": "Sign in",
+        "/sign-up": "Sign up"
+    },
+    "tooltip": {
+        "translate": "Translate",
+        "synonyms": "Synonyms",
+        "expressions": "Expressions"
     }
 }

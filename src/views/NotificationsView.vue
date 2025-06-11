@@ -52,7 +52,7 @@ const navigateToProject = (notification) => {
     if (project.type === 'Biblia') {
         router.push({ name: 'project-books', params: { id: project.id, slug } });
     } else {
-        router.push({ name: 'project-default', params: { id: project.id, slug } });
+        router.push({ name: 'project-base', params: { id: project.id, slug } });
     }
 };
 </script>
